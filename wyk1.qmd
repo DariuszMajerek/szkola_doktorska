@@ -1,0 +1,519 @@
+# Wykład 1: Regresja liniowa — predykcja efektywności paliwowej {.unnumbered}
+
+::: hidden
+$$
+ \def\E{\mathrm{E}}
+ \def\Var{\mathrm{Var}}
+$$
+:::
+
+## Wprowadzenie
+
+W tym rozdziale pokażemy kompletny przykład problemu badawczego, w którym celem jest **predykcja wartości zmiennej liczbowej na podstawie danych tabularycznych**. Zrobimy to krok po kroku, używając modelu regresji liniowej.
+
+Przykład został tak dobrany, aby można go było odtworzyć bez przygotowywania osobnego zbioru danych. Skorzystamy z wbudowanego w R zbioru `mtcars`, zawierającego charakterystyki techniczne 32 samochodów.
+
+::: callout-note
+### Co będzie wynikiem tej analizy?
+
+Na końcu będziemy umieli odpowiedzieć na pytanie, jak na podstawie kilku cech samochodu przewidzieć jego efektywność paliwową oraz które cechy mają największy związek z tą efektywnością.
+:::
+
+## Formułowanie celu i problemów badawczych
+
+### Cel badawczy
+
+Chcemy zbudować model, który będzie przewidywał efektywność paliwową samochodu na podstawie jego parametrów technicznych.
+
+W zbiorze `mtcars` zmienna `mpg` oznacza liczbę mil, które samochód przejedzie na jednym galonie paliwa. Im większa wartość `mpg`, tym samochód jest bardziej oszczędny.
+
+::: callout-important
+### Jasne określenie celu
+
+**Cel predykcyjny:** przewidywanie wartości zmiennej `mpg` dla samochodu na podstawie danych tabularycznych opisujących jego konstrukcję.
+:::
+
+### Zmienna objaśniana i zmienne objaśniające
+
+-   **Zmienna objaśniana (zależna, przewidywana):** `mpg`
+-   **Potencjalne zmienne objaśniające (predyktory):**
+    -   `wt` - masa samochodu w tysiącach funtów,
+    -   `hp` - moc silnika,
+    -   `qsec` - czas przejazdu 1/4 mili w sekundach,
+    -   `am` - rodzaj skrzyni biegów (`automat` lub `manualna`),
+    -   `disp` - pojemność skokowa silnika.
+
+### Problem badawczy
+
+Interesuje nas odpowiedź na następujące pytania:
+
+1.  Czy na podstawie kilku prostych cech technicznych można trafnie przewidywać `mpg`?
+2.  Który zestaw predyktorów daje najlepszy kompromis między prostotą modelu a jakością predykcji?
+3.  Czy przyjęty model spełnia podstawowe założenia regresji liniowej?
+4.  Jak interpretować współczynniki modelu w języku problemu badawczego?
+
+### Jednostka obserwacji
+
+Pojedynczą obserwacją jest tutaj **jeden samochód**. Każdy wiersz tabeli danych opisuje jeden obiekt.
+
+## Metodyka
+
+### Idea regresji liniowej
+
+Regresja liniowa opisuje średnią wartość zmiennej objaśnianej jako liniową funkcję zmiennych objaśniających. W najogólniejszej postaci model zapisujemy jako
+
+$$
+Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \dots + \beta_p X_{ip} + \varepsilon_i,
+$$
+
+gdzie:
+
+-   $Y_i$ to wartość zmiennej objaśnianej dla $i$-tej obserwacji,
+-   $X_{ij}$ to wartość $j$-tego predyktora dla $i$-tej obserwacji,
+-   $\beta_0, \beta_1, \dots, \beta_p$ to nieznane parametry modelu,
+-   $\varepsilon_i$ to składnik losowy, czyli część zmienności niewyjaśniona przez model.
+
+W naszym przykładzie model będzie przewidywał `mpg` na podstawie cech samochodu.
+
+### Co oznaczają współczynniki modelu?
+
+-   Wyraz wolny $\beta_0$ jest punktem odniesienia modelu.
+-   Współczynnik $\beta_j$ mówi, o ile przeciętnie zmieni się wartość zmiennej objaśnianej, gdy predyktor $X_j$ wzrośnie o 1 jednostkę, przy założeniu stałości pozostałych predyktorów.
+
+To bardzo ważne: w regresji wielorakiej interpretujemy wpływ danej zmiennej **przy kontrolowaniu pozostałych zmiennych**.
+
+### Założenia modelu regresji liniowej
+
+Aby wyniki modelu były wiarygodne, sprawdzamy następujące założenia:
+
+1.  **Liniowość zależności**: średni związek między `mpg` a predyktorami można opisać liniowo.
+2.  **Niezależność obserwacji**: błędy dla różnych obserwacji nie wpływają na siebie.
+3.  **Stałość wariancji reszt**: rozrzut błędów jest podobny dla różnych poziomów wartości dopasowanych.
+4.  **Przybliżona normalność reszt**: potrzebna głównie do klasycznej inferencji statystycznej.
+5.  **Brak silnej współliniowości**: predyktory nie powinny przenosić prawie tej samej informacji.
+
+::: callout-tip
+### Uwaga praktyczna
+
+Do samej predykcji najważniejsze są trafność przewidywań i stabilność modelu. Normalność reszt nie jest warunkiem koniecznym do liczenia prognoz, ale jest ważna, gdy chcemy interpretować testy istotności i przedziały ufności.
+:::
+
+### Estymacja parametrów modelu
+
+Najczęściej parametry regresji liniowej estymujemy metodą **najmniejszych kwadratów** (MNK, ang. OLS - *ordinary least squares*). Jej idea jest prosta: wybieramy takie wartości parametrów, aby suma kwadratów reszt była jak najmniejsza.
+
+Jeśli oznaczymy przez $e_i = y_i - \hat{y}_i$ resztę dla $i$-tej obserwacji, to minimalizujemy funkcję:
+
+$$
+S(\beta_0, \beta_1, \dots, \beta_p) = \sum_{i=1}^{n} e_i^2 = \sum_{i=1}^{n}(y_i - \hat{y}_i)^2.
+$$
+
+W zapisie macierzowym estymator MNK ma postać
+
+$$
+\hat{\beta} = (X^T X)^{-1} X^T y.
+$$
+
+Jeżeli dodatkowo założymy normalność błędów, to estymator MNK jest jednocześnie estymatorem **największej wiarygodności**. W praktyce oznacza to, że ta sama procedura ma mocne uzasadnienie zarówno algebraiczne, jak i probabilistyczne.
+
+## Opis danych
+
+Na początku przygotujmy dane do analizy.
+
+```{r}
+#| label: wyk1-przygotowanie
+library(tidyverse)
+library(gt)
+library(easystats)
+library(ggstatsplot)
+dane <- mtcars |>
+  as_tibble(rownames = "samochod") |>
+  mutate(
+    am = factor(am, levels = c(0, 1), labels = c("automat", "manualna"))
+  ) |>
+  select(samochod, mpg, wt, hp, qsec, am, disp)
+
+dane |>
+  head() |>
+  gt() |>
+  tab_caption("Przykładowe obserwacje w zbiorze")
+```
+
+## Eksploracyjna analiza danych
+
+Zanim zbudujemy model, dobrze jest zobaczyć dane. Pozwala to zorientować się, czy związki między zmiennymi mają sens oraz czy nie widać od razu problemów z obserwacjami odstającymi.
+
+### Krótka charakterystyka liczbowych zmiennych
+
+```{r}
+#| label: wyk1-stat-opisowe
+dane |>
+  select(mpg, wt, hp, qsec, disp) |>
+  report::report_table() %>%
+  print_html()
+```
+
+### Rozkład zmiennej objaśnianej
+
+```{r}
+#| label: wyk1-hist-mpg
+#| fig-cap: "Rozkład zmiennej mpg"
+ggplot(dane, aes(x = mpg)) +
+  geom_histogram(bins = 8, color = "white", fill = "steelblue") +
+  labs(x = "mpg", y = "Liczba samochodów") +
+  theme_minimal(base_size = 13)
+```
+
+### Zależność `mpg` od wybranych predyktorów
+
+```{r}
+#| label: wyk1-zaleznosci-ciagle
+#| fig-cap: "Relacje między mpg a wybranymi predyktorami liczbowymi"
+wykres_dlugie <- dane |>
+  select(mpg, wt, hp, qsec, disp) |>
+  pivot_longer(-mpg, names_to = "zmienna", values_to = "wartosc")
+
+ggplot(wykres_dlugie, aes(x = wartosc, y = mpg)) +
+  geom_point(size = 2, alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE, color = "firebrick") +
+  facet_wrap(~zmienna, scales = "free_x") +
+  labs(x = "Wartość predyktora", y = "mpg") +
+  theme_minimal(base_size = 13)
+```
+
+Na wykresach widać, że `mpg` maleje wraz ze wzrostem masy samochodu (`wt`), mocy (`hp`) i pojemności silnika (`disp`). Związek z `qsec` jest dodatni, co sugeruje, że samochody osiągające dłuższy czas przejazdu 1/4 mili bywają bardziej oszczędne.
+
+### Zależność `mpg` od rodzaju skrzyni biegów
+
+```{r}
+#| label: wyk1-am-boxplot
+#| fig-cap: "Efektywność paliwowa a rodzaj skrzyni biegów"
+ggbetweenstats(
+  data = dane,
+  x = am,
+  y = mpg,
+  title = "mpg a rodzaj skrzyni biegów",
+  xlab = "Rodzaj skrzyni biegów",
+  ylab = "mpg",
+  violin.args = list(width = 0)
+)
+```
+
+### Macierz korelacji zmiennych liczbowych
+
+```{r}
+#| label: wyk1-korelacje
+#| echo: false
+dane |>
+  select(mpg, wt, hp, qsec, disp) |>
+  ggcorrmat()
+```
+
+Na tym etapie warto zauważyć, że część predyktorów jest ze sobą skorelowana, zwłaszcza `wt`, `hp` i `disp`. To sygnał, że przy budowie modelu trzeba uważać na współliniowość.
+
+## Budowa modelu
+
+### Podział danych na próbę treningową i testową
+
+Ponieważ naszym głównym celem jest predykcja, podzielimy dane na część treningową i testową. Modele dopasujemy na danych treningowych, a ich jakość predykcji ocenimy na danych testowych.
+
+```{r}
+#| label: wyk1-podzial
+set.seed(123)
+
+indeks_trening <- sample(seq_len(nrow(dane)), size = floor(0.7 * nrow(dane)))
+
+trening <- dane[indeks_trening, ]
+test <- dane[-indeks_trening, ]
+
+print(sprintf("trening: %d, test: %d", nrow(trening), nrow(test)))
+```
+
+::: callout-warning
+### Ograniczenie: mała liczba obserwacji
+
+Przy zaledwie 32 obserwacjach podział 70/30 daje około 22 obserwacje treningowe i 10 testowych. Przy 4–5 predyktorach to bardzo mała próba — RMSE na zbiorze testowym będzie niestabilny. Dla tak małego zbioru bardziej wiarygodna byłaby walidacja krzyżowa (np. LOOCV). Podział train/test stosujemy tu przede wszystkim w celach dydaktycznych.
+:::
+
+### Modele kandydackie
+
+Rozważymy cztery modele o rosnącej złożoności:
+
+1.  Model 1: tylko masa samochodu.
+2.  Model 2: masa i moc silnika.
+3.  Model 3: masa, moc, czas przejazdu 1/4 mili i rodzaj skrzyni biegów.
+4.  Model 4: jak wyżej, ale dodatkowo pojemność silnika.
+
+```{r}
+#| label: wyk1-modele-kandydackie
+model_1 <- lm(mpg ~ wt, data = trening)
+model_2 <- lm(mpg ~ wt + hp, data = trening)
+model_3 <- lm(mpg ~ wt + hp + qsec + am, data = trening)
+model_4 <- lm(mpg ~ wt + hp + qsec + am + disp, data = trening)
+
+modele <- list(
+  "Model 1" = model_1,
+  "Model 2" = model_2,
+  "Model 3" = model_3,
+  "Model 4" = model_4
+)
+
+rmse <- function(y, yhat) {
+  sqrt(mean((y - yhat)^2))
+}
+
+porownanie_modeli <- tibble(
+  model = names(modele),
+  liczba_predyktorow = c(1, 2, 4, 5),
+  adj_r2_trening = map_dbl(modele, ~ summary(.x)$adj.r.squared),
+  aic_trening = map_dbl(modele, AIC)
+) |>
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+```
+
+```{r}
+#| label: wyk1-tabela-porownanie
+#| echo: false
+porownanie_modeli |>
+  gt() |>
+  fmt_number(columns = 3:4, decimals = 3) |>
+  tab_caption("Porównanie modeli kandydackich")
+```
+
+### Wybór modelu końcowego
+
+Na podstawie miar dopasowania na zbiorze treningowym, model 3 osiąga wyraźnie lepszy skorygowany $R^2$ i niższe AIC niż modele prostsze. Model 4, mimo dodatkowego predyktora (`disp`), nie poprawia istotnie tych miar, a jest bardziej złożony.
+
+Dlatego jako **model końcowy** wybierzemy:
+
+$$
+\texttt{mpg} \sim \texttt{wt} + \texttt{hp} + \texttt{qsec} + \texttt{am}.
+$$
+
+To dobry przykład praktycznej zasady: najlepszy model to nie zawsze model najbardziej złożony, lecz taki, który daje dobry kompromis między trafnością, stabilnością i interpretowalnością.
+
+### Dopasowanie modelu końcowego na pełnych danych
+
+Po wyborze struktury modelu dopasujmy go ponownie na całym zbiorze danych, aby wykorzystać wszystkie dostępne obserwacje do estymacji parametrów.
+
+```{r}
+#| label: wyk1-model-koncowy
+model_koncowy <- lm(mpg ~ wt + hp + qsec + am, data = dane)
+
+model_parameters(model_koncowy) |>
+  print_html()
+```
+
+Aby ocenić wpływ poszczególnych zmiennych liczymy również standaryzowane współczynniki modelu.
+
+```{r}
+X <- model.matrix(model_koncowy)[, -1, drop = FALSE] # macierz predyktorów (dokładnie tak, jak w modelu)
+y_sd <- sd(model.response(model.frame(model_koncowy))) # sd(y)
+beta_raw <- coef(model_koncowy)[-1] # współczynniki bez wyrazu wolnego
+x_sd <- apply(X, 2, sd) # sd każdej kolumny X
+beta_std <- beta_raw * x_sd / y_sd # znormalizowane beta
+
+tibble(
+  variable = names(beta_std),
+  beta_raw = as.numeric(beta_raw),
+  sd_x = as.numeric(x_sd),
+  sd_y = y_sd,
+  beta_std = as.numeric(beta_std)
+) |>
+  arrange(desc(abs(beta_std))) |>
+  gt() |>
+  fmt_number(columns = 2:5, decimals = 3)
+```
+
+## Ocena dopasowania modelu
+
+Do oceny dopasowania wykorzystamy kilka miar.
+
+-   $R^2$ i skorygowany $R^2$ mówią, jaka część zróżnicowania `mpg` została wyjaśniona przez model dopasowany na pełnych danych.
+-   **Błąd standardowy reszt** informuje o typowej skali błędu dopasowania modelu końcowego.
+-   **RMSE na zbiorze testowym** mówi, jak duży jest przeciętny błąd prognozy dla nowych obserwacji — obliczony na podstawie modelu estymowanego wyłącznie na danych treningowych.
+
+```{r}
+#| label: wyk1-miary-dopasowania
+#| echo: false
+rmse_model3_test <- rmse(test$mpg, predict(model_3, newdata = test))
+
+miary_dopasowania <- tibble(
+  miara = c(
+    "R2",
+    "Skorygowany R2",
+    "Błąd standardowy reszt",
+    "RMSE na zbiorze testowym"
+  ),
+  wartosc = c(
+    summary(model_koncowy)$r.squared,
+    summary(model_koncowy)$adj.r.squared,
+    summary(model_koncowy)$sigma,
+    rmse_model3_test
+  )
+) |>
+  mutate(wartosc = round(wartosc, 3))
+
+miary_dopasowania |>
+  gt() |>
+  fmt_number(columns = wartosc, decimals = 3) |>
+  tab_caption("Wybrane miary dopasowania modelu końcowego")
+```
+
+W tym przykładzie model wyjaśnia dużą część zmienności `mpg`, a przeciętny błąd predykcji na zbiorze testowym jest stosunkowo niewielki. To oznacza, że model może być użyteczny jako narzędzie prognostyczne, choć oczywiście nie daje prognoz idealnych.
+
+## Sprawdzanie założeń
+
+### Wykresy diagnostyczne
+
+```{r}
+#| label: wyk1-diagnostyka-wykresy
+#| fig-cap: "Podstawowe wykresy diagnostyczne modelu końcowego"
+#| fig-height: 12
+#| fig-width: 8
+check_model(model_koncowy)
+```
+
+### Test normalności reszt i kontrola obserwacji wpływowych
+
+```{r}
+#| label: wyk1-diagnostyka-liczbowa
+vif_manual <- function(model) {
+  macierz <- model.matrix(model)[, -1, drop = FALSE]
+
+  wartosci <- sapply(seq_len(ncol(macierz)), function(i) {
+    r2 <- summary(lm(macierz[, i] ~ macierz[, -i]))$r.squared
+    1 / (1 - r2)
+  })
+
+  tibble(
+    zmienna = colnames(macierz),
+    vif = as.numeric(wartosci)
+  )
+}
+
+diagnostyka <- tibble(
+  miara = c(
+    "p-value testu Shapiro-Wilka",
+    "maksymalna odległość Cooka",
+    "próg pomocniczy 4/n"
+  ),
+  wartosc = c(
+    shapiro.test(resid(model_koncowy))$p.value,
+    max(cooks.distance(model_koncowy)),
+    4 / nrow(dane)
+  )
+) |>
+  mutate(wartosc = round(wartosc, 4))
+```
+
+```{r}
+#| label: wyk1-diagnostyka-tabele
+#| echo: false
+diagnostyka |>
+  gt() |>
+  fmt_number(columns = wartosc, decimals = 4) |>
+  tab_caption("Wybrane wyniki diagnostyczne")
+
+vif_manual(model_koncowy) |>
+  mutate(vif = round(vif, 3)) |>
+  gt() |>
+  fmt_number(columns = vif, decimals = 3) |>
+  tab_caption("Współczynniki VIF")
+```
+
+#### Interpretacja diagnostyki
+
+-   Wartość `p-value` w teście Shapiro-Wilka wynosi `r round(shapiro.test(resid(model_koncowy))$p.value, 4)`, więc przy poziomie istotności 0.05 nie ma podstaw do odrzucenia hipotezy o normalności reszt. Oznacza to, że założenie normalności można uznać za w przybliżeniu spełnione, choć wynik jest dość bliski granicy istotności.
+-   Współczynniki VIF są umiarkowane, więc nie obserwujemy skrajnej współliniowości (gdy VIF\>10 jest to niepokojące).
+-   Maksymalna odległość Cooka wynosi `r round(max(cooks.distance(model_koncowy)), 3)`, a więc przekracza pomocniczy próg $4/n =$ `r round(4/nrow(dane), 3)`. To sugeruje, że w danych może występować co najmniej jedna obserwacja o podwyższonym wpływie na wyniki modelu, którą warto dodatkowo sprawdzić.
+-   Wykres wartości dopasowanych vs. reszt (panel *Linearity* generowany przez `check_model()`) pozwala ocenić liniowość zależności. Jeśli widoczna jest systematyczna krzywoliniowość, założenie liniowości może być naruszone. W naszym przypadku wykres sugeruje pewne odchylenia od liniowości dla skrajnych wartości dopasowanych, co warto mieć na uwadze.
+
+Na tej podstawie można uznać, że model jest **akceptowalny diagnostycznie**, ale zawiera przynajmniej jedną potencjalnie wpływową obserwację oraz sygnały ewentualnej nieliniowości, co należy mieć na uwadze przy interpretacji wyników.
+
+```{r}
+tibble(
+  samochod = dane$samochod,
+  cook = cooks.distance(model_koncowy)
+) |>
+  ggplot(aes(x = reorder(samochod, cook), y = cook)) +
+  geom_col() +
+  geom_hline(yintercept = 4 / nrow(dane), color = "red", linetype = "dashed") +
+  coord_flip() +
+  labs(
+    x = "Samochód",
+    y = "Odległość Cooka"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+## Ewentualne korekty modelu
+
+W praktyce budowa modelu często wymaga korekt. W naszym przykładzie korekta polegała przede wszystkim na **uproszczeniu modelu** — pominięciu zmiennej `disp`.
+
+Warto też zauważyć, że nie każda zmienna musi być istotna statystycznie sama w sobie, aby była użyteczna w modelu predykcyjnym. W modelach prognostycznych liczy się przede wszystkim jakość przewidywania dla nowych danych.
+
+Gdyby diagnostyka była słabsza, można byłoby rozważyć:
+
+1.  transformację zmiennej objaśnianej, np. logarytmowanie,
+2.  usunięcie obserwacji wyraźnie odstających po wcześniejszym uzasadnieniu merytorycznym,
+3.  dodanie interakcji lub składników nieliniowych,
+4.  zastosowanie regresji odpornej albo metod regularizacji.
+
+## Predykcja na zbiorze testowym
+
+Prognozę dla obserwacji testowych obliczamy na podstawie modelu estymowanego wyłącznie na danych treningowych (`model_3`), aby uzyskać rzetelne oszacowanie jakości predykcji *out-of-sample*.
+
+```{r}
+pred <- predict(model_3, newdata = test)
+bind_cols(test, pred = pred) |>
+  gt() |>
+  fmt_number(columns = pred, decimals = 2)
+```
+
+## Interpretacja wyników w kontekście problemu
+
+Teraz przejdźmy do najważniejszej części: co ten model mówi o badanym problemie?
+
+### Interpretacja współczynników
+
+Przy pozostałych zmiennych utrzymanych na stałym poziomie:
+
+1.  Wzrost masy samochodu o 1 tysiąc funtów wiąże się przeciętnie ze spadkiem `mpg` o około `r abs(round(coef(model_koncowy)["wt"], 2))`.
+2.  Wzrost mocy silnika o 1 KM wiąże się przeciętnie ze spadkiem `mpg` o około `r abs(round(coef(model_koncowy)["hp"], 3))`, choć w tym modelu efekt ten nie jest bardzo precyzyjnie oszacowany.
+3.  Wzrost `qsec` o 1 sekundę wiąże się przeciętnie ze wzrostem `mpg` o około `r round(coef(model_koncowy)["qsec"], 2)`.
+4.  Samochody z manualną skrzynią biegów mają przeciętnie `mpg` większe o około `r round(coef(model_koncowy)["ammanualna"], 2)` niż samochody z automatyczną skrzynią biegów, przy tych samych pozostałych cechach.
+
+::: callout-note
+### Jak czytać te wyniki?
+
+Nie mówimy tutaj, że dana zmienna "powoduje" zmianę `mpg`. Model regresji w tym przykładzie opisuje zależności i służy do predykcji. Interpretacja przyczynowa wymagałaby znacznie silniejszych założeń badawczych.
+:::
+
+### Które zmienne wydają się najważniejsze?
+
+Najsilniejszy i najbardziej stabilny związek z `mpg` obserwujemy dla masy samochodu `wt`. To intuicyjny wynik: cięższe samochody są przeciętnie mniej oszczędne.
+
+Rodzaj skrzyni biegów również wnosi istotną informację do modelu. Moc silnika i czas przejazdu 1/4 mili także pomagają poprawić trafność prognozy, choć ich interpretacja wymaga większej ostrożności ze względu na współzależności między cechami technicznymi pojazdu.
+
+## Wnioski
+
+Na podstawie przeprowadzonej analizy możemy sformułować następujące wnioski:
+
+1.  Regresja liniowa może być skutecznym narzędziem do przewidywania wartości liczbowej dla danych tabularycznych.
+2.  W analizowanym przykładzie sensowną zmienną objaśnianą było `mpg`, a użytecznymi zmiennymi objaśniającymi okazały się `wt`, `hp`, `qsec` i `am`.
+3.  Wybrany model oferuje dobry kompromis między jakością predykcji, interpretowalnością i poprawnością diagnostyczną.
+4.  Najważniejszym predyktorem efektywności paliwowej okazała się masa samochodu.
+5.  Model ten nadaje się do celów dydaktycznych i do wstępnych prognoz, ale nie powinien być traktowany jako model uniwersalny dla wszystkich współczesnych pojazdów.
+6.  Diagnostyka wykazała pewne sygnały odchyleń od liniowości (widoczne na wykresie reszt vs. wartości dopasowanych), co sugeruje, że można byłoby szukać korekt postaci modelu (np. transformacji zmiennych lub składników nieliniowych), ale to wykracza poza zakres tych analiz.
+
+### Podsumowanie dydaktyczne
+
+W praktyce pracy badawczej warto zapamiętać następującą sekwencję działań:
+
+1.  Najpierw jasno określ cel predykcyjny i wskaż zmienną objaśnianą.
+2.  Następnie wybierz sensowne zmienne objaśniające.
+3.  Sprawdź dane i zależności między zmiennymi.
+4.  Zbuduj kilka modeli konkurencyjnych.
+5.  Porównaj je nie tylko pod względem dopasowania, ale także jakości prognoz i interpretowalności.
+6.  Na końcu sprawdź założenia, opisz ograniczenia i sformułuj wnioski w języku problemu badawczego.

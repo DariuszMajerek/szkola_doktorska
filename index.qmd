@@ -1,0 +1,17 @@
+# Wstęp {.unnumbered}
+
+Niniejsza książka została przygotowana na potrzeby przedmiotu **„Statystyka stosowana”** realizowanego w **Szkole Doktorskiej Politechniki Lubelskiej**.
+Jest ona wynikiem wiedzy i doświadczeń autora w prowadzeniu badań z wykorzystaniem analizy danych.
+Celem książki jest przybliżenie technik z zakresu metod ilościowych stosowanych w badaniach naukowych.
+
+Każdy wykład ma postać kompletnego przykładu problemu badawczego: od sformułowania celu, przez opis metody, eksplorację danych i budowę modelu, po ocenę jakości i wnioski w języku problemu.
+
+1.  [Wykład 1](wyk1.qmd): regresja liniowa — predykcja efektywności paliwowej,
+2.  [Wykład 2](wyk2.qmd): regresja logistyczna — czynniki ryzyka niskiej masy urodzeniowej,
+3.  [Wykład 3](wyk3.qmd): drzewa decyzyjne — klasyfikacja gatunków pingwinów,
+4.  [Wykład 4](wyk4.qmd): metody zespołowe — bagging, las losowy i XGBoost,
+5.  [Wykład 5](wyk5.qmd): maszyny wektorów nośnych (SVM i SVR),
+6.  [Wykład 6](wyk6.qmd): sieci neuronowe w PyTorch.
+
+Wykłady 1–5 wykorzystują język R (m.in. `tidyverse`, `tidymodels`, `easystats`), a wykład 6 — Python i bibliotekę PyTorch.
+Nacisk położono na stosowalność metod, a nie na szczegóły matematycznych podstaw ich budowy.

@@ -1,0 +1,350 @@
+---
+code-fold: true
+---
+
+::: hidden
+$$
+ \def\P{{\mathrm{P}}}
+ \def\M{{\mathcal{P}}}
+ \def\E{\mathrm{E}}
+ \def\Var{\mathrm{Var}}
+ \def\Bias{\mathrm{Bias}}
+ \def\MSE{\mathrm{MSE}}
+ \def\Cov{\mathrm{Cov}}
+ \def\Cor{\mathrm{Cor}}
+ \def\Tr{\mathrm{Tr}}
+ \def\probit{\mathrm{probit}}
+ \def\logit{\mathrm{logit}}
+ \def\zb#1{{\buildrel #1 \over \longrightarrow}}
+$$
+:::
+
+# Estymacja przedziałowa
+
+## Przykład wprowadzający
+
+Wyznaczmy 1000 estymatorów wartości średniej rozkładu normalnego o parametrach $\mu = 10$ i $\sigma=3.5$ z próby 30-elementowej.
+
+```{r}
+#| echo: true
+# wszystkie wartości średnie będziemy zapisywać w liście
+
+library(tidyverse)
+srednia <- list()
+# wszystko wykonamy w pętli
+for(i in 1:1000){
+  x <- rnorm(30, mean = 10, sd = 3.5)
+  srednia[[i]] <- mean(x)
+}
+# teraz sprawdzamy ile razy średnia z próby = średnia z populacji
+sum(unlist(srednia) == 10)
+```
+
+Jak widać z powyższej symulacji wartość średnia z próby ani razu nie równała się prawdziwej wartości średniej (z populacji).
+Zwiększanie liczby powtórzeń tego doświadczenia nie zmieniłoby wyniku, ponieważ prawdopodobieństwo, że nasz estymator (choćby "najlepszy") jest równy parametrowi estymowanemu, jest **zerowe**.
+
+![](https://media.giphy.com/media/TlK63EuGzNJE6GfYrhC/giphy.gif){.column-margin fig-align="center"}
+
+Poniżej przedstawiam rozkład średnich w 1000 próbach
+
+```{r}
+#| label: fig-figsred
+#| fig-cap: "Rozkład średnich z prób"
+hist(unlist(srednia), main = "")
+abline(v = 10, col = "red")
+```
+
+Z wykresu [-@fig-figsred] widać, że wartości średnich z próby bardzo często wypadały w okolicy prawdziwej wartości średniej ($\mu=10$), więc estymacja punktowa działa właściwie ale nie wskazuje dokładnie wartości estymowanej.
+Ponadto zdarzały się wartości nieco bardziej odległe od 10, a zatem pewności co do tego, że wyestymowana wartość jest blisko prawdziwej wartości nie mamy.
+
+Dlatego będziemy szukali takiego obszaru $S_X$ aby ze z góry zadaną pewnością pokrywał nieznany parametr $\theta\in \Theta$.
+
+W sytuacji gdy próba pochodzi z rozkładu normalnego, ale parametry rozkładu nie są znane, wówczas przedział ufności dla średniej jest opisany wzorem:
+
+$$
+     \P_{\theta}\left[\bar{X}-t_{\alpha}\frac{\hat{S}}{\sqrt{n}}\leq \mu\leq \bar{X}+t_{\alpha}\frac{\hat{S}}{\sqrt{n}}\right]=1-\alpha.
+$$ {#eq-eq2}
+
+gdzie $\alpha$ jest z góry zadaną (małą) wartością z przedziału $(0,1)$, $\bar{X}$ jest średnią z próby, $\hat{S}$ jest odchyleniem standardowym z próby, $n$ liczebnościa próby, a $t_{\alpha}$ jest kwantylem rozkładu t-Studenta rzędu $1-\alpha/2$ o $n-1$ stopniach swobody.
+
+Przedział
+
+$$
+    \left[\bar{X}-t_{\alpha}\frac{\hat{S}}{\sqrt{n}}, \bar{X}+t_{\alpha}\frac{\hat{S}}{\sqrt{n}}\right]
+$$ {#eq-eq3}
+
+będziemy nazywali \textit{przedziałem ufności} dla parametru $\mu$ na \textit{poziomie ufności} $1-\alpha$.
+
+Fakt ten interpretujemy następująco:
+
+$(1-\alpha)100\%$ realizacją przedziału ufności przy ustalonym $x_1,\ldots,x_n$ dla nieznanego parametru $\mu$ jest przedział $\left[\bar{X}-t_{\alpha}\frac{\hat{S}}{\sqrt{n}}, \bar{X}+t_{\alpha}\frac{\hat{S}}{\sqrt{n}}\right]$.
+
+::: {#exm-2}
+Obliczmy przedział ufności dla średniej poziomu niepokoju na początku eksperymentu.
+Dane pochodzą z eksperymentu mającego na celu zbadanie wpływu ćwiczeń fizycznych na poziom niepokoju badanych.
+Badanie przebiegało w trzech etapach: pierwszy pomiar niepokoju na początku eksperymentu (`t1`), w środku jego trwania (`t2`) oraz na końcu (`t3`).
+Nas będzie interesował przedział ufności dla średniej niepokoju w pierwszym pomiarze.
+Jego rozkład jest następujący
+
+```{r}
+library(datarium)
+hist(anxiety$t1)
+```
+
+Aby policzyć końce przedziału ufności dla średniej należy wyznaczyć następujące wielkości:
+
+-   średnia z próby $\bar{x}=$ `r round(mean(anxiety$t1),2)`;
+-   odchylenie standardowe z próby $\hat{s}=$ `r round(sd(anxiety$t1),2)`;
+-   liczebność próby $n=$ `r nrow(anxiety)`;
+-   kwantyl rozkładu t-Studenta $t_{\alpha}=$ `r round(qt(0.975, df = nrow(anxiety)-1),3)`.
+
+Wówczas końce przedziału obliczamy na podstawie @eq-eq3.
+Otrzymamy
+
+$$
+\left[16,92-2,015\cdot \frac{1,49}{\sqrt{45}}, 16,92+2,015\cdot \frac{1,49}{\sqrt{45}}\right]=[16.468, 17.363].
+$$ Powyższy wynik możemy interpretować następująco: *z 95% pewnością nieznany parametr średniej poziomu niepokoju leży w przedziale \[16,468;17,363\]*.
+:::
+
+::: {#exm-3}
+Poniżej przedstawimy 100 symulacji przedziałów ufności estymowanych na podstawie 30-elementowych prób z rozkładu $N(10,3.5)$.
+
+```{r}
+library(mosaic)
+set.seed(44)
+CIsim(n = 30, samples = 100, rdist = rnorm, args = list(mean = 10, sd = 3.5), estimand = 10)
+```
+
+Jak widać końce przedziałów zmieniają się znacznie, ponadto niektóre z przedziałów nie zawierają prawdziwej wartości średniej równej 10.
+:::
+
+## Co wpływa na długość przedziału ufności
+
+::: remark
+W zależności od pewnych parametrów:
+
+-   długość przedziału ufności **maleje** wraz ze **wzrostem** liczebności próby $n$;
+-   długość przedziału ufności **rośnie** wraz ze **wzrostem** wariancji badanej cechy;
+-   długość przedziału ufności **rośnie** wraz ze **wzrostem** poziomu ufności $1-\alpha$.
+:::
+
+### Miary precyzji oszacowania
+
+Stosujemy dwie miary precyzji oszacowania nieznanego parametru $\theta$ za pomocą przedziału ufności:
+
+-   bezwzględna miara precyzji oszacowania
+
+$$
+      \Delta(\theta_n(x))=\frac{1}{2}(\theta_2(x)-\theta_1(x));
+$$ {#eq-bezw}
+
+-   względna miara precyzji oszacowania
+
+$$
+      \delta(\theta_n(x))=\frac{\Delta(\theta_n(x))}{\theta_n(x)}\cdot 100\%.
+$$ {#eq-wzgl}
+
+Przy czym
+
+| $\delta(\theta)$ | Wnioskowanie o parametrze $\theta$   |
+|------------------|--------------------------------------|
+| $\leq 5\%$       | uprawnione i całkowicie bezpieczne   |
+| $(5\%,10\%]$     | możliwe, ale z zalecaną ostrożnością |
+| $>10\%$          | wnioskowanie wysoce ryzykowne        |
+
+: Umowne przedziały miar precyzji względnej
+
+## Przedziały ufności dla $\mu$
+
+### Model 1
+
+Jeśli populacja jest o rozkładzie normalnym $N(\mu, \sigma^2)$ i znane jest $\sigma^2$ , to zmienna losowa $\frac{\bar{x}-\mu}{\sigma}\sqrt{n}$ ma rozkład $N(0,1),$ więc
+
+$$
+  \mathrm{P}\left(\bar{x}-u_{\alpha}\frac{\sigma}{\sqrt{n}}<\mu<\bar{x}+u_{\alpha}\frac{\sigma}{\sqrt{n}}\right)=1-\alpha,
+$$ {#eq-sredmod1}
+
+gdzie $u_{\alpha}$ jest kwantylem rzędu $1-\frac{\alpha}2$ zmiennej losowej o rozkładzie normalnym $N(0,1)$, czyli $\Phi(u_{\alpha})=1-\frac{\alpha}{2}$, a $\Phi$ oznacza dystrybuantę rozkładu $N(0,1)$
+
+Miary precyzji oszacowania:
+
+-   $$ \Delta(\bar{x})=\frac{u_{\alpha}\sigma}{\sqrt{n}};$$
+-   $$\delta(\bar{x})=\frac{u_{\alpha}\sigma}{\bar{x}\sqrt{n}}\cdot 100\%.$$
+
+### Model 2
+
+Rozkład cechy w populacji jest normalny $N(\mu, \sigma^2)$ i $\sigma^2$ nie jest znane, wówczas
+
+$$
+  \mathrm{P} \left( \overline{x} - t_{\alpha,n-1} \frac{S}{\sqrt{n-1}} < \mu < \overline{x} + t_{\alpha,n-1} \frac{S}{\sqrt{n-1}} \right) = 1 - \alpha,
+$$ {#eq-sredmod2}
+
+gdzie $t_{\alpha,n-1}$ jest kwantylem rzędu $1-\frac{\alpha}2$ o $n-1$ stopniach swobody rozkładu t-Studenta, czyli taki, żeby spełniony był warunek $\mathrm{P}(|X|<t_{\alpha,n-1})=1-\alpha$.
+
+Miary precyzji oszacowania:
+
+-   $$ \Delta(\bar{x})=\frac{t_{\alpha, n-1}S}{\sqrt{n-1}};$$
+-   $$\delta(\bar{x})=\frac{t_{\alpha,n-1}S}{\bar{x}\sqrt{n-1}}\cdot 100\%.$$
+
+### Model 3
+
+Cecha ma rozkład dowolny o nieznanych parametrach $\mu$ i $\sigma$, gdzie $\sigma$ jest skończone oraz $n>100$, wtedy zmienna losowa $\frac{\bar{x}-\mu}{S}\sqrt{n-1}$ ma asymptotyczny rozkład $N(0,1)$, więc
+
+$$
+  \mathrm{P} \left( \overline{x} - u_{\alpha} \frac{S}{\sqrt{n-1}} < \mu < \overline{x} + u_{\alpha} \frac{S}{\sqrt{n-1}} \right) = 1 - \alpha.
+$$ {#eq-sredmod3}
+
+Miary precyzji oszacowania:
+
+-   $$ \Delta(\bar{x})=\frac{u_{\alpha}S}{\sqrt{n-1}};$$
+-   $$\delta(\bar{x})=\frac{u_{\alpha}S}{\bar{x}\sqrt{n-1}}\cdot 100\%.$$
+
+::: remark
+W większości pakietów statystycznych znajdziecie Państwo jedynie jeden wzór na przedział ufności dla średniej (model 2).
+Wynika to z faktu, iż przy dużej próbie założenie o normalności rozkładu nie jest konieczne, a ponadto rożnica w kwantylach rozkładu normalnego i t-Studenta jest niemal niezauważalna.
+:::
+
+## Wyznaczanie minimalnej liczebności dla przedzialu o zadanej długości
+
+Oczywistym jest, że wraz ze wzrostem liczebności próbki $n$ skraca się długość przedziału ufności przy ustalonym poziomie ufności $1-\alpha$ dla nieznanego parametru $\mu$.
+Możemy zatem tak dobrać liczebność próbki aby długość przedziału nie przekraczała z góry obranej długości $2l$ lub aby długość nie przekraczała $p\%$ wartości szacowanego parametru (długość względna).
+
+Badana cecha ma rozkład $N(\mu,\sigma^2)$ o znanym $\sigma^2$.
+Szukamy minimalnej liczebności próby, aby otrzymać przedział ufności dla wartości przeciętnej o długości nie większej niż $2l$.
+Wiemy, że długość przedziału ufności dla $\mu$ jest równa $2u_{\alpha}\frac{\sigma}{\sqrt{n}}$, zatem żądamy aby
+
+$$
+    2u_{\alpha}\frac{\sigma}{\sqrt{n}}\leqslant 2l.
+$$ {#eq-row1}
+
+Rozwiązując nierówność @eq-row1 otrzymujemy
+
+$$
+  n\geqslant \left(\frac{u_{\alpha}\sigma}{l}\right)^2.
+$$
+
+W przypadku gdy prawa strona powyższej nierówności jest liczbą niecałkowitą, wówczas
+
+$$
+  n_0=\left[\left(\frac{u_{\alpha}\sigma}{l}\right)^2\right]+1
+$$
+
+gdzie $[x]$ oznacza całość z liczby $x$.
+
+Należy przy okazji zaznaczyć, że dla modelu 2 i 3 wyznaczenie liczebności minimalnej do konstrukcji przedziału ufności o zadanej długości jest nieco trudniejsze.
+Długości tych przedziałów równe odpowiednio $2t_{\alpha,n-1} \frac{S}{\sqrt{n-1}}$ i $2u_{\alpha} \frac{S}{\sqrt{n-1}}$ zależą od wartości $S$, która powoduje, że długość przedziału nie koniecznie musi maleć wraz ze wzrostem $n$.
+
+### Przykład poglądowy
+
+Poniższy wykres pokazuje jak zmienia się wariancja wraz ze wzrostem liczebności próby
+
+```{r}
+set.seed(44)
+# w kolejnych iteracjach pętli będziemy dodawać kolejny wyraz ciągu z tego samego rozkłądu
+x <- NULL
+wariancja <- NULL
+for(i in 1:2000){
+  x <- c(x, rnorm(1, mean = 10, sd = 3.5))
+  wariancja[i] <- var(x)
+}
+# teraz narysujemy wykres zależności waraincji od wielkości próby
+data.frame(indeks = 1:2000, wariancja = wariancja) %>% 
+  ggplot(aes(x = indeks, y = wariancja))+
+  geom_line()+
+  geom_hline(yintercept = 3.5^2)
+```
+
+Jak widać wariancja z próby stabilizuje się na poziomie wariancji populacyjnej ale dopiero po przekroczeniu pewnej (stosunkowo dużej) liczby elementów w próbie.
+Ten prosty przykład miał Państwu uświadomić, że proste przełożenie teorii dotyczącej minimalnej liczebności próby dla modelu 1 jest pewnym nadużyciem, szczególnie jeśli próba jest mała.
+
+## Przedziały ufności dla wariancji
+
+### Model 1
+
+Cecha ma rozkład $N(\mu, \sigma^2)$ o nieznanych parametrach $\mu$ i $\sigma^2$ oraz $n< 50$, wtedy zmienna losowa $\frac{nS^2}{\sigma^2}$ ma w przybliżeniu rozkład $\chi^2_{n-1}$, więc
+
+$$
+    \mathrm{P} \left( \frac{nS^2}{\chi^{2}_{1}} < \sigma^2 < \frac{nS^2}{\chi^{2}_{2}} \right)= 1 - \alpha,
+$$ {#eq-war2}
+
+gdzie $\chi^2_1,\ \chi^2_2$ spełniają odpowiednio warunki $\mathrm{P}(\chi^2\leq \chi^2_1)=1-\frac{\alpha}{2}$ oraz $\mathrm{P}(\chi^2\leq \chi^2_2)=\frac{\alpha}{2}$, przy czym $\chi^2$ ma rozkład chi-kwadrat z $n-1$ stopniami swobody.
+
+Ponieważ przedział ufności jest niesymetryczny względem $S$, więc nie stosuje się oceny precyzji oszacowania bezwzględnej i względnej.
+W celu oszacowania metodą przedziałową odchylenia standardowego, pierwiastkujemy strony nierówności w warunku @eq-war2.
+
+### Model 2
+
+Cecha ma rozkład $N(\mu,\sigma^2)$ lub jest asymptotycznie normalny o nieznanych parametrach $\mu$ i $\sigma^2$ oraz $n\geq 50$, wtedy zmienna losowa $\frac{S-\sigma}{\sigma}\sqrt{2n}$ ma rozkład asymptotyczny $N(0,1)$, więc
+
+$$
+   \mathrm{P} \left( \frac{S}{1+ \frac{u_{\alpha}}{\sqrt{2n}}} < \sigma < \frac{S}{1 - \frac{u_{\alpha}}{\sqrt{2n}}} \right)= 1 - \alpha.
+$$ {#eq-war3}
+
+Ponieważ przedział ufności jest niesymetryczny względem $S$, więc nie stosuje się oceny precyzji oszacowania bezwzględnej i względnej.
+W celu oszacowania metodą przedziałową wariancji, podnosimy do kwadratu strony nierówności w warunku @eq-war3.
+
+## Przedział ufności dla frakcji
+
+Jeśli cecha populacji generalnej ma rozkład dwupunktowy z parametrem $p$ i próba jest o liczności $n\geq 100$, wtedy zmienna losowa $\hat{p}=\frac{m}{n}$, gdzie $m$ oznacza liczbę sukcesów, ma w przybliżeniu rozkład $N(p,\sqrt{\frac{p(1-p)}{n}})$, więc
+
+$$
+    \mathrm{P} \left( \frac{m}{n}-u_{\alpha} \sqrt{\frac{\frac{m}{n}(1-\frac{m}{n})}{n}} < p < \frac{m}{n}+u_{\alpha} \sqrt{\frac{\frac{m}{n}(1-\frac{m}{n})}{n}} \right)= 1 - \alpha,
+$$ {#eq-frac1}
+
+Miary precyzji oszacowania:
+
+-   $$\Delta(\hat{p})=u_{\alpha}\sqrt{\frac{\hat{p}(1-\hat{p})}{n}};$$
+-   $$\delta(\hat{p})=u_{\alpha}\sqrt{\frac{(1-\hat{p})}{\hat{p}n}}\cdot 100\%.$$
+
+## Zadanie 1
+
+Dla próby o wartościach 3,7,8,3,19,0,5,11,15,12,12,4,4,4,6,8,10,2,3,8,10,9 zbuduj przedział ufności dla średniej i odchylenia standardowego na poziomie ufności 0.95.
+
+### Rozwiazanie
+
+Po pierwsze powinniśmy zdecydować, który model wybrać.
+Rozkład próby nie jest podany, więc pasowałby model 3 ale w nim zakładana jest liczebność większa niż 100, a to wiemy, że nie jest spełnione, dlatego na ten model nie możemy się zdecydować.
+Pozostaje wybrać pomiędzy modelem 1 i 2.
+Oba zakładały rozkład normalny próby, przy czym ten pierwszy zakładał jeszcze, że znamy wariancję cechy w populacji.
+Bezpieczniejszym wyborem będzie zatem model 2, bo przypuszczenie, że rozkład badanej cechy jest zbliżony do normalnego nie jest bezzasadne, a wariancji z pewnością nie znamy.
+
+```{r}
+#| echo: true
+proba <- c(3,7,8,3,19,0,5,11,15,12,12,4,4,4,6,8,10,2,3,8,10,9)
+# do obliczenia końców przedziału potrzebne będą
+alfa <- 0.05
+srednia <- mean(proba)
+odch.std <- sd(proba)
+n <- length(proba)
+t.alfa <- qt(1-alfa/2, df = n-1)
+lk <- srednia-t.alfa*odch.std/sqrt(n-1)
+pk <- srednia+t.alfa*odch.std/sqrt(n-1)
+# zatem 95% realizacją przedziału ufności dla nieznanego parametru mu jest
+c(lk, pk)
+```
+
+## Zadanie 2
+
+W partii 43 odlewów z linii produkcyjnej sprawdzano, które z nich są wadliwe (oznaczenie 1).
+Próba przedstawia się następująco 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.
+Oszacuj metodą przedziałową proporcję (frakcję) uszkodzonych odlewów.
+Przyjmij poziom ufności 0.99.
+
+### Rozwiazanie
+
+Dla wskaźnika struktury jest tylko jeden model, więc nie będzie z tym problemu.
+
+```{r}
+#| echo: true
+# kopiujemy próbę
+x <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+# potrzebne rzeczy
+alfa <- 0.01
+n <- length(x)
+m <- sum(x)
+u.alfa <- qnorm(1-alfa/2)
+lk <- m/n-u.alfa*sqrt(m/n*(1-m/n)/n)
+pk <- m/n+u.alfa*sqrt(m/n*(1-m/n)/n)
+# zatem 99% realizacją przedzialu ufności dla nieznanej frakcji wadliwych odlewów jest
+c(lk, pk)
+```

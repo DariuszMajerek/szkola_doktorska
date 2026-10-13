@@ -1,0 +1,4 @@
+- source: project
+  quarto-pub:
+    - id: 1d78aaf7-3acc-4da4-8389-3a8e76f3abcd
+      url: 'https://majerek.quarto.pub/szkola_doktorska'

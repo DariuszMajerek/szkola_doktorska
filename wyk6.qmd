@@ -1,0 +1,763 @@
+---
+jupyter: python3
+---
+
+# Wykład 6: Sieci neuronowe — od neuronu do wstecznej propagacji {.unnumbered}
+
+::: hidden
+$$
+ \def\E{\mathrm{E}}
+ \def\Var{\mathrm{Var}}
+ \def\P{\mathrm{P}}
+$$
+:::
+
+## Wprowadzenie
+
+W tym rozdziale przedstawimy **sieci neuronowe** – rodzinę modeli będących fundamentem współczesnego uczenia głębokiego. Skupimy się na zrozumieniu podstawowych elementów budowy sieci oraz mechanizmu ich uczenia. Analizy wykonamy w języku Python z użyciem biblioteki **PyTorch**.
+
+Sieć neuronowa to złożenie wielu prostych jednostek – neuronów – które wspólnie są w stanie aproksymować dowolnie złożone zależności między zmiennymi. W odróżnieniu od modeli liniowych czy pojedynczych drzew decyzyjnych, sieci neuronowe uczą się własnej reprezentacji cech w kolejnych warstwach.
+
+::: callout-note
+### Co będzie wynikiem tej analizy?
+
+Na końcu będziemy umieli opisać budowę sieci neuronowej, wyjaśnić przepływ informacji w przód, działanie algorytmu wstecznej propagacji oraz zbudować w PyTorch modele do regresji i klasyfikacji.
+:::
+
+## Formułowanie celu i problemów badawczych
+
+### Cel dydaktyczny
+
+Chcemy zrozumieć sieć neuronową jako elastyczne narzędzie predykcyjne, które znajduje zależności w danych bez ręcznego definiowania postaci funkcyjnej. Model może przewidywać zarówno wartości liczbowe (regresja), jak i klasy obserwacji (klasyfikacja).
+
+::: callout-important
+### Jasne określenie celu
+
+**Cel wykładu:** przedstawić architekturę sieci neuronowych, wyjaśnić algorytm uczenia metodą wstecznej propagacji oraz zademonstrować dwa praktyczne zastosowania w PyTorch.
+:::
+
+### Problemy badawcze
+
+Interesuje nas odpowiedź na następujące pytania:
+
+1.  Z czego składa się pojedynczy neuron i cała warstwa sieci?
+2.  Jaką rolę pełnią funkcje aktywacji i czym różnią się najczęściej stosowane?
+3.  Jak definiuje się funkcję celu i dlaczego jej wybór zależy od rodzaju problemu?
+4.  Jak działa algorytm wstecznej propagacji ze stochastycznym spadkiem wzdłuż gradientu (SGD)?
+5.  Jak zbudować sieć neuronową do regresji i jak ocenić jej jakość?
+6.  Jak zbudować sieć neuronową do klasyfikacji i jak interpretować jej wyniki?
+
+## Podstawowe elementy sieci neuronowych
+
+### Neuron – podstawowa jednostka obliczeniowa
+
+Pojedynczy **neuron** (zwany też perceptronem) wykonuje dwie operacje:
+
+1.  **Sumowanie ważone** – oblicza sumę iloczynów wejść $x_1, x_2, \dots, x_n$ i odpowiadających im **wag** $w_1, w_2, \dots, w_n$ oraz dodaje **bias** $b$:
+
+    $$
+    z = w_1 x_1 + w_2 x_2 + \dots + w_n x_n + b = \mathbf{w}^T \mathbf{x} + b.
+    $$
+
+2.  **Funkcja aktywacji** – przekształca wynik sumowania $z$ w wartość wyjściową neuronu:
+
+    $$
+    a = f(z).
+    $$
+
+Schematycznie: dane wejściowe $(x_1, \dots, x_n)$ są mnożone przez wagi $(w_1, \dots, w_n)$, sumowane z biasem $b$, a wynik przechodzi przez funkcję aktywacji $f$, dając wyjście $a$.
+
+W praktyce neurony są grupowane w **warstwy**. Warstwa to zbiór neuronów, z których każdy otrzymuje te same wejścia, ale ma własny zestaw wag i biasów. Wyjście całej warstwy można zapisać macierzowo:
+
+$$
+\mathbf{a} = f(\mathbf{W} \mathbf{x} + \mathbf{b}),
+$$
+
+gdzie $\mathbf{W}$ jest macierzą wag, $\mathbf{x}$ wektorem wejść, a $\mathbf{b}$ wektorem biasów.
+
+### Propagacja w przód
+
+Propagacja w przód (*forward pass*) to proces obliczania predykcji sieci dla danej obserwacji. Sygnał przepływa od warstwy wejściowej, przez warstwy ukryte, aż do warstwy wyjściowej:
+
+1.  Warstwa wejściowa przyjmuje wektor cech $\mathbf{x}$.
+2.  Każda kolejna warstwa ukryta oblicza $\mathbf{a}^{(l)} = f^{(l)}(\mathbf{W}^{(l)} \mathbf{a}^{(l-1)} + \mathbf{b}^{(l)})$.
+3.  Warstwa wyjściowa daje końcową predykcję $\hat{y}$.
+
+Wielowarstwowość jest kluczowa: pojedyncza warstwa ukryta pozwala sieci być **uniwersalnym aproksymatorem**, a kolejne warstwy umożliwiają uczenie się hierarchicznych reprezentacji cech.
+
+### Funkcje aktywacji
+
+Funkcja aktywacji wprowadza **nieliniowość**. Bez niej cała sieć – niezależnie od liczby warstw – byłaby równoważna pojedynczej transformacji liniowej.
+
+Najczęściej stosowane funkcje aktywacji:
+
+| Funkcja | Wzór | Zakres | Zastosowanie |
+|---------|------|--------|-------------|
+| **ReLU** | $f(z) = \max(0, z)$ | $[0, \infty)$ | Warstwy ukryte |
+| **Sigmoid** | $f(z) = \frac{1}{1 + e^{-z}}$ | $(0, 1)$ | Wyjście dla klasyfikacji binarnej |
+| **Tanh** | $f(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}}$ | $(-1, 1)$ | Warstwy ukryte (alternatywa ReLU) |
+| **Softmax** | $f(z_i) = \frac{e^{z_i}}{\sum_j e^{z_j}}$ | $(0, 1)$, suma = 1 | Wyjście dla klasyfikacji wieloklasowej |
+
+::: callout-tip
+### Dlaczego ReLU?
+
+ReLU jest domyślnym wyborem dla warstw ukrytych, ponieważ nie cierpi na problem zanikającego gradientu (w przeciwieństwie do sigmoida i tanh), jest szybkie obliczeniowo i zwykle prowadzi do lepszej zbieżności treningu.
+:::
+
+```{python}
+#| label: wyk6-funkcje-aktywacji
+#| fig-cap: "Kształty najczęściej stosowanych funkcji aktywacji"
+import torch
+import numpy as np
+import matplotlib.pyplot as plt
+
+z = torch.linspace(-5, 5, 200)
+
+fig, axes = plt.subplots(1, 4, figsize=(14, 3.2))
+
+for ax, f, name in zip(
+    axes,
+    [torch.relu(z), torch.sigmoid(z), torch.tanh(z), torch.softmax(torch.stack([z, z/2]), dim=0)],
+    ["ReLU", "Sigmoid", "Tanh", "Softmax (dwa wyjścia)"]
+):
+    if name == "Softmax (dwa wyjścia)":
+        ax.plot(z, f[0].numpy(), label="wyjście 1")
+        ax.plot(z, f[1].numpy(), label="wyjście 2")
+        ax.legend(fontsize=8)
+    else:
+        ax.plot(z, f)
+    ax.set_title(name, fontsize=11)
+    ax.grid(alpha=0.3)
+    ax.set_xlabel("z")
+
+plt.tight_layout()
+plt.show()
+```
+
+### Funkcje celu
+
+Funkcja celu (straty, *loss function*) mierzy, jak bardzo predykcje modelu różnią się od prawdziwych wartości. Wybór funkcji celu zależy od rodzaju problemu:
+
+| Problem | Funkcja celu | Wzór (PyTorch) |
+|---------|-------------|----------------|
+| **Regresja** | Błąd średniokwadratowy (MSE) | `nn.MSELoss()` |
+| **Klasyfikacja binarna** | Entropia krzyżowa z logitami | `nn.BCEWithLogitsLoss()` |
+| **Klasyfikacja wieloklasowa** | Entropia krzyżowa | `nn.CrossEntropyLoss()` |
+
+**MSELoss** dla $n$ obserwacji i jednego wyjścia:
+
+$$
+\mathcal{L}_{\text{MSE}} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2.
+$$
+
+**BCEWithLogitsLoss** – łączy sigmoida z binarną entropią krzyżową (bezpieczniejsze numerycznie niż osobne stosowanie):
+
+$$
+\mathcal{L}_{\text{BCE}} = -\frac{1}{n} \sum_{i=1}^{n} \left[ y_i \log(\sigma(\hat{y}_i)) + (1-y_i) \log(1-\sigma(\hat{y}_i)) \right].
+$$
+
+**CrossEntropyLoss** – dla $K$ klas łączy softmax z entropią krzyżową:
+
+$$
+\mathcal{L}_{\text{CE}} = -\frac{1}{n} \sum_{i=1}^{n} \sum_{k=1}^{K} y_{i,k} \log\left( \frac{e^{\hat{y}_{i,k}}}{\sum_{j=1}^{K} e^{\hat{y}_{i,j}}} \right).
+$$
+
+::: callout-important
+### Kluczowa obserwacja
+
+W PyTorch `nn.BCEWithLogitsLoss` oczekuje surowych logitów (przed sigmoidem), podobnie `nn.CrossEntropyLoss` oczekuje logitów (przed softmaxem). Jest to wydajniejsze numerycznie niż ręczne stosowanie aktywacji przed funkcją straty.
+:::
+
+## Uczenie sieci: wsteczna propagacja i SGD
+
+### Dlaczego potrzebujemy algorytmu uczenia?
+
+Parametry sieci (wagi i biasy) nie są znane z góry. Musimy je dobrać tak, aby minimalizować funkcję celu na danych treningowych. Ponieważ sieć może mieć tysiące lub miliony parametrów, potrzebujemy wydajnego algorytmu optymalizacji.
+
+### Wsteczna propagacja błędu
+
+**Wsteczna propagacja** (*backpropagation*) to algorytm efektywnego obliczania gradientu funkcji celu względem wszystkich parametrów sieci. Opiera się na regule łańcuchowej (*chain rule*) z rachunku różniczkowego.
+
+Intuicja działania algorytmu:
+
+1.  Wykonaj propagację w przód – oblicz predykcję $\hat{y}$ i wartość straty $\mathcal{L}$.
+2.  Oblicz gradient straty względem wyjścia sieci: $\frac{\partial \mathcal{L}}{\partial \hat{y}}$.
+3.  Propaguj gradient wstecz przez kolejne warstwy, korzystając z reguły łańcuchowej:
+    $$
+    \frac{\partial \mathcal{L}}{\partial \mathbf{W}^{(l)}} = \frac{\partial \mathcal{L}}{\partial \mathbf{a}^{(l)}} \cdot \frac{\partial \mathbf{a}^{(l)}}{\partial \mathbf{z}^{(l)}} \cdot \frac{\partial \mathbf{z}^{(l)}}{\partial \mathbf{W}^{(l)}}.
+    $$
+4.  Zaktualizuj parametry, przesuwając je w kierunku przeciwnym do gradientu.
+
+W PyTorch cały ten proces jest zautomatyzowany przez moduł `autograd`. Wywołanie `.backward()` na wartości straty uruchamia obliczenie gradientów dla wszystkich parametrów, które mają atrybut `requires_grad=True`.
+
+### Stochastic Gradient Descent (SGD)
+
+**Stochastyczny spadek wzdłuż gradientu** to algorytm aktualizacji parametrów:
+
+$$
+\mathbf{W} \leftarrow \mathbf{W} - \eta \cdot \nabla_{\mathbf{W}} \mathcal{L},
+$$
+
+gdzie $\eta$ to **szybkość uczenia** (*learning rate*).
+
+W praktyce nie używamy pełnego zbioru danych do obliczenia gradientu (byłoby to zbyt kosztowne). Zamiast tego stosujemy **mini-batch SGD**:
+
+1.  Podziel dane treningowe na małe porcje (ang. *mini-batches*), np. po 32 lub 64 obserwacje.
+2.  Dla każdej porcji:
+    - Oblicz predykcję i stratę.
+    - Oblicz gradienty przez wsteczną propagację.
+    - Zaktualizuj parametry.
+3.  Powtarzaj przez wiele epok (pełnych przejść przez cały zbiór treningowy).
+
+```{python}
+#| label: wyk6-sgd-ilustracja
+#| fig-cap: "Ilustracja SGD: optymalizacja prostej funkcji dwóch zmiennych"
+import torch
+
+def rosenbrock(x, y):
+    return (1 - x)**2 + 100 * (y - x**2)**2
+
+x = torch.tensor([-1.5], requires_grad=True)
+y = torch.tensor([2.5], requires_grad=True)
+opt = torch.optim.SGD([x, y], lr=0.001)
+
+historia = []
+for i in range(3000):
+    opt.zero_grad()
+    loss = rosenbrock(x, y)
+    loss.backward()
+    opt.step()
+    if i % 100 == 0:
+        historia.append([x.item(), y.item(), loss.item()])
+
+historia = torch.tensor(historia)
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+X_plot, Y_plot = np.meshgrid(np.linspace(-2, 2, 100), np.linspace(-1, 3, 100))
+Z_plot = rosenbrock(torch.tensor(X_plot), torch.tensor(Y_plot))
+
+plt.figure(figsize=(8, 5))
+plt.contourf(X_plot, Y_plot, np.log1p(Z_plot), levels=30, cmap="viridis", alpha=0.7)
+plt.colorbar(label="log(1 + f(x,y))")
+plt.plot(historia[:, 0], historia[:, 1], "r.-", markersize=2, label="Ścieżka SGD")
+plt.plot(1, 1, "w*", markersize=14, markeredgecolor="black", label="Minimum (1,1)")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("SGD na funkcji Rosenbrocka")
+plt.legend()
+plt.tight_layout()
+plt.show()
+```
+
+Powyższa ilustracja pokazuje, jak SGD krok po kroku przesuwa parametry w kierunku minimum funkcji Rosenbrocka – klasycznego problemu testowego dla algorytmów optymalizacyjnych.
+
+::: callout-tip
+### Mini-batch, learning rate i epoki
+
+-   **Batch size**: 32–128 dla danych tabularycznych. Większy batch daje stabilniejszy, ale droższy krok.
+-   **Learning rate**: typowo 0.1–0.001 dla SGD. Zbyt duży powoduje oscylacje, zbyt mały – powolne uczenie.
+-   **Liczba epok**: należy monitorować stratę na zbiorze walidacyjnym i zatrzymać trening, gdy przestaje spadać (*early stopping*).
+:::
+
+## Przykład 1: regresja – predykcja cen nieruchomości w Kalifornii
+
+### Cel przykładu
+
+W pierwszym przykładzie zbudujemy sieć neuronową do przewidywania mediany wartości domów w kalifornijskich dzielnicach. Wykorzystamy zbiór `California Housing` dostępny w bibliotece `scikit-learn`.
+
+::: callout-important
+### Cel predykcyjny
+
+Przewidywanie mediany wartości domu (w setkach tysięcy dolarów) na podstawie 8 cech demograficzno-geograficznych dzielnicy.
+:::
+
+### Opis danych
+
+Zbiór `California Housing` zawiera **20 640 obserwacji**, co czyni go dobrze dopasowanym do uczenia sieci neuronowych. Każda obserwacja opisuje jedną dzielnicę (tzw. *block group*) za pomocą 8 cech:
+
+- `MedInc` – mediana dochodu w dzielnicy,
+- `HouseAge` – mediana wieku domów,
+- `AveRooms` – średnia liczba pokoi,
+- `AveBedrms` – średnia liczba sypialni,
+- `Population` – populacja dzielnicy,
+- `AveOccup` – średnia liczba mieszkańców na dom,
+- `Latitude`, `Longitude` – współrzędne geograficzne.
+
+Zmienna docelowa to mediana wartości domu wyrażona w setkach tysięcy dolarów (np. 2.5 oznacza 250 000 USD).
+
+```{python}
+#| label: wyk6-regresja-dane
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+data = fetch_california_housing()
+X, y = data.data, data.target
+
+print(f"Liczba obserwacji: {X.shape[0]}")
+print(f"Liczba cech: {X.shape[1]}")
+print(f"Zakres zmiennej docelowej: [{y.min():.2f}, {y.max():.2f}] (×100k USD)")
+print(f"Nazwy cech: {data.feature_names}")
+```
+
+Dla tego zbioru wydzielamy trzy podzbiory:
+
+-   **Treningowy** (60%) – na którym sieć bezpośrednio się uczy,
+-   **Walidacyjny** (20%) – służący do monitorowania postępu treningu i ewentualnego wczesnego zatrzymania (*early stopping*),
+-   **Testowy** (20%) – użyty dopiero po zakończeniu treningu, do końcowej, obiektywnej oceny modelu.
+
+```{python}
+#| label: wyk6-regresja-przygotowanie
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+
+# Podział: train 60%, val 20%, test 20%
+X_temp, X_test, y_temp, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+X_train, X_val, y_train, y_val = train_test_split(
+    X_temp, y_temp, test_size=0.25, random_state=42
+)  # 0.25 × 0.8 = 0.2 całości
+
+# Skalowanie – dopasowujemy tylko na train
+scaler_X = StandardScaler()
+scaler_y = StandardScaler()
+
+X_train_s = scaler_X.fit_transform(X_train)
+X_val_s   = scaler_X.transform(X_val)
+X_test_s  = scaler_X.transform(X_test)
+
+y_train_s = scaler_y.fit_transform(y_train.reshape(-1, 1)).flatten()
+y_val_s   = scaler_y.transform(y_val.reshape(-1, 1)).flatten()
+y_test_s  = scaler_y.transform(y_test.reshape(-1, 1)).flatten()
+
+# Tensory
+X_train_t = torch.tensor(X_train_s, dtype=torch.float32)
+y_train_t = torch.tensor(y_train_s, dtype=torch.float32)
+X_val_t   = torch.tensor(X_val_s, dtype=torch.float32)
+y_val_t   = torch.tensor(y_val_s, dtype=torch.float32)
+X_test_t  = torch.tensor(X_test_s, dtype=torch.float32)
+y_test_t  = torch.tensor(y_test_s, dtype=torch.float32)
+
+# DataLoader do mini-batch SGD
+train_dataset = TensorDataset(X_train_t, y_train_t)
+train_loader  = DataLoader(train_dataset, batch_size=256, shuffle=True)
+
+print(f"Trening:    {len(X_train_t)} obserwacji")
+print(f"Walidacja:  {len(X_val_t)} obserwacji")
+print(f"Test:       {len(X_test_t)} obserwacji")
+```
+
+### Architektura sieci
+
+Dzięki dużej liczbie obserwacji możemy pozwolić sobie na sieć MLP o trzech warstwach:
+
+-   **Warstwa wejściowa**: 8 neuronów (tyle, ile cech)
+-   **Warstwa ukryta 1**: 64 neurony, aktywacja **ReLU**
+-   **Warstwa ukryta 2**: 32 neurony, aktywacja **ReLU**
+-   **Warstwa wyjściowa**: 1 neuron, **bez aktywacji**
+
+Dla danych tabularycznych celowo rezygnujemy z `BatchNorm` i `Dropout` – przy stabilnym optymalizatorze (Adam) prosta architektura `Linear → ReLU` często daje najlepszy stosunek jakości do stabilności treningu.
+
+Funkcja celu: **MSELoss**.
+Optymalizator: **Adam** z learning rate = 0.001 oraz `weight_decay` = 1e-4 (regularyzacja L2).
+
+```{python}
+#| label: wyk6-regresja-model
+class RegressionMLP(nn.Module):
+    def __init__(self, input_dim):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, 64),
+            nn.ReLU(),
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Linear(32, 1)
+        )
+
+    def forward(self, x):
+        return self.net(x).squeeze()
+
+torch.manual_seed(42)
+model_reg = RegressionMLP(input_dim=X.shape[1])
+criterion = nn.MSELoss()
+optimizer = optim.Adam(model_reg.parameters(), lr=0.001, weight_decay=1e-4)
+
+print(model_reg)
+```
+
+### Trening sieci
+
+Trening prowadzimy za pomocą mini-batch SGD z `DataLoader` (batch size = 256). W każdej epoce monitorujemy stratę na zbiorze treningowym i walidacyjnym oraz zapamiętujemy najlepszy stan modelu według straty walidacyjnej. Zbiór testowy pozostaje nietknięty aż do końcowej oceny.
+
+```{python}
+#| label: wyk6-regresja-trening
+import copy
+
+n_epochs = 200
+train_losses = []
+val_losses = []
+best_val_loss = float("inf")
+best_state = None
+
+for epoch in range(n_epochs):
+    # Trening – mini-batch SGD
+    model_reg.train()
+    epoch_train_loss = 0.0
+    for X_batch, y_batch in train_loader:
+        optimizer.zero_grad()
+        pred = model_reg(X_batch)
+        loss = criterion(pred, y_batch)
+        loss.backward()
+        optimizer.step()
+        epoch_train_loss += loss.item() * X_batch.size(0)
+    train_losses.append(epoch_train_loss / len(X_train_t))
+
+    # Walidacja (bez gradientów)
+    model_reg.eval()
+    with torch.no_grad():
+        pred_val = model_reg(X_val_t)
+        loss_val = criterion(pred_val, y_val_t)
+        val_losses.append(loss_val.item())
+
+    # Zapamiętaj najlepszy model
+    if val_losses[-1] < best_val_loss:
+        best_val_loss = val_losses[-1]
+        best_state = copy.deepcopy(model_reg.state_dict())
+
+# Przywróć najlepszy model
+model_reg.load_state_dict(best_state)
+
+print(f"Najlepsza strata walidacyjna (MSE): {best_val_loss:.4f}")
+print(f"Końcowa strata treningowa (MSE):    {train_losses[-1]:.4f}")
+print(f"Końcowa strata walidacyjna (MSE):   {val_losses[-1]:.4f}")
+```
+
+```{python}
+#| label: wyk6-regresja-krzywa-straty
+#| fig-cap: "Krzywa straty MSE podczas treningu sieci regresyjnej"
+plt.figure(figsize=(8, 4.5))
+plt.plot(train_losses, label="Trening", linewidth=1.2)
+plt.plot(val_losses, label="Walidacja", linewidth=1.2)
+plt.xlabel("Epoka")
+plt.ylabel("MSE")
+plt.title("Strata MSE w kolejnych epokach")
+plt.legend()
+plt.grid(alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+Adam stabilnie optymalizuje sieć – krzywa walidacyjna opada płynnie wraz z treningową. Przywracamy najlepszy stan modelu według walidacji, aby uniknąć sytuacji, w której ostatnia epoka przypadkowo wypadła gorzej.
+
+### Ocena modelu
+
+Po zakończeniu treningu oceniamy model na wszystkich trzech zbiorach. Dopiero teraz używamy zbioru testowego.
+
+```{python}
+#| label: wyk6-regresja-ocena
+model_reg.eval()
+with torch.no_grad():
+    y_pred_train = model_reg(X_train_t).numpy()
+    y_pred_val   = model_reg(X_val_t).numpy()
+    y_pred_test  = model_reg(X_test_t).numpy()
+
+y_pred_train_orig = scaler_y.inverse_transform(y_pred_train.reshape(-1, 1)).flatten()
+y_pred_val_orig   = scaler_y.inverse_transform(y_pred_val.reshape(-1, 1)).flatten()
+y_pred_test_orig  = scaler_y.inverse_transform(y_pred_test.reshape(-1, 1)).flatten()
+y_train_orig = scaler_y.inverse_transform(y_train_s.reshape(-1, 1)).flatten()
+y_val_orig   = scaler_y.inverse_transform(y_val_s.reshape(-1, 1)).flatten()
+y_test_orig  = scaler_y.inverse_transform(y_test_s.reshape(-1, 1)).flatten()
+
+from sklearn.metrics import mean_squared_error, r2_score
+
+rmse_train = np.sqrt(mean_squared_error(y_train_orig, y_pred_train_orig))
+rmse_val   = np.sqrt(mean_squared_error(y_val_orig, y_pred_val_orig))
+rmse_test  = np.sqrt(mean_squared_error(y_test_orig, y_pred_test_orig))
+r2_train   = r2_score(y_train_orig, y_pred_train_orig)
+r2_val     = r2_score(y_val_orig, y_pred_val_orig)
+r2_test    = r2_score(y_test_orig, y_pred_test_orig)
+
+print(f"RMSE / R² – trening:  {rmse_train:.3f} / {r2_train:.3f}")
+print(f"RMSE / R² – walidacja: {rmse_val:.3f} / {r2_val:.3f}")
+print(f"RMSE / R² – test:      {rmse_test:.3f} / {r2_test:.3f}")
+```
+
+```{python}
+#| label: wyk6-regresja-wykres
+#| fig-cap: "Wartości rzeczywiste vs przewidywane – zbiór testowy"
+plt.figure(figsize=(6, 5.5))
+plt.scatter(y_test_orig, y_pred_test_orig, alpha=0.15, edgecolors="none", s=12)
+plt.plot(
+    [y_test_orig.min(), y_test_orig.max()],
+    [y_test_orig.min(), y_test_orig.max()],
+    "r--", linewidth=1.5, label="Idealna predykcja"
+)
+plt.xlabel("Wartości rzeczywiste (×100k USD)")
+plt.ylabel("Wartości przewidywane")
+plt.title(f"Regresja MLP – zbiór testowy (R² = {r2_test:.3f})")
+plt.legend()
+plt.grid(alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+Punkty układają się wzdłuż przekątnej, a wartości $R^2$ na trzech zbiorach są spójne – model nie przeucza się i dobrze generalizuje na nowe dzielnice.
+
+## Przykład 2: klasyfikacja – diagnostyka raka piersi
+
+### Cel przykładu
+
+W drugim przykładzie zbudujemy sieć neuronową do klasyfikacji binarnej – odróżniania guzów złośliwych od łagodnych na podstawie cech morfologicznych jąder komórkowych. Wykorzystamy zbiór `breast_cancer` z `scikit-learn`.
+
+::: callout-important
+### Cel klasyfikacyjny
+
+Przewidywanie, czy guz jest złośliwy (`1`) czy łagodny (`0`), na podstawie 30 cech opisujących właściwości geometryczne jąder komórkowych.
+:::
+
+### Opis danych
+
+Zbiór `breast_cancer` (Wisconsin Diagnostic Breast Cancer) zawiera 569 obserwacji. Każda opisuje jedno badanie cytologiczne za pomocą 30 cech liczbowych (m.in. promień, tekstura, obwód, pole powierzchni, gładkość jąder komórkowych). Zmienna docelowa jest binarna: `0` – guz łagodny, `1` – guz złośliwy.
+
+```{python}
+#| label: wyk6-klasyfikacja-dane
+from sklearn.datasets import load_breast_cancer
+
+data_bc = load_breast_cancer()
+X_bc, y_bc = data_bc.data, data_bc.target
+
+print(f"Liczba obserwacji: {X_bc.shape[0]}")
+print(f"Liczba cech: {X_bc.shape[1]}")
+print(f"Rozkład klas: {dict(zip(data_bc.target_names, np.bincount(y_bc)))}")
+print(f"Nazwy cech (pierwsze 10): {list(data_bc.feature_names[:10])}")
+```
+
+Podział 60/20/20 wykonujemy jak w przykładzie 1, tym razem z zachowaniem proporcji klas (*stratify*).
+
+```{python}
+#| label: wyk6-klasyfikacja-przygotowanie
+# Podział: train 60%, val 20%, test 20% (stratyfikowany)
+X_temp_bc, X_test_bc, y_temp_bc, y_test_bc = train_test_split(
+    X_bc, y_bc, test_size=0.2, random_state=42, stratify=y_bc
+)
+X_train_bc, X_val_bc, y_train_bc, y_val_bc = train_test_split(
+    X_temp_bc, y_temp_bc, test_size=0.25, random_state=42, stratify=y_temp_bc
+)
+
+# Skalowanie – dopasowujemy tylko na train
+scaler_X_bc = StandardScaler()
+X_train_bc_s = scaler_X_bc.fit_transform(X_train_bc)
+X_val_bc_s   = scaler_X_bc.transform(X_val_bc)
+X_test_bc_s  = scaler_X_bc.transform(X_test_bc)
+
+X_train_bc_t = torch.tensor(X_train_bc_s, dtype=torch.float32)
+y_train_bc_t = torch.tensor(y_train_bc, dtype=torch.float32)
+X_val_bc_t   = torch.tensor(X_val_bc_s, dtype=torch.float32)
+y_val_bc_t   = torch.tensor(y_val_bc, dtype=torch.float32)
+X_test_bc_t  = torch.tensor(X_test_bc_s, dtype=torch.float32)
+y_test_bc_t  = torch.tensor(y_test_bc, dtype=torch.float32)
+
+# DataLoader do mini-batch SGD
+train_dataset_bc = TensorDataset(X_train_bc_t, y_train_bc_t)
+train_loader_bc  = DataLoader(train_dataset_bc, batch_size=32, shuffle=True)
+
+print(f"Trening:    {len(X_train_bc_t)} obserwacji")
+print(f"Walidacja:  {len(X_val_bc_t)} obserwacji")
+print(f"Test:       {len(X_test_bc_t)} obserwacji")
+```
+
+### Architektura sieci
+
+Dla klasyfikacji binarnej stosujemy głębszą sieć MLP z dropoutem dla dodatkowej regularyzacji:
+
+-   **Warstwa wejściowa**: 30 neuronów
+-   **Warstwa ukryta 1**: 128 neuronów, `BatchNorm1d`, `ReLU`, `Dropout(0.3)`
+-   **Warstwa ukryta 2**: 64 neurony, `BatchNorm1d`, `ReLU`, `Dropout(0.3)`
+-   **Warstwa ukryta 3**: 32 neurony, `BatchNorm1d`, `ReLU`
+-   **Warstwa wyjściowa**: 1 neuron, **bez aktywacji** – zwraca logit
+
+Dropout losowo wyłącza 30% neuronów podczas treningu, co zmusza sieć do budowania nadmiarowych, bardziej odpornych reprezentacji i przeciwdziała przeuczeniu.
+
+Funkcja celu: **BCEWithLogitsLoss** (binarna entropia krzyżowa z wbudowanym sigmoidem).
+Optymalizator: **SGD** z learning rate = 0.01 oraz momentum = 0.9.
+
+Sigmoid nakładamy dopiero podczas ewaluacji, aby uzyskać prawdopodobieństwa (por. uwagę o `BCEWithLogitsLoss` wyżej).
+
+```{python}
+#| label: wyk6-klasyfikacja-model
+class BinaryMLP(nn.Module):
+    def __init__(self, input_dim):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, 128),
+            nn.BatchNorm1d(128),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(128, 64),
+            nn.BatchNorm1d(64),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(64, 32),
+            nn.BatchNorm1d(32),
+            nn.ReLU(),
+            nn.Linear(32, 1)
+        )
+
+    def forward(self, x):
+        return self.net(x).squeeze()
+
+torch.manual_seed(42)
+model_cls = BinaryMLP(input_dim=X_bc.shape[1])
+criterion_cls = nn.BCEWithLogitsLoss()
+optimizer_cls = optim.SGD(model_cls.parameters(), lr=0.01, momentum=0.9)
+
+print(model_cls)
+```
+
+### Trening sieci
+
+Pętla treningowa jest analogiczna jak w przykładzie 1 (batch size = 32).
+
+```{python}
+#| label: wyk6-klasyfikacja-trening
+n_epochs_cls = 300
+train_losses_cls = []
+val_losses_cls = []
+
+for epoch in range(n_epochs_cls):
+    # Trening – mini-batch SGD
+    model_cls.train()
+    epoch_train_loss = 0.0
+    for X_batch, y_batch in train_loader_bc:
+        optimizer_cls.zero_grad()
+        logits = model_cls(X_batch)
+        loss = criterion_cls(logits, y_batch)
+        loss.backward()
+        optimizer_cls.step()
+        epoch_train_loss += loss.item() * X_batch.size(0)
+    train_losses_cls.append(epoch_train_loss / len(X_train_bc_t))
+
+    # Walidacja (bez gradientów)
+    model_cls.eval()
+    with torch.no_grad():
+        logits_val = model_cls(X_val_bc_t)
+        loss_val = criterion_cls(logits_val, y_val_bc_t)
+        val_losses_cls.append(loss_val.item())
+
+print(f"Końcowa strata treningowa:  {train_losses_cls[-1]:.4f}")
+print(f"Końcowa strata walidacyjna: {val_losses_cls[-1]:.4f}")
+```
+
+```{python}
+#| label: wyk6-klasyfikacja-krzywa-straty
+#| fig-cap: "Krzywa straty BCE podczas treningu sieci klasyfikacyjnej"
+plt.figure(figsize=(8, 4.5))
+plt.plot(train_losses_cls, label="Trening", linewidth=1.2)
+plt.plot(val_losses_cls, label="Walidacja", linewidth=1.2)
+plt.xlabel("Epoka")
+plt.ylabel("BCE Loss")
+plt.title("Strata BCE w kolejnych epokach")
+plt.legend()
+plt.grid(alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+Strata na obu zbiorach systematycznie spada i nie rozbiega się – model generalizuje poprawnie. Dropout i BatchNorm pomagają utrzymać stabilny trening mimo głębszej architektury.
+
+### Ocena modelu
+
+```{python}
+#| label: wyk6-klasyfikacja-ocena
+model_cls.eval()
+with torch.no_grad():
+    logits_train = model_cls(X_train_bc_t)
+    logits_val   = model_cls(X_val_bc_t)
+    logits_test  = model_cls(X_test_bc_t)
+
+probs_train = torch.sigmoid(logits_train).numpy()
+probs_val   = torch.sigmoid(logits_val).numpy()
+probs_test  = torch.sigmoid(logits_test).numpy()
+preds_train = (probs_train >= 0.5).astype(int)
+preds_val   = (probs_val >= 0.5).astype(int)
+preds_test  = (probs_test >= 0.5).astype(int)
+
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+acc_train = accuracy_score(y_train_bc, preds_train)
+acc_val   = accuracy_score(y_val_bc, preds_val)
+acc_test  = accuracy_score(y_test_bc, preds_test)
+
+print(f"Dokładność – trening:  {acc_train:.4f}")
+print(f"Dokładność – walidacja: {acc_val:.4f}")
+print(f"Dokładność – test:      {acc_test:.4f}")
+print()
+print("Raport klasyfikacji (zbiór testowy):")
+print(classification_report(y_test_bc, preds_test, target_names=data_bc.target_names))
+```
+
+```{python}
+#| label: wyk6-klasyfikacja-macierz
+#| fig-cap: "Macierz pomyłek – zbiór testowy"
+from sklearn.metrics import ConfusionMatrixDisplay
+
+cm = confusion_matrix(y_test_bc, preds_test)
+disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=data_bc.target_names)
+disp.plot(cmap="Blues", values_format="d")
+plt.title("Macierz pomyłek – klasyfikacja raka piersi")
+plt.grid(False)
+plt.tight_layout()
+plt.show()
+```
+
+Model osiąga wysoką dokładność (powyżej 95%) nawet przy głębszej architekturze. Zbliżone wartości metryk dla zbioru treningowego, walidacyjnego i testowego świadczą o braku przeuczenia. Macierz pomyłek pokazuje pojedyncze pomyłki – sieć skutecznie oddziela guzy złośliwe od łagodnych.
+
+## Porównanie regresji i klasyfikacji w sieciach neuronowych
+
+| Aspekt | Regresja | Klasyfikacja binarna |
+|--------|---------|---------------------|
+| **Warstwa wyjściowa** | 1 neuron, bez aktywacji | 1 neuron, bez aktywacji (logit) |
+| **Funkcja straty** | `MSELoss` | `BCEWithLogitsLoss` |
+| **Metryka** | RMSE, $R^2$, MAE | Accuracy, precyzja, czułość, F1 |
+| **Interpretacja wyniku** | Wartość liczbowa | Prawdopodobieństwo klasy pozytywnej |
+| **Próg decyzyjny** | Nie dotyczy | Domyślnie 0.5 |
+
+::: callout-note
+### Klasyfikacja wieloklasowa
+
+Gdy mamy więcej niż dwie klasy, warstwa wyjściowa ma tyle neuronów, ile jest klas, a funkcją straty jest `CrossEntropyLoss`. Nie stosujemy wtedy sigmoida – `CrossEntropyLoss` wewnętrznie używa softmaxa.
+:::
+
+## Najważniejsze zalety i ograniczenia sieci neuronowych
+
+### Zalety
+
+Sieci neuronowe potrafią modelować bardzo złożone, nieliniowe zależności bez ręcznego definiowania interakcji między zmiennymi czy transformacji cech. Dzięki warstwom ukrytym uczą się hierarchicznych reprezentacji danych. Ta sama architektura (po zmianie ostatniej warstwy i funkcji straty) może być użyta zarówno do regresji, jak i klasyfikacji.
+
+### Ograniczenia
+
+Sieci neuronowe wymagają starannego przygotowania danych (standaryzacja, usuwanie braków). Są podatne na przeuczenie, szczególnie gdy danych jest mało, a parametrów dużo. Wyniki zależą od wielu hiperparametrów: liczby warstw, liczby neuronów, learning rate, batch size, liczby epok. W przeciwieństwie do regresji liniowej czy drzewa decyzyjnego, wagi sieci nie mają prostej interpretacji.
+
+::: callout-warning
+### Typowe błędy praktyczne
+
+1.  **Brak skalowania danych** – sieć będzie się uczyć wolno lub wcale.
+2.  **Zbyt duży learning rate** – strata oscyluje i nie spada.
+3.  **Zbyt mało danych, zbyt dużo parametrów** – model zapamiętuje zbiór treningowy, ale nie generalizuje.
+4.  **Niewłaściwa funkcja straty** – `MSELoss` do klasyfikacji nie działa poprawnie; użyj `BCEWithLogitsLoss` lub `CrossEntropyLoss`.
+:::
+
+## Wnioski
+
+Sieci neuronowe są uniwersalnym narzędziem predykcyjnym, którego podstawą jest koncepcja neuronu – jednostki obliczającej ważoną sumę wejść i przepuszczającej wynik przez nieliniową funkcję aktywacji. Neurony zorganizowane w warstwy tworzą sieć, która w procesie propagacji w przód generuje predykcję, a w procesie wstecznej propagacji – uczy się na podstawie błędu.
+
+Algorytm stochastycznego spadku wzdłuż gradientu (SGD) w połączeniu z mini-batchami stanowi praktyczny mechanizm optymalizacji parametrów sieci. Dzięki automatycznemu różniczkowaniu w PyTorch cały proces sprowadza się do zdefiniowania modelu, funkcji celu i pętli treningowej.
+
+W praktyce najważniejsze decyzje to: wybór architektury (liczba warstw i neuronów), funkcji aktywacji, funkcji celu, optymalizatora, właściwy podział danych na zbiory treningowy, walidacyjny i testowy oraz odpowiednie przygotowanie danych (standaryzacja).

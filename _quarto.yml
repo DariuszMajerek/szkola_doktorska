@@ -1,0 +1,55 @@
+project:
+  type: book
+  output-dir: docs
+
+book:
+  title: "Statystyka stosowana"
+  reader-mode: true
+  page-footer:
+    left: |
+      Statystyka stosowana, Dariusz Majerek
+    right: |
+      Książka została napisana w <a href="https://quarto.org/">Quarto</a>
+  cover-image: logo2.png
+  favicon: logo2.png
+  repo-url: https://github.com/DariuszMajerek/szkola_doktorska
+  search: true
+  author: 
+  - name: Dariusz Majerek
+    affiliation: Politechnika Lubelska
+  date: last-modified
+  sidebar: 
+    logo: logo.png
+  chapters:
+    - index.qmd
+    - wyk1.qmd
+    - wyk2.qmd
+    - wyk3.qmd
+    - wyk4.qmd
+    - wyk5.qmd
+    - wyk6.qmd
+
+bibliography: references.bib
+
+reference-location: margin
+
+format:
+  html:
+    grid:
+      sidebar-width: 300px
+      body-width: 1400px
+      margin-width: 300px
+      gutter-width: 1.5rem
+    lang: pl
+    theme:
+      light: [flatly, mycss.scss]
+      dark: [darkly, mycss.scss]
+    code-fold: true
+    number-sections: false
+    fig-align: center
+
+execute: 
+  warning: false
+  freeze: auto
+
+editor: visual

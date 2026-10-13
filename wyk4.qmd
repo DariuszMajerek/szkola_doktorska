@@ -1,0 +1,696 @@
+# Wykład 4: Metody zespołowe — bagging, las losowy i XGBoost {.unnumbered}
+
+::: hidden
+$$
+ \def\E{\mathrm{E}}
+ \def\Var{\mathrm{Var}}
+ \def\P{\mathrm{P}}
+$$
+:::
+
+## Wprowadzenie
+
+W tym rozdziale pokażemy kompletny przykład problemu badawczego, w którym celem jest **predykcja wartości liczbowej na podstawie wielu cech opisujących obiekt**. Tym razem nie będziemy używać pojedynczego modelu liniowego ani pojedynczego drzewa decyzyjnego. Zamiast tego porównamy trzy metody zespołowe: **bagging**, **las losowy** oraz **XGBoost**.
+
+Metody zespołowe są szczególnie użyteczne wtedy, gdy zależność między zmienną objaśnianą a predyktorami jest złożona, nieliniowa i może zależeć od interakcji między zmiennymi. Zamiast zakładać prostą postać funkcji regresji, modele te budują wiele słabszych modeli bazowych i łączą ich przewidywania w jedną predykcję końcową.
+
+W przykładzie skorzystamy ze zbioru `ames` z pakietu `modeldata`, zawierającego informacje o sprzedaży domów w mieście Ames w stanie Iowa. Na podstawie cech technicznych i lokalizacyjnych nieruchomości będziemy przewidywać cenę sprzedaży domu.
+
+::: callout-note
+### Co będzie wynikiem tej analizy?
+
+Na końcu będziemy umieli odpowiedzieć na pytanie, czy złożone modele drzewiaste poprawiają jakość predykcji cen domów oraz czym różnią się bagging, las losowy i XGBoost z punktu widzenia praktycznej analizy danych.
+:::
+
+## Formułowanie celu i problemów badawczych
+
+### Cel badawczy
+
+Chcemy zbudować modele predykcyjne, które na podstawie cech domu będą przewidywać jego cenę sprzedaży. Problem ma charakter regresyjny, ponieważ zmienna objaśniana jest liczbowa i wyrażona w dolarach.
+
+W analizie nie interesuje nas wyłącznie uzyskanie możliwie małego błędu predykcji. Równie ważne jest porównanie trzech rodzin modeli zespołowych i zrozumienie, w jaki sposób różnią się one mechanizmem uczenia.
+
+::: callout-important
+### Jasne określenie celu
+
+**Cel predykcyjny:** przewidywanie ceny sprzedaży domu na podstawie cech lokalizacyjnych, technicznych i jakościowych nieruchomości.
+:::
+
+### Zmienna objaśniana i zmienne objaśniające
+
+- **Zmienna objaśniana (zależna, przewidywana):** `Sale_Price`, czyli cena sprzedaży domu.
+- **Zmienne objaśniające (predyktory):** cechy lokalizacyjne, techniczne i jakościowe domu (m.in. powierzchnia mieszkalna, stan techniczny, rok budowy, garaż, dzielnica); pełne zestawienie znajduje się w tabeli w części *Opis danych*.
+
+### Problem badawczy
+
+Interesuje nas odpowiedź na następujące pytania:
+
+1.  Czy cechy nieruchomości pozwalają trafnie przewidywać cenę sprzedaży domu?
+2.  Która z trzech metod zespołowych daje najmniejszy błąd predykcji: bagging, las losowy czy XGBoost?
+3.  Jak zmienia się jakość predykcji, gdy przechodzimy od prostego uśredniania drzew do modeli z losowym doborem predyktorów i wzmacnianiem gradientowym?
+4.  Które zmienne są najważniejsze dla końcowej predykcji?
+5.  Jak interpretować wyniki modelu, który jest skuteczny predykcyjnie, ale mniej przejrzysty niż pojedyncze drzewo decyzyjne?
+
+### Jednostka obserwacji
+
+Pojedynczą obserwacją jest tutaj **jedna transakcja sprzedaży domu**. Każdy wiersz tabeli danych opisuje jedną nieruchomość oraz jej cenę sprzedaży.
+
+## Metodyka
+
+### Dlaczego metody zespołowe?
+
+Pojedyncze drzewo decyzyjne jest łatwe do interpretacji, ale często bywa niestabilne. Niewielka zmiana danych treningowych może prowadzić do innego pierwszego podziału, a później do zupełnie innej struktury drzewa. To oznacza dużą wariancję modelu.
+
+Metody zespołowe zmniejszają ten problem przez łączenie wielu modeli. Zamiast opierać predykcję na jednym drzewie, budujemy wiele drzew i agregujemy ich wyniki. W regresji najczęściej oznacza to uśrednianie predykcji:
+
+$$
+\hat{y}(x) = \frac{1}{B}\sum_{b=1}^{B} \hat{f}_b(x),
+$$
+
+gdzie $B$ oznacza liczbę modeli bazowych, a $\hat{f}_b(x)$ jest predykcją $b$-tego drzewa dla obserwacji o cechach $x$.
+
+Najważniejsza intuicja jest następująca: pojedyncze drzewa mogą być dość zmienne, ale średnia z wielu zróżnicowanych drzew zwykle jest bardziej stabilna.
+
+### Bagging
+
+Bagging, czyli *bootstrap aggregating*, polega na wielokrotnym losowaniu prób bootstrapowych ze zbioru treningowego, dopasowaniu osobnego drzewa do każdej z tych prób, a następnie uśrednieniu predykcji.
+
+Procedura wygląda następująco:
+
+1.  Losujemy ze zwracaniem próbę bootstrapową ze zbioru treningowego.
+2.  Dopasowujemy drzewo regresyjne do tej próby.
+3.  Powtarzamy kroki 1-2 wiele razy.
+4.  Dla nowej obserwacji liczymy średnią predykcji ze wszystkich drzew.
+
+Bagging redukuje wariancję w porównaniu z pojedynczym drzewem. Nie zmienia jednak tego, że każde drzewo może korzystać z tego samego zestawu bardzo silnych predyktorów. Jeśli jeden predyktor dominuje, wiele drzew może stać się do siebie podobnych.
+
+### Las losowy
+
+Las losowy rozwija ideę baggingu. Oprócz losowania obserwacji w kolejnych próbach bootstrapowych wprowadza także losowość na poziomie predyktorów. Przy każdym podziale drzewa algorytm rozważa tylko losowo wybrany podzbiór zmiennych.
+
+Dzięki temu drzewa w lesie są mniej skorelowane ze sobą. Jeżeli poszczególne drzewa popełniają różne błędy, ich uśrednienie daje bardziej stabilną predykcję.
+
+Najważniejszym parametrem odróżniającym las losowy od zwykłego baggingu jest `mtry`, czyli liczba predyktorów rozważanych przy pojedynczym podziale. Małe `mtry` zwiększa różnorodność drzew, ale może osłabić pojedyncze drzewa. Duże `mtry` upodabnia las losowy do baggingu.
+
+### XGBoost
+
+XGBoost należy do rodziny metod wzmacniania gradientowego. W przeciwieństwie do baggingu i lasu losowego drzewa nie są budowane niezależnie. Powstają sekwencyjnie: każde kolejne drzewo ma poprawiać błędy popełniane przez dotychczasowy model.
+
+W uproszczeniu model końcowy ma postać sumy wielu małych drzew:
+
+$$
+\hat{f}(x) = \sum_{m=1}^{M} \nu \hat{g}_m(x),
+$$
+
+gdzie $\hat{g}_m(x)$ oznacza kolejne drzewo dodane do modelu, $M$ jest liczbą drzew, a $\nu$ to współczynnik uczenia (*learning rate*). Mała wartość $\nu$ powoduje, że każde drzewo wnosi niewielką korektę, co zwykle wymaga większej liczby drzew, ale może poprawiać zdolność uogólniania.
+
+XGBoost bywa bardzo skuteczny predykcyjnie, ale wymaga ostrożniejszego strojenia parametrów niż bagging i las losowy. Zbyt głębokie drzewa, zbyt duża liczba iteracji albo zbyt wysoki współczynnik uczenia mogą prowadzić do przeuczenia.
+
+::: callout-tip
+### Bagging, las losowy i XGBoost w jednym zdaniu
+
+Bagging uśrednia wiele drzew zbudowanych na różnych próbach danych, las losowy dodatkowo losuje predyktory przy podziałach, a XGBoost buduje drzewa sekwencyjnie, tak aby kolejne drzewa poprawiały błędy poprzednich.
+:::
+
+### Ocena jakości modelu
+
+Ponieważ analizujemy problem regresyjny, jako główne miary jakości wykorzystamy:
+
+- **RMSE** - pierwiastek średniego błędu kwadratowego,
+- **MAE** - średni błąd bezwzględny,
+- **$R^2$** - odsetek zmienności zmiennej objaśnianej wyjaśniony przez model.
+
+W analizie będziemy modelować logarytm ceny. Jest to częsty zabieg przy cenach nieruchomości, ponieważ rozkład cen jest zwykle prawostronnie skośny, a błędy względne są bardziej naturalne niż błędy wyrażone w bezwzględnych dolarach.
+
+### Procedura analityczna
+
+W tym przykładzie przyjmiemy następującą procedurę:
+
+1.  Przygotować dane i wybrać zestaw predyktorów.
+2.  Przeprowadzić eksploracyjną analizę zależności między ceną a kluczowymi cechami.
+3.  Podzielić dane na zbiór treningowy i testowy.
+4.  Przygotować wspólny schemat przetwarzania danych.
+5.  Dobrać parametry trzech modeli w walidacji krzyżowej.
+6.  Porównać modele na zbiorze testowym.
+7.  Zinterpretować najważniejsze predyktory i sformułować wnioski.
+
+## Opis danych
+
+Na początku przygotujmy dane do analizy.
+
+```{r}
+#| label: wyk4-przygotowanie-danych
+library(tidyverse)
+library(tidymodels)
+library(modeldata)
+library(baguette)
+library(ranger)
+library(xgboost)
+library(gt)
+library(easystats)
+
+set.seed(2026)
+
+dane <- modeldata::ames |>
+  select(
+    Sale_Price, Neighborhood, Bldg_Type, House_Style,
+    Overall_Cond, Year_Built, Year_Remod_Add, Total_Bsmt_SF,
+    Gr_Liv_Area, Full_Bath, Bedroom_AbvGr, Heating_QC,
+    TotRms_AbvGrd, Garage_Area, Garage_Cars, Exter_Cond,
+    Central_Air, Lot_Area
+  ) |>
+  mutate(
+    log_cena = log10(Sale_Price),
+    cena_tys = Sale_Price / 1000
+  )
+
+dane |>
+  select(Sale_Price, log_cena, Neighborhood, Overall_Cond,
+         Gr_Liv_Area, Garage_Area, Year_Built) |>
+  head() |>
+  gt() |>
+  tab_caption("Przykładowe obserwacje w zbiorze")
+```
+
+Poniżej zestawiono zmienne wykorzystywane w analizie.
+
+```{r}
+#| label: wyk4-opis-zmiennych
+opis_zmiennych <- tibble(
+  zmienna = c(
+    "Sale_Price", "log_cena", "Neighborhood", "Bldg_Type", "House_Style",
+    "Overall_Cond", "Year_Built", "Year_Remod_Add", "Total_Bsmt_SF",
+    "Gr_Liv_Area", "Full_Bath", "Bedroom_AbvGr", "Heating_QC",
+    "TotRms_AbvGrd", "Garage_Area", "Garage_Cars", "Exter_Cond",
+    "Central_Air", "Lot_Area"
+  ),
+  rola = c(
+    "zmienna objaśniana w skali oryginalnej",
+    "zmienna objaśniana używana w modelowaniu",
+    rep("zmienna objaśniająca", 17)
+  ),
+  opis = c(
+    "cena sprzedaży domu w dolarach",
+    "logarytm dziesiętny ceny sprzedaży",
+    "dzielnica",
+    "typ budynku",
+    "styl domu",
+    "ogólny stan techniczny",
+    "rok budowy",
+    "rok remontu lub przebudowy",
+    "całkowita powierzchnia piwnicy",
+    "powierzchnia mieszkalna nad poziomem gruntu",
+    "liczba pełnych łazienek",
+    "liczba sypialni nad poziomem gruntu",
+    "jakość ogrzewania",
+    "liczba pokoi nad poziomem gruntu",
+    "powierzchnia garażu",
+    "pojemność garażu wyrażona liczbą samochodów",
+    "stan materiałów zewnętrznych",
+    "klimatyzacja centralna",
+    "powierzchnia działki"
+  )
+)
+
+opis_zmiennych |>
+  gt() |>
+  tab_caption("Zmienne użyte w analizie")
+```
+
+## Eksploracyjna analiza danych
+
+Zanim zbudujemy modele, warto sprawdzić rozkład ceny oraz relacje między ceną a kilkoma najważniejszymi cechami. Modele zespołowe dobrze radzą sobie z nieliniowościami, ale analiza eksploracyjna pozostaje potrzebna: pozwala zrozumieć skalę problemu i wykryć zależności, które model będzie później wykorzystywał.
+
+### Rozkład ceny sprzedaży
+
+```{r}
+#| label: wyk4-rozklad-ceny
+#| fig-cap: "Rozkład ceny sprzedaży domów"
+dane |>
+  ggplot(aes(x = Sale_Price)) +
+  geom_histogram(bins = 35, fill = "steelblue", color = "white") +
+  scale_x_continuous(labels = scales::label_dollar()) +
+  labs(x = "Cena sprzedaży", y = "Liczba domów") +
+  theme_minimal(base_size = 13)
+```
+
+Rozkład ceny jest prawostronnie skośny: większość domów znajduje się w niższym i średnim zakresie cenowym, natomiast niewielka liczba nieruchomości jest wyraźnie droższa. To uzasadnia modelowanie logarytmu ceny, ponieważ na tej skali rozkład jest zwykle bardziej symetryczny.
+
+```{r}
+#| label: wyk4-rozklad-log-ceny
+#| fig-cap: "Rozkład logarytmu ceny sprzedaży"
+dane |>
+  ggplot(aes(x = log_cena)) +
+  geom_histogram(bins = 35, fill = "darkorange", color = "white") +
+  labs(x = "log10(cena sprzedaży)", y = "Liczba domów") +
+  theme_minimal(base_size = 13)
+```
+
+### Cena a stan techniczny
+
+```{r}
+#| label: wyk4-cena-jakosc
+#| fig-cap: "Cena sprzedaży a ogólny stan techniczny"
+dane |>
+  mutate(Overall_Cond = factor(Overall_Cond)) |>
+  ggplot(aes(x = Overall_Cond, y = cena_tys)) +
+  geom_boxplot(fill = "steelblue", alpha = 0.75, outlier.alpha = 0.35) +
+  labs(
+    x = "Ogólny stan techniczny",
+    y = "Cena sprzedaży [tys. dolarów]"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+Wykres pokazuje związek między ogólnym stanem technicznym a ceną. Zależność nie musi być idealnie liniowa: przejście ze stanu przeciętnego do dobrego może mieć inny efekt cenowy niż przejście ze stanu dobrego do bardzo dobrego. Właśnie tego typu nieliniowości dobrze uzasadniają zastosowanie modeli drzewiastych.
+
+### Cena a powierzchnia mieszkalna
+
+```{r}
+#| label: wyk4-cena-powierzchnia
+#| fig-cap: "Cena sprzedaży a powierzchnia mieszkalna"
+dane |>
+  ggplot(aes(x = Gr_Liv_Area, y = cena_tys)) +
+  geom_point(alpha = 0.45, color = "steelblue") +
+  geom_smooth(method = "loess", se = FALSE, color = "darkorange") +
+  labs(
+    x = "Powierzchnia mieszkalna nad poziomem gruntu",
+    y = "Cena sprzedaży [tys. dolarów]"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+Powierzchnia mieszkalna ma wyraźny dodatni związek z ceną, ale rozrzut cen rośnie wraz z powierzchnią. Oznacza to, że sama powierzchnia nie wystarcza do dobrego przewidywania ceny. Potrzebne są dodatkowe informacje o jakości, lokalizacji i cechach technicznych domu.
+
+### Cena a lokalizacja
+
+```{r}
+#| label: wyk4-cena-dzielnica
+#| fig-cap: "Cena sprzedaży w wybranych dzielnicach"
+dane |>
+  mutate(
+    Neighborhood = fct_lump_n(Neighborhood, n = 12),
+    Neighborhood = fct_reorder(Neighborhood, cena_tys, median)
+  ) |>
+  ggplot(aes(x = Neighborhood, y = cena_tys)) +
+  geom_boxplot(fill = "darkseagreen", alpha = 0.8, outlier.alpha = 0.35) +
+  coord_flip() +
+  labs(
+    x = "Dzielnica",
+    y = "Cena sprzedaży [tys. dolarów]"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+Lokalizacja jest jednym z najważniejszych czynników cenotwórczych. W praktyce oznacza to, że model musi umieć wykorzystać zarówno zmienne liczbowe, jak i jakościowe. W dalszej części wykładu zmienne jakościowe zostaną zakodowane za pomocą zmiennych zero-jedynkowych.
+
+## Przygotowanie danych do modelowania
+
+W analizie predykcyjnej konieczne jest oddzielenie danych wykorzystywanych do uczenia od danych przeznaczonych do końcowej oceny. Zbiór testowy nie będzie uczestniczył ani w dopasowaniu modeli, ani w doborze parametrów.
+
+```{r}
+#| label: wyk4-podzial
+split <- initial_split(dane, prop = 0.8, strata = log_cena)
+train <- training(split)
+test <- testing(split)
+
+foldy <- vfold_cv(train, v = 5, strata = log_cena)
+```
+
+W modelowaniu wykorzystamy logarytm ceny jako zmienną objaśnianą. Z predyktorów usuwamy oryginalną cenę oraz pomocniczą zmienną `cena_tys`, ponieważ zawierają bezpośrednią informację o celu predykcji.
+
+```{r}
+#| label: wyk4-recipe
+recepta <- recipe(
+  log_cena ~ Neighborhood + Bldg_Type + House_Style + Overall_Cond +
+    Year_Built + Year_Remod_Add + Total_Bsmt_SF + Gr_Liv_Area +
+    Full_Bath + Bedroom_AbvGr + Heating_QC + TotRms_AbvGrd +
+    Garage_Area + Garage_Cars + Exter_Cond + Central_Air + Lot_Area,
+  data = train
+) |>
+  step_unknown(all_nominal_predictors()) |>
+  step_other(all_nominal_predictors(), threshold = 0.01) |>
+  step_dummy(all_nominal_predictors()) |>
+  step_zv(all_predictors())
+```
+
+Ten sam schemat przygotowania danych zostanie użyty we wszystkich trzech modelach. Dzięki temu porównanie będzie dotyczyło przede wszystkim metody modelowania, a nie różnic w przetwarzaniu danych.
+
+## Budowa modeli
+
+### Model 1: bagging
+
+W pierwszym modelu zastosujemy bagging drzew regresyjnych; stroimy `cost_complexity` i `min_n` pojedynczych drzew.
+
+```{r}
+#| label: wyk4-model-bagging
+model_bagging <- bag_tree(
+  cost_complexity = tune(),
+  min_n = tune()
+) |>
+  set_engine("rpart", times = 50) |>
+  set_mode("regression")
+
+workflow_bagging <- workflow() |>
+  add_recipe(recepta) |>
+  add_model(model_bagging)
+
+siatka_bagging <- grid_regular(
+  cost_complexity(range = c(-5, -2)),
+  min_n(range = c(2L, 30L)),
+  levels = 4
+)
+```
+
+W baggingu szczególnie ważna jest liczba drzew oraz złożoność pojedynczych drzew. W przykładzie liczba drzew została ustawiona na 50, aby zachować rozsądny czas obliczeń w warunkach dydaktycznych.
+
+### Model 2: las losowy
+
+W modelu stroimy `mtry`, czyli liczbę zmiennych rozważanych przy podziale, oraz `min_n`, czyli minimalną liczbę obserwacji wymaganą w węźle.
+
+```{r}
+#| label: wyk4-model-rf
+model_rf <- rand_forest(
+  trees = 500,
+  mtry = tune(),
+  min_n = tune()
+) |>
+  set_engine("ranger", importance = "impurity") |>
+  set_mode("regression")
+
+workflow_rf <- workflow() |>
+  add_recipe(recepta) |>
+  add_model(model_rf)
+
+siatka_rf <- grid_regular(
+  mtry(range = c(3L, 25L)),
+  min_n(range = c(2L, 30L)),
+  levels = 5
+)
+```
+
+Duża liczba drzew stabilizuje predykcje, ale wydłuża obliczenia. W praktyce po przekroczeniu pewnej liczby drzew dalsze zwiększanie `trees` zwykle daje coraz mniejsze korzyści.
+
+### Model 3: XGBoost
+
+XGBoost wymaga dobrania większej liczby parametrów. W przykładzie stroimy liczbę drzew, głębokość drzew, tempo uczenia, minimalną liczbę obserwacji w liściu, redukcję straty wymaganą do podziału oraz odsetek obserwacji używany w kolejnych iteracjach.
+
+```{r}
+#| label: wyk4-model-xgboost
+model_xgb <- boost_tree(
+  trees = tune(),
+  tree_depth = tune(),
+  learn_rate = tune(),
+  loss_reduction = tune(),
+  sample_size = tune(),
+  min_n = tune()
+) |>
+  set_engine("xgboost") |>
+  set_mode("regression")
+
+workflow_xgb <- workflow() |>
+  add_recipe(recepta) |>
+  add_model(model_xgb)
+
+siatka_xgb <- grid_latin_hypercube(
+  trees(range = c(300L, 900L)),
+  tree_depth(range = c(2L, 7L)),
+  learn_rate(range = c(-3, -1)),
+  loss_reduction(range = c(-3, 1)),
+  sample_prop(range = c(0.60, 1.00)),
+  min_n(range = c(2L, 25L)),
+  size = 18
+)
+```
+
+Siatka dla XGBoost jest losowa, ponieważ pełne przeszukanie wszystkich kombinacji parametrów byłoby zbyt kosztowne. W praktyce często zaczyna się od niezbyt dużej siatki, a potem zawęża zakresy parametrów wokół najlepszego rozwiązania.
+
+## Strojenie parametrów i walidacja krzyżowa
+
+Wszystkie trzy modele ocenimy za pomocą pięciokrotnej walidacji krzyżowej. Jako główną miarę wyboru modelu przyjmiemy RMSE na skali logarytmu ceny. Dodatkowo policzymy MAE oraz $R^2$.
+
+```{r}
+#| label: wyk4-metryki
+metryki_regresji <- metric_set(yardstick::rmse, yardstick::mae, yardstick::rsq)
+```
+
+### Strojenie baggingu
+
+```{r}
+#| label: wyk4-strojenie-bagging
+wyniki_bagging <- tune_grid(
+  workflow_bagging,
+  resamples = foldy,
+  grid = siatka_bagging,
+  metrics = metryki_regresji
+)
+
+show_best(wyniki_bagging, metric = "rmse", n = 8)
+```
+
+### Strojenie lasu losowego
+
+```{r}
+#| label: wyk4-strojenie-rf
+wyniki_rf <- tune_grid(
+  workflow_rf,
+  resamples = foldy,
+  grid = siatka_rf,
+  metrics = metryki_regresji
+)
+
+show_best(wyniki_rf, metric = "rmse", n = 8)
+```
+
+### Strojenie XGBoost
+
+```{r}
+#| label: wyk4-strojenie-xgboost
+wyniki_xgb <- tune_grid(
+  workflow_xgb,
+  resamples = foldy,
+  grid = siatka_xgb,
+  metrics = metryki_regresji
+)
+
+show_best(wyniki_xgb, metric = "rmse", n = 8)
+```
+
+### Porównanie wyników walidacyjnych
+
+```{r}
+#| label: wyk4-porownanie-walidacja
+porownanie_walidacja <- bind_rows(
+  collect_metrics(wyniki_bagging) |> mutate(model = "Bagging"),
+  collect_metrics(wyniki_rf) |> mutate(model = "Las losowy"),
+  collect_metrics(wyniki_xgb) |> mutate(model = "XGBoost")
+) |>
+  filter(.metric == "rmse") |>
+  group_by(model) |>
+  slice_min(mean, n = 1, with_ties = FALSE) |>
+  ungroup() |>
+  arrange(mean)
+
+porownanie_walidacja |>
+  select(model, mean, std_err, n) |>
+  gt() |>
+  tab_caption("Najlepsze wyniki walidacyjne według RMSE")
+```
+
+Porównanie walidacyjne pokazuje, jak modele zachowują się jeszcze przed kontaktem ze zbiorem testowym. Jeżeli różnice między modelami są niewielkie, należy zachować ostrożność przed zbyt mocnym wnioskiem, że jeden algorytm jest jednoznacznie lepszy. Jeżeli jednak XGBoost albo las losowy uzyskują systematycznie niższy RMSE niż bagging, oznacza to, że dodatkowe mechanizmy losowania predyktorów lub sekwencyjnego poprawiania błędów rzeczywiście pomagają w tym problemie.
+
+## Model końcowy i ocena na zbiorze testowym
+
+Po zakończeniu strojenia wybieramy najlepsze ustawienia każdego modelu i oceniamy je na zbiorze testowym. Dopiero ten etap daje uczciwą ocenę jakości predykcji dla nowych obserwacji.
+
+```{r}
+#| label: wyk4-najlepsze-parametry
+najlepsze_bagging <- select_best(wyniki_bagging, metric = "rmse")
+najlepsze_rf <- select_best(wyniki_rf, metric = "rmse")
+najlepsze_xgb <- select_best(wyniki_xgb, metric = "rmse")
+
+najlepsze_bagging
+najlepsze_rf
+najlepsze_xgb
+```
+
+```{r}
+#| label: wyk4-finalne-workflowy
+finalny_bagging <- finalize_workflow(workflow_bagging, najlepsze_bagging)
+finalny_rf <- finalize_workflow(workflow_rf, najlepsze_rf)
+finalny_xgb <- finalize_workflow(workflow_xgb, najlepsze_xgb)
+```
+
+```{r}
+#| label: wyk4-last-fit
+fit_bagging <- last_fit(finalny_bagging, split, metrics = metryki_regresji)
+fit_rf <- last_fit(finalny_rf, split, metrics = metryki_regresji)
+fit_xgb <- last_fit(finalny_xgb, split, metrics = metryki_regresji)
+```
+
+```{r}
+#| label: wyk4-metryki-test
+metryki_test <- bind_rows(
+  collect_metrics(fit_bagging) |> mutate(model = "Bagging"),
+  collect_metrics(fit_rf) |> mutate(model = "Las losowy"),
+  collect_metrics(fit_xgb) |> mutate(model = "XGBoost")
+) |>
+  select(model, .metric, .estimate) |>
+  pivot_wider(names_from = .metric, values_from = .estimate) |>
+  arrange(rmse)
+
+metryki_test |>
+  gt() |>
+  fmt_number(columns = c(rmse, mae, rsq), decimals = 4) |>
+  tab_caption("Ocena modeli na zbiorze testowym")
+```
+
+Najmniejsza wartość RMSE wskazuje model, który przeciętnie popełnia najmniejszy błąd na skali logarytmu ceny; MAE jest mniej wrażliwy na pojedyncze duże błędy.
+
+::: callout-warning
+### Uwaga o interpretacji różnic
+
+Jeżeli dwa modele różnią się minimalnie pod względem RMSE, nie należy automatycznie traktować tej różnicy jako merytorycznie ważnej. W praktyce trzeba wziąć pod uwagę stabilność wyników, koszt obliczeniowy, łatwość strojenia oraz możliwość wyjaśnienia predykcji.
+:::
+
+### Predykcje na skali ceny
+
+Ponieważ modele były uczone na logarytmie ceny, ich przewidywania można przekształcić z powrotem na skalę dolarów. Poniżej pokazano przykładowe predykcje dla najlepszego modelu według RMSE.
+
+```{r}
+#| label: wyk4-wybor-najlepszego
+nazwa_najlepszego <- metryki_test |>
+  slice_min(rmse, n = 1, with_ties = FALSE) |>
+  pull(model)
+
+predykcje_najlepsze <- case_when(
+  nazwa_najlepszego == "Bagging" ~ "bagging",
+  nazwa_najlepszego == "Las losowy" ~ "rf",
+  TRUE ~ "xgb"
+)
+
+predykcje_test <- switch(
+  predykcje_najlepsze,
+  bagging = collect_predictions(fit_bagging),
+  rf = collect_predictions(fit_rf),
+  xgb = collect_predictions(fit_xgb)
+) |>
+  mutate(
+    cena_rzeczywista = 10^log_cena,
+    cena_przewidywana = 10^.pred,
+    blad = cena_przewidywana - cena_rzeczywista,
+    blad_proc = 100 * blad / cena_rzeczywista
+  )
+
+predykcje_test |>
+  select(cena_rzeczywista, cena_przewidywana, blad, blad_proc) |>
+  slice_head(n = 10) |>
+  gt() |>
+  fmt_currency(columns = c(cena_rzeczywista, cena_przewidywana, blad),
+               currency = "USD", decimals = 0) |>
+  fmt_number(columns = blad_proc, decimals = 1) |>
+  tab_caption("Przykładowe predykcje najlepszego modelu na skali ceny")
+```
+
+Ta tabela pozwala zobaczyć, co oznacza błąd predykcji w języku problemu badawczego. Nawet niewielki błąd na skali logarytmicznej może oznaczać różnicę kilku lub kilkunastu tysięcy dolarów. Dlatego w analizach cen nieruchomości warto łączyć ocenę na skali modelowania z interpretacją na skali oryginalnej.
+
+```{r}
+#| label: wyk4-wykres-predykcji
+#| fig-cap: "Cena rzeczywista a cena przewidywana przez najlepszy model"
+predykcje_test |>
+  ggplot(aes(x = cena_rzeczywista, y = cena_przewidywana)) +
+  geom_point(alpha = 0.45, color = "steelblue") +
+  geom_abline(slope = 1, intercept = 0, color = "darkorange", linewidth = 1) +
+  scale_x_continuous(labels = scales::label_dollar()) +
+  scale_y_continuous(labels = scales::label_dollar()) +
+  labs(
+    x = "Cena rzeczywista",
+    y = "Cena przewidywana"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+Punkty leżące blisko przekątnej oznaczają trafne predykcje. Punkty powyżej przekątnej oznaczają przeszacowanie ceny, a punkty poniżej przekątnej - niedoszacowanie. W praktyce szczególnie warto sprawdzić, czy duże błędy koncentrują się w określonym zakresie cen, na przykład przy najdroższych nieruchomościach.
+
+## Interpretacja modeli
+
+### Ważność zmiennych w lesie losowym
+
+Las losowy pozwala ocenić, które zmienne najczęściej i najskuteczniej uczestniczą w podziałach drzew. Taka informacja nie jest tym samym co współczynnik regresji liniowej, ale pomaga zrozumieć, które cechy są szczególnie ważne dla predykcji.
+
+```{r}
+#| label: wyk4-vip-rf
+#| fig-cap: "Ważność zmiennych w modelu lasu losowego"
+model_rf_trening <- fit(finalny_rf, data = train)
+
+extract_fit_engine(model_rf_trening)$variable.importance |>
+  enframe(name = "zmienna", value = "waznosc") |>
+  slice_max(waznosc, n = 15) |>
+  mutate(zmienna = fct_reorder(zmienna, waznosc)) |>
+  ggplot(aes(x = zmienna, y = waznosc)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(x = "Zmienna", y = "Ważność") +
+  theme_minimal(base_size = 13)
+```
+
+W modelach cen nieruchomości zwykle wysoko pojawiają się zmienne opisujące powierzchnię, garaż, wiek budynku, lokalizację oraz stan techniczny. Jeżeli te zmienne dominują również w naszym modelu, oznacza to, że algorytm wykorzystuje zależności zgodne z intuicją ekonomiczną.
+
+### Ważność zmiennych w XGBoost
+
+```{r}
+#| label: wyk4-vip-xgb
+#| fig-cap: "Ważność zmiennych w modelu XGBoost"
+model_xgb_trening <- fit(finalny_xgb, data = train)
+
+xgb.importance(model = extract_fit_engine(model_xgb_trening)) |>
+  as_tibble() |>
+  slice_max(Gain, n = 15) |>
+  mutate(Feature = fct_reorder(Feature, Gain)) |>
+  ggplot(aes(x = Feature, y = Gain)) +
+  geom_col(fill = "darkorange") +
+  coord_flip() +
+  labs(x = "Zmienna", y = "Gain") +
+  theme_minimal(base_size = 13)
+```
+
+Ważność zmiennych w XGBoost należy interpretować jako wskazówkę, które predyktory najczęściej poprawiały funkcję straty w kolejnych drzewach. Nie jest to bezpośrednia miara przyczynowego wpływu zmiennej na cenę.
+
+::: callout-note
+### Predykcja a wyjaśnianie przyczynowe
+
+Modele zespołowe bardzo dobrze nadają się do predykcji, ale nie należy automatycznie traktować ich wyników jako dowodów przyczynowych. Jeżeli celem badania jest oszacowanie wpływu konkretnej cechy na cenę, potrzebny jest dodatkowy projekt badawczy kontrolujący źródła selekcji i współzależności między zmiennymi.
+:::
+
+## Uwagi praktyczne o metodach
+
+### Bagging
+
+W naszym problemie bagging pełni rolę ważnego punktu odniesienia. Jeżeli las losowy albo XGBoost znacząco poprawiają wynik względem baggingu, oznacza to, że dodatkowe mechanizmy tych metod mają realne znaczenie.
+
+### Las losowy
+
+W praktyce las losowy jest często bardzo dobrym modelem bazowym dla danych tabularycznych. Ma rozsądną odporność na przeuczenie, nie wymaga silnych założeń o postaci zależności i zwykle daje dobre wyniki bez bardzo czasochłonnego strojenia.
+
+### XGBoost
+
+W zastosowaniach praktycznych XGBoost warto traktować jako model wymagający starannej walidacji. Dobry wynik na danych treningowych nie wystarcza. Kluczowe są wyniki walidacji krzyżowej i końcowa ocena na zbiorze testowym.
+
+## Wnioski
+
+Przeprowadzona analiza pokazuje, jak rozwiązać problem predykcji cen domów za pomocą trzech metod zespołowych opartych na drzewach. Wszystkie trzy modele korzystają z tej samej podstawowej idei: pojedyncze drzewa są łączone w model zbiorczy. Różnią się jednak sposobem tworzenia i łączenia drzew.
+
+Z punktu widzenia problemu badawczego najważniejszy jest wynik na zbiorze testowym. Model o najniższym RMSE najlepiej przewiduje logarytm ceny sprzedaży, choć — jak zaznaczono wcześniej — przy niewielkich różnicach decydują też stabilność, koszt obliczeniowy i interpretowalność.
+
+Najważniejsza lekcja metodologiczna jest następująca: w problemach predykcyjnych nie wystarczy dopasować zaawansowany algorytm. Trzeba jeszcze jasno zdefiniować cel, oddzielić dane treningowe od testowych, stroić parametry wyłącznie na danych treningowych, porównać modele tą samą metryką i interpretować wyniki w języku problemu badawczego.
+
+### Podsumowanie dydaktyczne
+
+Po tym wykładzie należy umieć:
+
+1.  wyjaśnić różnicę między baggingiem, lasem losowym i XGBoost,
+2.  przygotować dane tabularyczne do modelowania metodami drzewiastymi,
+3.  zastosować walidację krzyżową do strojenia parametrów,
+4.  porównać modele regresyjne za pomocą RMSE, MAE i $R^2$,
+5.  przekształcić predykcje z logarytmu ceny na skalę oryginalną,
+6.  odróżnić ważność predykcyjną zmiennej od interpretacji przyczynowej.

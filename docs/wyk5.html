@@ -1,0 +1,3154 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pl" xml:lang="pl"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Wykład 5: Maszyny wektorów nośnych (SVM i SVR) – Statystyka stosowana</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./wyk6.html" rel="next">
+<link href="./wyk4.html" rel="prev">
+<link href="./logo2.png" rel="icon" type="image/png">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-502dd8818b56a2c66749ffbc31bcd64e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-e7c7cb72a47119ae0b6917a2100602d9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-502dd8818b56a2c66749ffbc31bcd64e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Brak wyników",
+    "search-matching-documents-text": "dopasowane dokumenty",
+    "search-copy-link-title": "Kopiuj link do wyszukiwania",
+    "search-hide-matches-text": "Ukryj dodatkowe dopasowania",
+    "search-more-match-text": "więcej dopasowań w tym dokumencie",
+    "search-more-matches-text": "więcej dopasowań w tym dokumencie",
+    "search-clear-button-title": "Wyczyść",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Anuluj",
+    "search-submit-button-title": "Zatwierdź",
+    "search-label": "Szukaj"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Przełącz pasek boczny" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./wyk5.html">Wykład 5: Maszyny wektorów nośnych (SVM i SVR)</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Przełącz pasek boczny" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Szukaj" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="./index.html" class="sidebar-logo-link">
+      <img src="./logo.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="./logo.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Statystyka stosowana</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://github.com/DariuszMajerek/szkola_doktorska" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Przełącz tryb ciemny"><i class="bi"></i></a>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Przełącz tryb czytnika">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Szukaj"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wstęp</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./wyk1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wykład 1: Regresja liniowa — predykcja efektywności paliwowej</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./wyk2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wykład 2: Regresja logistyczna — czynniki ryzyka niskiej masy urodzeniowej</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./wyk3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wykład 3: Drzewa decyzyjne — klasyfikacja gatunków pingwinów</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./wyk4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wykład 4: Metody zespołowe — bagging, las losowy i XGBoost</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./wyk5.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Wykład 5: Maszyny wektorów nośnych (SVM i SVR)</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./wyk6.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wykład 6: Sieci neuronowe — od neuronu do wstecznej propagacji</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Spis treści</h2>
+   
+  <ul>
+  <li><a href="#wprowadzenie" id="toc-wprowadzenie" class="nav-link active" data-scroll-target="#wprowadzenie">Wprowadzenie</a></li>
+  <li><a href="#formułowanie-celu-i-problemów-badawczych" id="toc-formułowanie-celu-i-problemów-badawczych" class="nav-link" data-scroll-target="#formułowanie-celu-i-problemów-badawczych">Formułowanie celu i problemów badawczych</a>
+  <ul class="collapse">
+  <li><a href="#cel-dydaktyczny" id="toc-cel-dydaktyczny" class="nav-link" data-scroll-target="#cel-dydaktyczny">Cel dydaktyczny</a></li>
+  <li><a href="#problemy-badawcze" id="toc-problemy-badawcze" class="nav-link" data-scroll-target="#problemy-badawcze">Problemy badawcze</a></li>
+  </ul></li>
+  <li><a href="#svm-w-klasyfikacji" id="toc-svm-w-klasyfikacji" class="nav-link" data-scroll-target="#svm-w-klasyfikacji">SVM w klasyfikacji</a>
+  <ul class="collapse">
+  <li><a href="#intuicja-najbezpieczniejsza-granica" id="toc-intuicja-najbezpieczniejsza-granica" class="nav-link" data-scroll-target="#intuicja-najbezpieczniejsza-granica">Intuicja: najbezpieczniejsza granica</a></li>
+  <li><a href="#wektory-nośne" id="toc-wektory-nośne" class="nav-link" data-scroll-target="#wektory-nośne">Wektory nośne</a></li>
+  <li><a href="#twardy-i-miękki-margines" id="toc-twardy-i-miękki-margines" class="nav-link" data-scroll-target="#twardy-i-miękki-margines">Twardy i miękki margines</a></li>
+  <li><a href="#gdy-prosta-nie-wystarcza-jądra" id="toc-gdy-prosta-nie-wystarcza-jądra" class="nav-link" data-scroll-target="#gdy-prosta-nie-wystarcza-jądra">Gdy prosta nie wystarcza: jądra</a></li>
+  <li><a href="#parametr-sigma-w-jądrze-rbf" id="toc-parametr-sigma-w-jądrze-rbf" class="nav-link" data-scroll-target="#parametr-sigma-w-jądrze-rbf">Parametr <code>sigma</code> w jądrze RBF</a></li>
+  <li><a href="#dlaczego-trzeba-skalować-zmienne" id="toc-dlaczego-trzeba-skalować-zmienne" class="nav-link" data-scroll-target="#dlaczego-trzeba-skalować-zmienne">Dlaczego trzeba skalować zmienne?</a></li>
+  </ul></li>
+  <li><a href="#svm-w-regresji-svr" id="toc-svm-w-regresji-svr" class="nav-link" data-scroll-target="#svm-w-regresji-svr">SVM w regresji: SVR</a>
+  <ul class="collapse">
+  <li><a href="#intuicja-rurka-tolerancji" id="toc-intuicja-rurka-tolerancji" class="nav-link" data-scroll-target="#intuicja-rurka-tolerancji">Intuicja: rurka tolerancji</a></li>
+  <li><a href="#parametr-epsilon" id="toc-parametr-epsilon" class="nav-link" data-scroll-target="#parametr-epsilon">Parametr <code>epsilon</code></a></li>
+  </ul></li>
+  <li><a href="#przykład-1-klasyfikacja-gatunków-pingwinów" id="toc-przykład-1-klasyfikacja-gatunków-pingwinów" class="nav-link" data-scroll-target="#przykład-1-klasyfikacja-gatunków-pingwinów">Przykład 1: klasyfikacja gatunków pingwinów</a>
+  <ul class="collapse">
+  <li><a href="#cel-przykładu" id="toc-cel-przykładu" class="nav-link" data-scroll-target="#cel-przykładu">Cel przykładu</a></li>
+  <li><a href="#przygotowanie-danych" id="toc-przygotowanie-danych" class="nav-link" data-scroll-target="#przygotowanie-danych">Przygotowanie danych</a></li>
+  <li><a href="#podział-danych-i-recepta" id="toc-podział-danych-i-recepta" class="nav-link" data-scroll-target="#podział-danych-i-recepta">Podział danych i recepta</a></li>
+  <li><a href="#model-svm-z-jądrem-rbf" id="toc-model-svm-z-jądrem-rbf" class="nav-link" data-scroll-target="#model-svm-z-jądrem-rbf">Model SVM z jądrem RBF</a></li>
+  <li><a href="#ocena-modelu-na-zbiorze-testowym" id="toc-ocena-modelu-na-zbiorze-testowym" class="nav-link" data-scroll-target="#ocena-modelu-na-zbiorze-testowym">Ocena modelu na zbiorze testowym</a></li>
+  </ul></li>
+  <li><a href="#przykład-2-regresja-ceny-domu" id="toc-przykład-2-regresja-ceny-domu" class="nav-link" data-scroll-target="#przykład-2-regresja-ceny-domu">Przykład 2: regresja ceny domu</a>
+  <ul class="collapse">
+  <li><a href="#cel-przykładu-1" id="toc-cel-przykładu-1" class="nav-link" data-scroll-target="#cel-przykładu-1">Cel przykładu</a></li>
+  <li><a href="#przygotowanie-danych-1" id="toc-przygotowanie-danych-1" class="nav-link" data-scroll-target="#przygotowanie-danych-1">Przygotowanie danych</a></li>
+  <li><a href="#podział-danych-i-recepta-1" id="toc-podział-danych-i-recepta-1" class="nav-link" data-scroll-target="#podział-danych-i-recepta-1">Podział danych i recepta</a></li>
+  <li><a href="#model-svr-z-jądrem-rbf" id="toc-model-svr-z-jądrem-rbf" class="nav-link" data-scroll-target="#model-svr-z-jądrem-rbf">Model SVR z jądrem RBF</a></li>
+  <li><a href="#ocena-modelu-na-zbiorze-testowym-1" id="toc-ocena-modelu-na-zbiorze-testowym-1" class="nav-link" data-scroll-target="#ocena-modelu-na-zbiorze-testowym-1">Ocena modelu na zbiorze testowym</a></li>
+  </ul></li>
+  <li><a href="#najważniejsze-zalety-i-ograniczenia-svm" id="toc-najważniejsze-zalety-i-ograniczenia-svm" class="nav-link" data-scroll-target="#najważniejsze-zalety-i-ograniczenia-svm">Najważniejsze zalety i ograniczenia SVM</a>
+  <ul class="collapse">
+  <li><a href="#zalety" id="toc-zalety" class="nav-link" data-scroll-target="#zalety">Zalety</a></li>
+  <li><a href="#ograniczenia" id="toc-ograniczenia" class="nav-link" data-scroll-target="#ograniczenia">Ograniczenia</a></li>
+  </ul></li>
+  <li><a href="#wnioski" id="toc-wnioski" class="nav-link" data-scroll-target="#wnioski">Wnioski</a>
+  <ul class="collapse">
+  <li><a href="#podsumowanie-dydaktyczne" id="toc-podsumowanie-dydaktyczne" class="nav-link" data-scroll-target="#podsumowanie-dydaktyczne">Podsumowanie dydaktyczne</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Wykład 5: Maszyny wektorów nośnych (SVM i SVR)</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="hidden">
+<p><span class="math display">\[
+\def\E{\mathrm{E}}
+\def\Var{\mathrm{Var}}
+\def\P{\mathrm{P}}
+\]</span></p>
+</div>
+<section id="wprowadzenie" class="level2">
+<h2 class="anchored" data-anchor-id="wprowadzenie">Wprowadzenie</h2>
+<p>W tym rozdziale przedstawimy model <strong>SVM</strong> (<em>Support Vector Machine</em>) w wersji możliwie intuicyjnej. Nie będziemy wyprowadzać pełnego problemu optymalizacyjnego. Skupimy się na tym, co model robi, jak czytać jego najważniejsze parametry i jak zastosować go w R do dwóch typowych zadań:</p>
+<ol type="1">
+<li><strong>klasyfikacji</strong>, czyli przewidywania klasy obserwacji,</li>
+<li><strong>regresji</strong>, czyli przewidywania wartości liczbowej.</li>
+</ol>
+<p>SVM można traktować jako metodę, która szuka rozsądnej granicy między obserwacjami. W klasyfikacji ta granica oddziela klasy, a w regresji przyjmuje postać krzywej lub powierzchni, wokół której budujemy pas tolerancji dla błędów.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Adnotacja</span>Co będzie wynikiem tej analizy?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Na końcu będziemy umieli wyjaśnić, czym są margines, wektory nośne, parametr <code>C</code>, jądro RBF oraz tolerancja <code>epsilon</code> w regresji SVR. Zobaczymy też dwa praktyczne przykłady w R: klasyfikację gatunków pingwinów oraz regresję cen domów.</p>
+</div>
+</div>
+</section>
+<section id="formułowanie-celu-i-problemów-badawczych" class="level2">
+<h2 class="anchored" data-anchor-id="formułowanie-celu-i-problemów-badawczych">Formułowanie celu i problemów badawczych</h2>
+<section id="cel-dydaktyczny" class="level3">
+<h3 class="anchored" data-anchor-id="cel-dydaktyczny">Cel dydaktyczny</h3>
+<p>Chcemy zrozumieć SVM jako narzędzie predykcyjne, które może działać zarówno dla zmiennej jakościowej, jak i liczbowej. W klasyfikacji model odpowiada na pytanie: „do której grupy należy obserwacja?”. W regresji odpowiada na pytanie: „jaką wartość liczbową można przewidzieć dla obserwacji?”.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Ważne</span>Jasne określenie celu
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Cel wykładu:</strong> pokazać model SVM bez nadmiernego formalizmu matematycznego oraz zastosować go w R do klasyfikacji i regresji.</p>
+</div>
+</div>
+</section>
+<section id="problemy-badawcze" class="level3">
+<h3 class="anchored" data-anchor-id="problemy-badawcze">Problemy badawcze</h3>
+<p>Interesuje nas odpowiedź na następujące pytania:</p>
+<ol type="1">
+<li>Jak SVM wyznacza granicę decyzyjną między klasami?</li>
+<li>Czym są margines i wektory nośne?</li>
+<li>Dlaczego w SVM konieczne jest skalowanie zmiennych?</li>
+<li>Jak działa SVM z jądrem RBF w problemach nieliniowych?</li>
+<li>Jak zmienia się intuicja modelu, gdy przechodzimy od klasyfikacji SVM do regresji SVR?</li>
+<li>Jak zbudować i ocenić modele SVM w R?</li>
+</ol>
+</section>
+</section>
+<section id="svm-w-klasyfikacji" class="level2">
+<h2 class="anchored" data-anchor-id="svm-w-klasyfikacji">SVM w klasyfikacji</h2>
+<section id="intuicja-najbezpieczniejsza-granica" class="level3">
+<h3 class="anchored" data-anchor-id="intuicja-najbezpieczniejsza-granica">Intuicja: najbezpieczniejsza granica</h3>
+<p>Wyobraźmy sobie dwa zbiory punktów na płaszczyźnie. Punkty jednej klasy są po lewej stronie, a punkty drugiej klasy po prawej. Można narysować wiele prostych, które rozdzielą te klasy. SVM nie wybiera dowolnej poprawnej prostej. Wybiera taką, która zostawia możliwie największy odstęp od najbliższych punktów obu klas.</p>
+<p>Ten odstęp nazywamy <strong>marginesem</strong>. Im szerszy margines, tym większy „zapas bezpieczeństwa” decyzji. Jeśli nowa obserwacja jest trochę zaszumiona albo pomiar jest niedokładny, szeroki margines może pomóc modelowi zachować stabilną decyzję.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figs/Svm_max_sep_hyperplane_with_margin.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:45.0%"></p>
+</figure>
+</div>
+<p>Na ilustracji linia środkowa jest granicą decyzyjną. Linie przerywane wyznaczają brzegi marginesu. Punkty najbliżej tych linii mają największe znaczenie dla modelu. To właśnie one są <strong>wektorami nośnymi</strong>.</p>
+</section>
+<section id="wektory-nośne" class="level3">
+<h3 class="anchored" data-anchor-id="wektory-nośne">Wektory nośne</h3>
+<p>Wektory nośne to obserwacje, które „podpierają” granicę decyzyjną. Gdybyśmy usunęli punkty leżące daleko od granicy, model prawdopodobnie prawie by się nie zmienił. Gdybyśmy usunęli jeden z punktów położonych na brzegu marginesu, granica mogłaby przesunąć się wyraźnie.</p>
+<p>Z punktu widzenia intuicji oznacza to, że SVM nie korzysta w jednakowym stopniu ze wszystkich obserwacji. Najważniejsze są obserwacje trudne: bliskie granicy, leżące w marginesie albo błędnie sklasyfikowane.</p>
+</section>
+<section id="twardy-i-miękki-margines" class="level3">
+<h3 class="anchored" data-anchor-id="twardy-i-miękki-margines">Twardy i miękki margines</h3>
+<p>W idealnej sytuacji klasy można rozdzielić bezbłędnie. Wtedy mówimy o <strong>twardym marginesie</strong>. W praktyce dane rzadko są idealne. Klasy częściowo na siebie zachodzą, pojawiają się obserwacje nietypowe, a pomiar może być zaszumiony.</p>
+<p>Dlatego częściej stosujemy <strong>miękki margines</strong>. Model nadal próbuje uzyskać szeroki margines, ale dopuszcza pewne naruszenia. Parametr <code>C</code> mówi, jak mocno karzemy takie naruszenia:</p>
+<ul>
+<li>małe <code>C</code> oznacza większą tolerancję błędów i zwykle gładszą granicę,</li>
+<li>duże <code>C</code> oznacza silniejsze dopasowanie do danych treningowych i mniejszą tolerancję błędów.</li>
+</ul>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Wskazówka</span>Prosta interpretacja parametru <code>C</code>
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Parametr <code>C</code> reguluje kompromis: czy wolimy szerszy margines i większą tolerancję trudnych punktów, czy dokładniejsze dopasowanie do danych treningowych.</p>
+</div>
+</div>
+</section>
+<section id="gdy-prosta-nie-wystarcza-jądra" class="level3">
+<h3 class="anchored" data-anchor-id="gdy-prosta-nie-wystarcza-jądra">Gdy prosta nie wystarcza: jądra</h3>
+<p>Nie wszystkie dane da się dobrze rozdzielić prostą linią. Czasem klasy tworzą kształty zakrzywione, okręgi, pasma albo bardziej złożone obszary. Wtedy SVM może użyć <strong>jądra</strong> (<em>kernel</em>).</p>
+<p>Jądro pozwala modelowi działać tak, jakby dane zostały przeniesione do bogatszej przestrzeni cech. W tej nowej przestrzeni prosta granica może odpowiadać zakrzywionej granicy w oryginalnych danych.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figs/Kernel_Machine.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<p>Ilustracja pokazuje najważniejszą ideę: w oryginalnej przestrzeni granica może być nieliniowa, ale po przekształceniu danych model może potraktować problem jak separację liniową w innej przestrzeni.</p>
+<p>Najczęściej stosowane jądro w prostych zastosowaniach tabularycznych to <strong>RBF</strong> (<em>radial basis function</em>). Działa ono na zasadzie podobieństwa: dwie obserwacje są do siebie podobne, jeśli leżą blisko siebie po uwzględnieniu wszystkich cech.</p>
+</section>
+<section id="parametr-sigma-w-jądrze-rbf" class="level3">
+<h3 class="anchored" data-anchor-id="parametr-sigma-w-jądrze-rbf">Parametr <code>sigma</code> w jądrze RBF</h3>
+<p>W praktyce jądro RBF ma parametr określający, jak lokalnie model patrzy na dane. W pakiecie <code>kernlab</code> i w <code>tidymodels</code> często spotykamy nazwę <code>rbf_sigma</code>.</p>
+<ul>
+<li>małe <code>sigma</code> daje gładszą, bardziej ogólną granicę,</li>
+<li>duże <code>sigma</code> daje granicę bardziej lokalną i silniej dopasowaną do danych.</li>
+</ul>
+<p>Parametry <code>C</code> i <code>sigma</code> trzeba zwykle dobrać przez walidację krzyżową. Nie ma jednej wartości dobrej dla wszystkich problemów.</p>
+</section>
+<section id="dlaczego-trzeba-skalować-zmienne" class="level3">
+<h3 class="anchored" data-anchor-id="dlaczego-trzeba-skalować-zmienne">Dlaczego trzeba skalować zmienne?</h3>
+<p>SVM jest wrażliwy na skalę zmiennych. Jeżeli jedna cecha jest mierzona w tysiącach, a druga w ułamkach, to odległości między obserwacjami zostaną zdominowane przez cechę o większej skali. Model może wtedy uznać tę zmienną za ważniejszą tylko dlatego, że ma większe jednostki.</p>
+<p>Dlatego przed dopasowaniem SVM prawie zawsze wykonujemy standaryzację zmiennych liczbowych. W przykładach zrobimy to automatycznie w <code>recipe()</code> za pomocą <code>step_normalize()</code>.</p>
+</section>
+</section>
+<section id="svm-w-regresji-svr" class="level2">
+<h2 class="anchored" data-anchor-id="svm-w-regresji-svr">SVM w regresji: SVR</h2>
+<section id="intuicja-rurka-tolerancji" class="level3">
+<h3 class="anchored" data-anchor-id="intuicja-rurka-tolerancji">Intuicja: rurka tolerancji</h3>
+<p>W regresji nie rozdzielamy klas. Chcemy przewidzieć wartość liczbową, na przykład cenę, czas albo wagę. Wersja regresyjna SVM nazywa się <strong>SVR</strong> (<em>Support Vector Regression</em>).</p>
+<p>Najważniejsza intuicja SVR jest inna niż w klasycznej regresji liniowej. Model nie próbuje karać każdego, nawet minimalnego błędu. Zamiast tego buduje wokół funkcji predykcyjnej pas tolerancji, nazywany często <strong>rurką epsilon</strong>.</p>
+<p>Jeśli obserwacja znajduje się wewnątrz tej rurki, błąd jest uznawany za akceptowalny. Model zaczyna karać dopiero te obserwacje, które wychodzą poza dopuszczalny pas.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2026</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fl">0.45</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>dane_rurka <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">length.out =</span> <span class="dv">40</span>),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">y_true =</span> <span class="fu">sin</span>(x <span class="sc">/</span> <span class="fl">1.5</span>) <span class="sc">+</span> <span class="fl">0.25</span> <span class="sc">*</span> x,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> y_true <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(x), <span class="at">sd =</span> <span class="fl">0.45</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>krzywa <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">length.out =</span> <span class="dv">200</span>),</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">y_hat =</span> <span class="fu">sin</span>(x <span class="sc">/</span> <span class="fl">1.5</span>) <span class="sc">+</span> <span class="fl">0.25</span> <span class="sc">*</span> x</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> krzywa,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">ymin =</span> y_hat <span class="sc">-</span> epsilon, <span class="at">ymax =</span> y_hat <span class="sc">+</span> epsilon),</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"steelblue"</span>, <span class="at">alpha =</span> <span class="fl">0.18</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> krzywa, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y_hat),</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">color =</span> <span class="st">"steelblue"</span>, <span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> dane_rurka, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y),</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>             <span class="at">size =</span> <span class="fl">2.2</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Predyktor"</span>,</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Zmienna przewidywana"</span>,</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Niebieski pas pokazuje zakres błędów, które SVR traktuje jako akceptowalne."</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="wyk5_files/figure-html/wyk5-ilustracja-svr-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Intuicja regresji SVR: funkcja predykcyjna i rurka tolerancji epsilon</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="parametr-epsilon" class="level3">
+<h3 class="anchored" data-anchor-id="parametr-epsilon">Parametr <code>epsilon</code></h3>
+<p>Parametr <code>epsilon</code> określa szerokość rurki tolerancji:</p>
+<ul>
+<li>małe <code>epsilon</code> oznacza, że model reaguje nawet na małe błędy,</li>
+<li>duże <code>epsilon</code> oznacza, że model ignoruje większe odchylenia.</li>
+</ul>
+<p>W regresji SVR nadal występuje parametr <code>C</code>. Jego interpretacja jest podobna jak w klasyfikacji: mówi, jak silnie karzemy obserwacje wychodzące poza tolerancję.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Adnotacja</span>Klasyfikacja a regresja
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>W klasyfikacji SVM szuka granicy między klasami. W regresji SVR szuka funkcji predykcyjnej i buduje wokół niej pas tolerancji. W obu przypadkach szczególnie ważne są obserwacje trudne: bliskie granicy albo leżące poza tolerancją.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="przykład-1-klasyfikacja-gatunków-pingwinów" class="level2">
+<h2 class="anchored" data-anchor-id="przykład-1-klasyfikacja-gatunków-pingwinów">Przykład 1: klasyfikacja gatunków pingwinów</h2>
+<section id="cel-przykładu" class="level3">
+<h3 class="anchored" data-anchor-id="cel-przykładu">Cel przykładu</h3>
+<p>W pierwszym przykładzie użyjemy zbioru <code>penguins</code> z pakietu <code>palmerpenguins</code>. Celem jest przewidywanie gatunku pingwina na podstawie cech morfologicznych.</p>
+<p>Jest to problem klasyfikacji wieloklasowej, ponieważ zmienna <code>species</code> przyjmuje trzy wartości. Implementacje SVM rozwiązują taki problem przez złożenie wielu klasyfikatorów binarnych.</p>
+</section>
+<section id="przygotowanie-danych" class="level3">
+<h3 class="anchored" data-anchor-id="przygotowanie-danych">Przygotowanie danych</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(palmerpenguins)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gt)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2026</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>dane_klasyfikacja <span class="ot">&lt;-</span> penguins <span class="sc">|&gt;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(species, bill_length_mm, bill_depth_mm,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>         flipper_length_mm, body_mass_g) <span class="sc">|&gt;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>() <span class="sc">|&gt;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">species =</span> <span class="fu">factor</span>(species))</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>dane_klasyfikacja <span class="sc">|&gt;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>() <span class="sc">|&gt;</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>() <span class="sc">|&gt;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_caption</span>(<span class="st">"Przykładowe obserwacje w zbiorze penguins"</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="yafmoldpel" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#yafmoldpel table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#yafmoldpel thead, #yafmoldpel tbody, #yafmoldpel tfoot, #yafmoldpel tr, #yafmoldpel td, #yafmoldpel th {
+  border-style: none;
+}
+
+#yafmoldpel p {
+  margin: 0;
+  padding: 0;
+}
+
+#yafmoldpel .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#yafmoldpel .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#yafmoldpel .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#yafmoldpel .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#yafmoldpel .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#yafmoldpel .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#yafmoldpel .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#yafmoldpel .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#yafmoldpel .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#yafmoldpel .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#yafmoldpel .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#yafmoldpel .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#yafmoldpel .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#yafmoldpel .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#yafmoldpel .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#yafmoldpel .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#yafmoldpel .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#yafmoldpel .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#yafmoldpel .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#yafmoldpel .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#yafmoldpel .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#yafmoldpel .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#yafmoldpel .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#yafmoldpel .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#yafmoldpel .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#yafmoldpel .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#yafmoldpel .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#yafmoldpel .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#yafmoldpel .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#yafmoldpel .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#yafmoldpel .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#yafmoldpel .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#yafmoldpel .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#yafmoldpel .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#yafmoldpel .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#yafmoldpel .gt_left {
+  text-align: left;
+}
+
+#yafmoldpel .gt_center {
+  text-align: center;
+}
+
+#yafmoldpel .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#yafmoldpel .gt_font_normal {
+  font-weight: normal;
+}
+
+#yafmoldpel .gt_font_bold {
+  font-weight: bold;
+}
+
+#yafmoldpel .gt_font_italic {
+  font-style: italic;
+}
+
+#yafmoldpel .gt_super {
+  font-size: 65%;
+}
+
+#yafmoldpel .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#yafmoldpel .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#yafmoldpel .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#yafmoldpel .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#yafmoldpel .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#yafmoldpel .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#yafmoldpel .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#yafmoldpel .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#yafmoldpel div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<caption>Przyk&lt;U+0142&gt;adowe obserwacje w zbiorze penguins</caption>
+<thead>
+<tr class="gt_col_headings header">
+<th id="species" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">species</th>
+<th id="bill_length_mm" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">bill_length_mm</th>
+<th id="bill_depth_mm" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">bill_depth_mm</th>
+<th id="flipper_length_mm" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">flipper_length_mm</th>
+<th id="body_mass_g" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">body_mass_g</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_center" headers="species">Adelie</td>
+<td class="gt_row gt_right" headers="bill_length_mm">39.1</td>
+<td class="gt_row gt_right" headers="bill_depth_mm">18.7</td>
+<td class="gt_row gt_right" headers="flipper_length_mm">181</td>
+<td class="gt_row gt_right" headers="body_mass_g">3750</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="species">Adelie</td>
+<td class="gt_row gt_right" headers="bill_length_mm">39.5</td>
+<td class="gt_row gt_right" headers="bill_depth_mm">17.4</td>
+<td class="gt_row gt_right" headers="flipper_length_mm">186</td>
+<td class="gt_row gt_right" headers="body_mass_g">3800</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="species">Adelie</td>
+<td class="gt_row gt_right" headers="bill_length_mm">40.3</td>
+<td class="gt_row gt_right" headers="bill_depth_mm">18.0</td>
+<td class="gt_row gt_right" headers="flipper_length_mm">195</td>
+<td class="gt_row gt_right" headers="body_mass_g">3250</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="species">Adelie</td>
+<td class="gt_row gt_right" headers="bill_length_mm">36.7</td>
+<td class="gt_row gt_right" headers="bill_depth_mm">19.3</td>
+<td class="gt_row gt_right" headers="flipper_length_mm">193</td>
+<td class="gt_row gt_right" headers="body_mass_g">3450</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="species">Adelie</td>
+<td class="gt_row gt_right" headers="bill_length_mm">39.3</td>
+<td class="gt_row gt_right" headers="bill_depth_mm">20.6</td>
+<td class="gt_row gt_right" headers="flipper_length_mm">190</td>
+<td class="gt_row gt_right" headers="body_mass_g">3650</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="species">Adelie</td>
+<td class="gt_row gt_right" headers="bill_length_mm">38.9</td>
+<td class="gt_row gt_right" headers="bill_depth_mm">17.8</td>
+<td class="gt_row gt_right" headers="flipper_length_mm">181</td>
+<td class="gt_row gt_right" headers="body_mass_g">3625</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Wykorzystujemy cztery cechy liczbowe opisujące budowę ciała pingwina, mierzone w różnych jednostkach (stąd standaryzacja w recepcie).</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dane_klasyfikacja,</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> bill_length_mm, <span class="at">y =</span> bill_depth_mm, <span class="at">color =</span> species)) <span class="sc">+</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Długość dzioba [mm]"</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Głębokość dzioba [mm]"</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"Gatunek"</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="wyk5_files/figure-html/wyk5-klasyfikacja-eda-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Dwie cechy morfologiczne pingwinów według gatunku</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Na wykresie widać, że gatunki częściowo tworzą odrębne obszary, ale nie są rozdzielone idealnie. To dobra sytuacja do pokazania SVM: model musi znaleźć granice między klasami, lecz powinien unikać zbyt dosłownego dopasowania do pojedynczych punktów.</p>
+</section>
+<section id="podział-danych-i-recepta" class="level3">
+<h3 class="anchored" data-anchor-id="podział-danych-i-recepta">Podział danych i recepta</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>split_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  dane_klasyfikacja,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">prop =</span> <span class="fl">0.8</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">strata =</span> species</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>train_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">training</span>(split_klasyfikacja)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>test_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">testing</span>(split_klasyfikacja)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>foldy_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  train_klasyfikacja,</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">v =</span> <span class="dv">5</span>,</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">strata =</span> species</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>recepta_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">recipe</span>(species <span class="sc">~</span> ., <span class="at">data =</span> train_klasyfikacja) <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_normalize</span>(<span class="fu">all_numeric_predictors</span>())</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="model-svm-z-jądrem-rbf" class="level3">
+<h3 class="anchored" data-anchor-id="model-svm-z-jądrem-rbf">Model SVM z jądrem RBF</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>model_svm_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">svm_rbf</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">cost =</span> <span class="fu">tune</span>(),</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">rbf_sigma =</span> <span class="fu">tune</span>()</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"kernlab"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">"classification"</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>workflow_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">|&gt;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_recipe</span>(recepta_klasyfikacja) <span class="sc">|&gt;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(model_svm_klasyfikacja)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>siatka_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">crossing</span>(</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">cost =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">16</span>),</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">rbf_sigma =</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">0.10</span>, <span class="fl">0.20</span>)</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>W siatce parametrów porównujemy różne wartości <code>cost</code> i <code>rbf_sigma</code>. Nie zgadujemy ich ręcznie. Sprawdzamy, które ustawienia działają najlepiej w walidacji krzyżowej.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>metryki_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">metric_set</span>(accuracy, kap)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>wyniki_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">tune_grid</span>(</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  workflow_klasyfikacja,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">resamples =</span> foldy_klasyfikacja,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">grid =</span> siatka_klasyfikacja,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">metrics =</span> metryki_klasyfikacja</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">show_best</span>(wyniki_klasyfikacja, <span class="at">metric =</span> <span class="st">"accuracy"</span>, <span class="at">n =</span> <span class="dv">8</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 x 8
+   cost rbf_sigma .metric  .estimator  mean     n std_err .config         
+  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;           
+1     4      0.05 accuracy multiclass 0.989     5 0.00739 pre0_mod10_post0
+2     4      0.1  accuracy multiclass 0.989     5 0.00739 pre0_mod11_post0
+3     4      0.2  accuracy multiclass 0.989     5 0.00739 pre0_mod12_post0
+4    16      0.01 accuracy multiclass 0.989     5 0.00739 pre0_mod13_post0
+5    16      0.05 accuracy multiclass 0.989     5 0.00739 pre0_mod14_post0
+6    16      0.1  accuracy multiclass 0.989     5 0.00739 pre0_mod15_post0
+7    16      0.2  accuracy multiclass 0.989     5 0.00739 pre0_mod16_post0
+8     1      0.1  accuracy multiclass 0.985     5 0.00691 pre0_mod07_post0</code></pre>
+</div>
+</div>
+</section>
+<section id="ocena-modelu-na-zbiorze-testowym" class="level3">
+<h3 class="anchored" data-anchor-id="ocena-modelu-na-zbiorze-testowym">Ocena modelu na zbiorze testowym</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>najlepsze_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">select_best</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  wyniki_klasyfikacja,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">metric =</span> <span class="st">"accuracy"</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>finalny_workflow_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">finalize_workflow</span>(</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  workflow_klasyfikacja,</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  najlepsze_klasyfikacja</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>fit_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">last_fit</span>(</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  finalny_workflow_klasyfikacja,</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  split_klasyfikacja,</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">metrics =</span> metryki_klasyfikacja</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="fu">collect_metrics</span>(fit_klasyfikacja)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 x 4
+  .metric  .estimator .estimate .config        
+  &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;          
+1 accuracy multiclass     0.971 pre0_mod0_post0
+2 kap      multiclass     0.955 pre0_mod0_post0</code></pre>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>predykcje_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">collect_predictions</span>(fit_klasyfikacja)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>predykcje_klasyfikacja <span class="sc">|&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">conf_mat</span>(<span class="at">truth =</span> species, <span class="at">estimate =</span> .pred_class)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>           Truth
+Prediction  Adelie Chinstrap Gentoo
+  Adelie        30         1      0
+  Chinstrap      1        13      0
+  Gentoo         0         0     25</code></pre>
+</div>
+</div>
+<p>Macierz pomyłek pokazuje, które gatunki są mylone najczęściej. Jeżeli większość wartości leży na przekątnej, oznacza to, że model dobrze rozpoznaje gatunki. Pomyłki poza przekątną warto interpretować biologicznie: gatunki o podobnych cechach morfologicznych mogą być trudniejsze do rozróżnienia.</p>
+</section>
+</section>
+<section id="przykład-2-regresja-ceny-domu" class="level2">
+<h2 class="anchored" data-anchor-id="przykład-2-regresja-ceny-domu">Przykład 2: regresja ceny domu</h2>
+<section id="cel-przykładu-1" class="level3">
+<h3 class="anchored" data-anchor-id="cel-przykładu-1">Cel przykładu</h3>
+<p>W drugim przykładzie zastosujemy regresję SVR do danych <code>ames</code> z pakietu <code>modeldata</code>. Celem będzie przewidywanie ceny sprzedaży domu na podstawie kilku cech opisujących nieruchomość.</p>
+<p>To inny typ problemu niż klasyfikacja pingwinów. Tutaj wynik nie jest klasą, lecz liczbą.</p>
+</section>
+<section id="przygotowanie-danych-1" class="level3">
+<h3 class="anchored" data-anchor-id="przygotowanie-danych-1">Przygotowanie danych</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>dane_regresja <span class="ot">&lt;-</span> modeldata<span class="sc">::</span>ames <span class="sc">|&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    Sale_Price, Neighborhood, Gr_Liv_Area, Year_Built,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    Year_Remod_Add, Total_Bsmt_SF, Garage_Area, Garage_Cars,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    Full_Bath, Overall_Cond, Lot_Area</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">log_cena =</span> <span class="fu">log10</span>(Sale_Price),</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">cena_tys =</span> Sale_Price <span class="sc">/</span> <span class="dv">1000</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>dane_regresja <span class="sc">|&gt;</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Sale_Price, log_cena, Neighborhood, Gr_Liv_Area,</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>         Garage_Area, Year_Built) <span class="sc">|&gt;</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>() <span class="sc">|&gt;</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>() <span class="sc">|&gt;</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_caption</span>(<span class="st">"Przykładowe obserwacje w zbiorze ames"</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="rfxovmnwgk" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#rfxovmnwgk table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#rfxovmnwgk thead, #rfxovmnwgk tbody, #rfxovmnwgk tfoot, #rfxovmnwgk tr, #rfxovmnwgk td, #rfxovmnwgk th {
+  border-style: none;
+}
+
+#rfxovmnwgk p {
+  margin: 0;
+  padding: 0;
+}
+
+#rfxovmnwgk .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#rfxovmnwgk .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#rfxovmnwgk .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#rfxovmnwgk .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#rfxovmnwgk .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#rfxovmnwgk .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#rfxovmnwgk .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#rfxovmnwgk .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#rfxovmnwgk .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#rfxovmnwgk .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#rfxovmnwgk .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#rfxovmnwgk .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#rfxovmnwgk .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#rfxovmnwgk .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#rfxovmnwgk .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#rfxovmnwgk .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#rfxovmnwgk .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#rfxovmnwgk .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#rfxovmnwgk .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#rfxovmnwgk .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#rfxovmnwgk .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#rfxovmnwgk .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#rfxovmnwgk .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#rfxovmnwgk .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#rfxovmnwgk .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#rfxovmnwgk .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#rfxovmnwgk .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#rfxovmnwgk .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#rfxovmnwgk .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#rfxovmnwgk .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#rfxovmnwgk .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#rfxovmnwgk .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#rfxovmnwgk .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#rfxovmnwgk .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#rfxovmnwgk .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#rfxovmnwgk .gt_left {
+  text-align: left;
+}
+
+#rfxovmnwgk .gt_center {
+  text-align: center;
+}
+
+#rfxovmnwgk .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#rfxovmnwgk .gt_font_normal {
+  font-weight: normal;
+}
+
+#rfxovmnwgk .gt_font_bold {
+  font-weight: bold;
+}
+
+#rfxovmnwgk .gt_font_italic {
+  font-style: italic;
+}
+
+#rfxovmnwgk .gt_super {
+  font-size: 65%;
+}
+
+#rfxovmnwgk .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#rfxovmnwgk .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#rfxovmnwgk .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#rfxovmnwgk .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#rfxovmnwgk .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#rfxovmnwgk .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#rfxovmnwgk .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#rfxovmnwgk .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#rfxovmnwgk div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<caption>Przyk&lt;U+0142&gt;adowe obserwacje w zbiorze ames</caption>
+<thead>
+<tr class="gt_col_headings header">
+<th id="Sale_Price" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Sale_Price</th>
+<th id="log_cena" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">log_cena</th>
+<th id="Neighborhood" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Neighborhood</th>
+<th id="Gr_Liv_Area" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Gr_Liv_Area</th>
+<th id="Garage_Area" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Garage_Area</th>
+<th id="Year_Built" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Year_Built</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_right" headers="Sale_Price">215000</td>
+<td class="gt_row gt_right" headers="log_cena">5.332438</td>
+<td class="gt_row gt_center" headers="Neighborhood">North_Ames</td>
+<td class="gt_row gt_right" headers="Gr_Liv_Area">1656</td>
+<td class="gt_row gt_right" headers="Garage_Area">528</td>
+<td class="gt_row gt_right" headers="Year_Built">1960</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="Sale_Price">105000</td>
+<td class="gt_row gt_right" headers="log_cena">5.021189</td>
+<td class="gt_row gt_center" headers="Neighborhood">North_Ames</td>
+<td class="gt_row gt_right" headers="Gr_Liv_Area">896</td>
+<td class="gt_row gt_right" headers="Garage_Area">730</td>
+<td class="gt_row gt_right" headers="Year_Built">1961</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="Sale_Price">172000</td>
+<td class="gt_row gt_right" headers="log_cena">5.235528</td>
+<td class="gt_row gt_center" headers="Neighborhood">North_Ames</td>
+<td class="gt_row gt_right" headers="Gr_Liv_Area">1329</td>
+<td class="gt_row gt_right" headers="Garage_Area">312</td>
+<td class="gt_row gt_right" headers="Year_Built">1958</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="Sale_Price">244000</td>
+<td class="gt_row gt_right" headers="log_cena">5.387390</td>
+<td class="gt_row gt_center" headers="Neighborhood">North_Ames</td>
+<td class="gt_row gt_right" headers="Gr_Liv_Area">2110</td>
+<td class="gt_row gt_right" headers="Garage_Area">522</td>
+<td class="gt_row gt_right" headers="Year_Built">1968</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="Sale_Price">189900</td>
+<td class="gt_row gt_right" headers="log_cena">5.278525</td>
+<td class="gt_row gt_center" headers="Neighborhood">Gilbert</td>
+<td class="gt_row gt_right" headers="Gr_Liv_Area">1629</td>
+<td class="gt_row gt_right" headers="Garage_Area">482</td>
+<td class="gt_row gt_right" headers="Year_Built">1997</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="Sale_Price">195500</td>
+<td class="gt_row gt_right" headers="log_cena">5.291147</td>
+<td class="gt_row gt_center" headers="Neighborhood">Gilbert</td>
+<td class="gt_row gt_right" headers="Gr_Liv_Area">1604</td>
+<td class="gt_row gt_right" headers="Garage_Area">470</td>
+<td class="gt_row gt_right" headers="Year_Built">1998</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>W modelowaniu będziemy przewidywać <code>log_cena</code>, czyli logarytm dziesiętny ceny. Ceny nieruchomości mają zwykle rozkład prawostronnie skośny: większość domów ma ceny umiarkowane, a niewielka grupa jest bardzo droga. Logarytm ceny zwykle daje stabilniejszy problem regresyjny.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dane_regresja, <span class="fu">aes</span>(<span class="at">x =</span> Gr_Liv_Area, <span class="at">y =</span> cena_tys)) <span class="sc">+</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"darkorange"</span>) <span class="sc">+</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Powierzchnia mieszkalna nad poziomem gruntu"</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Cena sprzedaży [tys. dolarów]"</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="wyk5_files/figure-html/wyk5-regresja-eda-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Cena sprzedaży a powierzchnia mieszkalna</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Zależność między powierzchnią mieszkalną a ceną jest wyraźna, ale nie wyjaśnia wszystkiego. Na cenę wpływają także rok budowy, garaż, powierzchnia piwnicy, stan techniczny i lokalizacja. Model z jądrem RBF może uchwycić nieliniowe zależności między tymi cechami.</p>
+</section>
+<section id="podział-danych-i-recepta-1" class="level3">
+<h3 class="anchored" data-anchor-id="podział-danych-i-recepta-1">Podział danych i recepta</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2026</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>split_regresja <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  dane_regresja,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">prop =</span> <span class="fl">0.8</span>,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">strata =</span> log_cena</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>train_regresja <span class="ot">&lt;-</span> <span class="fu">training</span>(split_regresja)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>test_regresja <span class="ot">&lt;-</span> <span class="fu">testing</span>(split_regresja)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>foldy_regresja <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  train_regresja,</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">v =</span> <span class="dv">3</span>,</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">strata =</span> log_cena</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>recepta_regresja <span class="ot">&lt;-</span> <span class="fu">recipe</span>(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  log_cena <span class="sc">~</span> Neighborhood <span class="sc">+</span> Gr_Liv_Area <span class="sc">+</span> Year_Built <span class="sc">+</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    Year_Remod_Add <span class="sc">+</span> Total_Bsmt_SF <span class="sc">+</span> Garage_Area <span class="sc">+</span> Garage_Cars <span class="sc">+</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    Full_Bath <span class="sc">+</span> Overall_Cond <span class="sc">+</span> Lot_Area,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> train_regresja</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_other</span>(<span class="fu">all_nominal_predictors</span>(), <span class="at">threshold =</span> <span class="fl">0.01</span>) <span class="sc">|&gt;</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(<span class="fu">all_nominal_predictors</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_zv</span>(<span class="fu">all_predictors</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_normalize</span>(<span class="fu">all_numeric_predictors</span>())</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="model-svr-z-jądrem-rbf" class="level3">
+<h3 class="anchored" data-anchor-id="model-svr-z-jądrem-rbf">Model SVR z jądrem RBF</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>model_svr <span class="ot">&lt;-</span> <span class="fu">svm_rbf</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">cost =</span> <span class="fu">tune</span>(),</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">rbf_sigma =</span> <span class="fu">tune</span>(),</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">margin =</span> <span class="fu">tune</span>()</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"kernlab"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">"regression"</span>)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>workflow_regresja <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">|&gt;</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_recipe</span>(recepta_regresja) <span class="sc">|&gt;</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(model_svr)</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>siatka_regresja <span class="ot">&lt;-</span> <span class="fu">crossing</span>(</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">cost =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">5</span>, <span class="dv">20</span>),</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">rbf_sigma =</span> <span class="fu">c</span>(<span class="fl">0.005</span>, <span class="fl">0.02</span>, <span class="fl">0.08</span>),</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">margin =</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.03</span>, <span class="fl">0.06</span>)</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>W regresji stroimy trzy parametry:</p>
+<ul>
+<li><code>cost</code>, czyli siłę kary za obserwacje źle dopasowane,</li>
+<li><code>rbf_sigma</code>, czyli lokalność jądra RBF,</li>
+<li><code>margin</code>, czyli odpowiednik szerokości tolerancji <code>epsilon</code>.</li>
+</ul>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>metryki_regresja <span class="ot">&lt;-</span> <span class="fu">metric_set</span>(yardstick<span class="sc">::</span>rmse, yardstick<span class="sc">::</span>mae, yardstick<span class="sc">::</span>rsq)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>wyniki_regresja <span class="ot">&lt;-</span> <span class="fu">tune_grid</span>(</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  workflow_regresja,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">resamples =</span> foldy_regresja,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">grid =</span> siatka_regresja,</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">metrics =</span> metryki_regresja</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="fu">show_best</span>(wyniki_regresja, <span class="at">metric =</span> <span class="st">"rmse"</span>, <span class="at">n =</span> <span class="dv">8</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 x 9
+   cost rbf_sigma margin .metric .estimator   mean     n std_err .config        
+  &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;       &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;          
+1     5     0.005   0.06 rmse    standard   0.0644     3 0.00413 pre0_mod12_pos~
+2     5     0.005   0.03 rmse    standard   0.0645     3 0.00425 pre0_mod11_pos~
+3     5     0.005   0.01 rmse    standard   0.0646     3 0.00431 pre0_mod10_pos~
+4    20     0.005   0.06 rmse    standard   0.0654     3 0.00357 pre0_mod21_pos~
+5     5     0.02    0.06 rmse    standard   0.0655     3 0.00275 pre0_mod15_pos~
+6    20     0.005   0.03 rmse    standard   0.0657     3 0.00366 pre0_mod20_pos~
+7     5     0.02    0.03 rmse    standard   0.0657     3 0.00272 pre0_mod14_pos~
+8    20     0.005   0.01 rmse    standard   0.0658     3 0.00361 pre0_mod19_pos~</code></pre>
+</div>
+</div>
+</section>
+<section id="ocena-modelu-na-zbiorze-testowym-1" class="level3">
+<h3 class="anchored" data-anchor-id="ocena-modelu-na-zbiorze-testowym-1">Ocena modelu na zbiorze testowym</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>najlepsze_regresja <span class="ot">&lt;-</span> <span class="fu">select_best</span>(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  wyniki_regresja,</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">metric =</span> <span class="st">"rmse"</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>finalny_workflow_regresja <span class="ot">&lt;-</span> <span class="fu">finalize_workflow</span>(</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  workflow_regresja,</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  najlepsze_regresja</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>fit_regresja <span class="ot">&lt;-</span> <span class="fu">last_fit</span>(</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  finalny_workflow_regresja,</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>  split_regresja,</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">metrics =</span> metryki_regresja</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a><span class="fu">collect_metrics</span>(fit_regresja)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 x 4
+  .metric .estimator .estimate .config        
+  &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;          
+1 rmse    standard      0.0605 pre0_mod0_post0
+2 mae     standard      0.0424 pre0_mod0_post0
+3 rsq     standard      0.880  pre0_mod0_post0</code></pre>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>predykcje_regresja <span class="ot">&lt;-</span> <span class="fu">collect_predictions</span>(fit_regresja)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>predykcje_regresja <span class="sc">|&gt;</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">cena_rzeczywista =</span> <span class="dv">10</span><span class="sc">^</span>log_cena,</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">cena_przewidywana =</span> <span class="dv">10</span><span class="sc">^</span>.pred,</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">blad =</span> cena_przewidywana <span class="sc">-</span> cena_rzeczywista,</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">blad_proc =</span> <span class="dv">100</span> <span class="sc">*</span> blad <span class="sc">/</span> cena_rzeczywista</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(cena_rzeczywista, cena_przewidywana, blad, blad_proc) <span class="sc">|&gt;</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>() <span class="sc">|&gt;</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmt_currency</span>(<span class="at">columns =</span> <span class="fu">c</span>(cena_rzeczywista, cena_przewidywana, blad),</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>               <span class="at">currency =</span> <span class="st">"USD"</span>, <span class="at">decimals =</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmt_number</span>(<span class="at">columns =</span> blad_proc, <span class="at">decimals =</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_caption</span>(<span class="st">"Przykładowe predykcje SVR dla cen domów"</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="ywkwaerzxj" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#ywkwaerzxj table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#ywkwaerzxj thead, #ywkwaerzxj tbody, #ywkwaerzxj tfoot, #ywkwaerzxj tr, #ywkwaerzxj td, #ywkwaerzxj th {
+  border-style: none;
+}
+
+#ywkwaerzxj p {
+  margin: 0;
+  padding: 0;
+}
+
+#ywkwaerzxj .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#ywkwaerzxj .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#ywkwaerzxj .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#ywkwaerzxj .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#ywkwaerzxj .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#ywkwaerzxj .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ywkwaerzxj .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#ywkwaerzxj .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#ywkwaerzxj .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#ywkwaerzxj .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#ywkwaerzxj .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#ywkwaerzxj .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#ywkwaerzxj .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#ywkwaerzxj .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#ywkwaerzxj .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#ywkwaerzxj .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#ywkwaerzxj .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#ywkwaerzxj .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#ywkwaerzxj .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ywkwaerzxj .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#ywkwaerzxj .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#ywkwaerzxj .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#ywkwaerzxj .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ywkwaerzxj .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#ywkwaerzxj .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#ywkwaerzxj .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ywkwaerzxj .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ywkwaerzxj .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#ywkwaerzxj .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ywkwaerzxj .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#ywkwaerzxj .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ywkwaerzxj .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#ywkwaerzxj .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ywkwaerzxj .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#ywkwaerzxj .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ywkwaerzxj .gt_left {
+  text-align: left;
+}
+
+#ywkwaerzxj .gt_center {
+  text-align: center;
+}
+
+#ywkwaerzxj .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#ywkwaerzxj .gt_font_normal {
+  font-weight: normal;
+}
+
+#ywkwaerzxj .gt_font_bold {
+  font-weight: bold;
+}
+
+#ywkwaerzxj .gt_font_italic {
+  font-style: italic;
+}
+
+#ywkwaerzxj .gt_super {
+  font-size: 65%;
+}
+
+#ywkwaerzxj .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#ywkwaerzxj .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#ywkwaerzxj .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#ywkwaerzxj .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#ywkwaerzxj .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#ywkwaerzxj .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#ywkwaerzxj .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#ywkwaerzxj .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#ywkwaerzxj div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<caption>Przyk&lt;U+0142&gt;adowe predykcje SVR dla cen dom&lt;U+00F3&gt;w</caption>
+<thead>
+<tr class="gt_col_headings header">
+<th id="cena_rzeczywista" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">cena_rzeczywista</th>
+<th id="cena_przewidywana" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">cena_przewidywana</th>
+<th id="blad" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">blad</th>
+<th id="blad_proc" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">blad_proc</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_right" headers="cena_rzeczywista">$105,000</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$128,314</td>
+<td class="gt_row gt_right" headers="blad">$23,314</td>
+<td class="gt_row gt_right" headers="blad_proc">22.2</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="cena_rzeczywista">$189,000</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$197,661</td>
+<td class="gt_row gt_right" headers="blad">$8,661</td>
+<td class="gt_row gt_right" headers="blad_proc">4.6</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="cena_rzeczywista">$185,000</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$171,225</td>
+<td class="gt_row gt_right" headers="blad">−$13,775</td>
+<td class="gt_row gt_right" headers="blad_proc">−7.4</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="cena_rzeczywista">$216,000</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$206,318</td>
+<td class="gt_row gt_right" headers="blad">−$9,682</td>
+<td class="gt_row gt_right" headers="blad_proc">−4.5</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="cena_rzeczywista">$259,000</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$323,174</td>
+<td class="gt_row gt_right" headers="blad">$64,174</td>
+<td class="gt_row gt_right" headers="blad_proc">24.8</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="cena_rzeczywista">$500,000</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$513,022</td>
+<td class="gt_row gt_right" headers="blad">$13,022</td>
+<td class="gt_row gt_right" headers="blad_proc">2.6</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="cena_rzeczywista">$199,500</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$198,182</td>
+<td class="gt_row gt_right" headers="blad">−$1,318</td>
+<td class="gt_row gt_right" headers="blad_proc">−0.7</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="cena_rzeczywista">$184,500</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$165,644</td>
+<td class="gt_row gt_right" headers="blad">−$18,856</td>
+<td class="gt_row gt_right" headers="blad_proc">−10.2</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="cena_rzeczywista">$222,500</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$211,176</td>
+<td class="gt_row gt_right" headers="blad">−$11,324</td>
+<td class="gt_row gt_right" headers="blad_proc">−5.1</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="cena_rzeczywista">$333,168</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$349,033</td>
+<td class="gt_row gt_right" headers="blad">$15,865</td>
+<td class="gt_row gt_right" headers="blad_proc">4.8</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>predykcje_regresja <span class="sc">|&gt;</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">cena_rzeczywista =</span> <span class="dv">10</span><span class="sc">^</span>log_cena,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">cena_przewidywana =</span> <span class="dv">10</span><span class="sc">^</span>.pred</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> cena_rzeczywista, <span class="at">y =</span> cena_przewidywana)) <span class="sc">+</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">"steelblue"</span>, <span class="at">size =</span> <span class="dv">2</span>, <span class="at">alpha =</span> <span class="fl">0.75</span>) <span class="sc">+</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">"darkorange"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_dollar</span>()) <span class="sc">+</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_dollar</span>()) <span class="sc">+</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Cena rzeczywista"</span>,</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Cena przewidywana"</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="wyk5_files/figure-html/wyk5-regresja-wykres-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Wartości rzeczywiste i przewidywane w regresji SVR</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Punkty blisko przekątnej oznaczają trafne predykcje. Punkty powyżej przekątnej oznaczają przeszacowanie ceny, a punkty poniżej przekątnej oznaczają niedoszacowanie.</p>
+</section>
+</section>
+<section id="najważniejsze-zalety-i-ograniczenia-svm" class="level2">
+<h2 class="anchored" data-anchor-id="najważniejsze-zalety-i-ograniczenia-svm">Najważniejsze zalety i ograniczenia SVM</h2>
+<section id="zalety" class="level3">
+<h3 class="anchored" data-anchor-id="zalety">Zalety</h3>
+<p>SVM dobrze działa w wielu problemach o umiarkowanej liczbie obserwacji i kilku lub kilkunastu sensownych predyktorach. Dzięki jądrom może modelować nieliniowe granice decyzyjne bez ręcznego tworzenia złożonych transformacji zmiennych. Dobrze nadaje się także do danych, w których istotna jest geometria podobieństwa między obserwacjami.</p>
+</section>
+<section id="ograniczenia" class="level3">
+<h3 class="anchored" data-anchor-id="ograniczenia">Ograniczenia</h3>
+<p>SVM wymaga skalowania zmiennych, a wyniki mogą silnie zależeć od doboru parametrów. Modele z jądrami bywają mniej interpretowalne niż regresja liniowa czy pojedyncze drzewo decyzyjne. Dla bardzo dużych zbiorów danych klasyczny kernelowy SVM może być kosztowny obliczeniowo.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Ostrzeżenie</span>Typowy błąd praktyczny
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Nie należy dopasowywać SVM do nieskalowanych danych liczbowych i od razu interpretować słabego wyniku jako wady metody. Dla SVM standaryzacja predyktorów jest częścią procedury, a nie kosmetycznym dodatkiem.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="wnioski" class="level2">
+<h2 class="anchored" data-anchor-id="wnioski">Wnioski</h2>
+<p>SVM jest modelem opartym na geometrii danych. W klasyfikacji szuka granicy, która oddziela klasy z możliwie szerokim marginesem. Najważniejsze dla położenia tej granicy są wektory nośne, czyli obserwacje położone najbliżej granicy lub naruszające margines.</p>
+<p>W praktyce najważniejsze są trzy decyzje: skalowanie zmiennych, wybór jądra oraz dobór parametrów przez walidację krzyżową. W przykładach zastosowaliśmy jądro RBF, ponieważ jest elastyczne i dobrze nadaje się do pokazania nieliniowych zależności.</p>
+<section id="podsumowanie-dydaktyczne" class="level3">
+<h3 class="anchored" data-anchor-id="podsumowanie-dydaktyczne">Podsumowanie dydaktyczne</h3>
+<p>Po tym wykładzie należy umieć:</p>
+<ol type="1">
+<li>wyjaśnić pojęcia marginesu i wektorów nośnych,</li>
+<li>opisać rolę parametru <code>C</code>,</li>
+<li>wyjaśnić, po co stosuje się jądra i czym intuicyjnie jest jądro RBF,</li>
+<li>wskazać różnicę między SVM do klasyfikacji i SVR do regresji,</li>
+<li>przygotować dane do SVM przez standaryzację,</li>
+<li>zbudować w R prosty model SVM do klasyfikacji i regresji,</li>
+<li>ocenić jakość modelu na zbiorze testowym.</li>
+</ol>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Skopiowano!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Skopiowano!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./wyk4.html" class="pagination-link" aria-label="Wykład 4: Metody zespołowe — bagging, las losowy i XGBoost">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Wykład 4: Metody zespołowe — bagging, las losowy i XGBoost</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./wyk6.html" class="pagination-link" aria-label="Wykład 6: Sieci neuronowe — od neuronu do wstecznej propagacji">
+        <span class="nav-page-text">Wykład 6: Sieci neuronowe — od neuronu do wstecznej propagacji</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Statystyka stosowana, Dariusz Majerek</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>Książka została napisana w <a href="https://quarto.org/">Quarto</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

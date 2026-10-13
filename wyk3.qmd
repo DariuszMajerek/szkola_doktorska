@@ -1,0 +1,360 @@
+# Wykład 3: Drzewa decyzyjne — klasyfikacja gatunków pingwinów {.unnumbered}
+
+::: hidden
+$$ \def\E{\mathrm{E}}
+ \def\Var{\mathrm{Var}}
+ \def\P{\mathrm{P}}$$
+:::
+
+## Wprowadzenie
+
+W tym rozdziale pokażemy kompletny przykład problemu badawczego, w którym celem jest przypisanie obserwacji do jednej z kilku klas na podstawie zestawu cech opisujących obiekt. Do modelowania wykorzystamy drzewo decyzyjne, czyli metodę klasyfikacyjną, która buduje sekwencję prostych reguł typu „jeżeli ... to ...”.
+
+Jest to jedna z najbardziej intuicyjnych metod uczenia nadzorowanego. Jej zaletą nie jest wyłącznie możliwość przewidywania klas, lecz także przejrzystość uzyskanych reguł decyzyjnych. Dzięki temu drzewa decyzyjne są szczególnie użyteczne wtedy, gdy oprócz trafności predykcyjnej zależy nam również na interpretowalności modelu.
+
+W przykładzie skorzystamy ze zbioru `penguins` z pakietu `palmerpenguins`, zawierającego dane o pingwinach z archipelagu Palmer. Na podstawie cech morfologicznych i wybranych informacji opisowych będziemy przewidywać gatunek pingwina.
+
+::: callout-note
+### Co będzie wynikiem tej analizy?
+
+Na końcu będziemy umieli odpowiedzieć na pytanie, czy na podstawie prostych cech budowy ciała można poprawnie klasyfikować gatunki pingwinów oraz które cechy są najważniejsze w regułach podziału tworzonych przez drzewo decyzyjne.
+:::
+
+## Formułowanie celu i problemów badawczych
+
+### Cel badawczy
+
+Chcemy zbudować model klasyfikacyjny, który na podstawie danych opisujących pojedynczego pingwina będzie przewidywał jego przynależność gatunkową.
+
+W zbiorze `penguins` zmienna `species` przyjmuje trzy wartości odpowiadające trzem gatunkom pingwinów. Jest to zatem zadanie klasyfikacji wieloklasowej.
+
+::: callout-important
+### Jasne określenie celu
+
+**Cel predykcyjny:** przewidywanie wartości zmiennej `species` na podstawie cech morfologicznych i informacji opisujących obserwowanego pingwina.
+:::
+
+### Zmienna objaśniana i zmienne objaśniające
+
+- **Zmienna objaśniana (zależna, przewidywana):** `species`
+- **Potencjalne zmienne objaśniające (predyktory):**
+  - `bill_length_mm` — długość dzioba w milimetrach,
+  - `bill_depth_mm` — głębokość dzioba w milimetrach,
+  - `flipper_length_mm` — długość płetwy w milimetrach,
+  - `body_mass_g` — masa ciała w gramach,
+  - `sex` — płeć,
+  - `island` — wyspa, na której dokonano obserwacji.
+
+### Problem badawczy
+
+Interesuje nas odpowiedź na następujące pytania:
+
+1.  Czy cechy morfologiczne pingwinów pozwalają na trafną klasyfikację gatunków?
+2.  Które zmienne są najważniejsze dla kolejnych podziałów w drzewie?
+3.  Jak złożoność drzewa wpływa na jakość predykcji i możliwość uogólniania wyników?
+4.  Jak interpretować końcowe reguły klasyfikacyjne w języku problemu badawczego?
+
+### Jednostka obserwacji
+
+Pojedynczą obserwacją jest tutaj **jeden pingwin**. Każdy wiersz tabeli danych opisuje jednego osobnika.
+
+## Metodyka
+
+### Idea drzewa decyzyjnego
+
+Drzewo decyzyjne dzieli przestrzeń cech na coraz bardziej jednorodne obszary. W każdym kroku algorytm wybiera taką zmienną i taki punkt podziału, które najlepiej rozróżniają klasy w aktualnie analizowanym fragmencie danych.
+
+W klasyfikacji końcowym wynikiem modelu jest przypisanie obserwacji do klasy dominującej w liściu drzewa, do którego dana obserwacja trafia po przejściu przez kolejne reguły podziału.
+
+Można więc powiedzieć, że drzewo decyzyjne realizuje serię pytań porządkujących dane. Przykładowo model może najpierw zapytać, czy długość płetwy przekracza pewną wartość, następnie — czy głębokość dzioba jest większa od kolejnego progu, a na końcu przypisać obserwację do najbardziej prawdopodobnego gatunku.
+
+### Elementy struktury drzewa
+
+Podstawowymi elementami drzewa są:
+
+- **korzeń** — pierwszy węzeł obejmujący cały zbiór uczący,
+- **węzły wewnętrzne** — miejsca, w których wykonywany jest podział według wybranej zmiennej,
+- **gałęzie** — ścieżki odpowiadające wynikom kolejnych warunków,
+- **liście** — końcowe węzły zawierające decyzję klasyfikacyjną.
+
+Interpretacja liścia jest bardzo naturalna: wszystkie obserwacje, które spełniają ciąg warunków prowadzących do tego liścia, otrzymują tę samą przewidywaną klasę.
+
+### Jak wybierany jest najlepszy podział?
+
+W zadaniach klasyfikacyjnych celem podziału jest zwiększenie jednorodności klas w powstałych grupach. Dobry podział to taki, po którym w każdym z nowych węzłów obserwacje należą w możliwie dużym stopniu do jednej klasy.
+
+Jedną z najczęściej stosowanych miar niejednorodności jest indeks Giniego:
+
+$$G = 1 - \sum_{k=1}^{K} p_k^2,$$
+
+gdzie $p_k$ oznacza udział klasy $k$ w danym węźle. Wartość tej miary jest mała wtedy, gdy węzeł jest prawie jednorodny, a większa wtedy, gdy klasy są silnie wymieszane.
+
+Algorytm budowy drzewa wybiera taki podział, który możliwie najbardziej zmniejsza niejednorodność. W konsekwencji kolejne poziomy drzewa prowadzą do coraz lepszego rozdzielenia klas.
+
+### Uczenie drzewa jako proces sekwencyjnego podziału
+
+Budowa drzewa ma charakter zachłanny. Oznacza to, że na każdym etapie wybierany jest lokalnie najlepszy podział, bez jednoczesnego przeszukiwania wszystkich możliwych pełnych struktur drzewa. Procedura przebiega następująco:
+
+1.  rozpoczynamy od całego zbioru danych,
+2.  sprawdzamy możliwe podziały według dostępnych predyktorów,
+3.  wybieramy podział dający największą poprawę jednorodności klas,
+4.  powtarzamy procedurę osobno w nowych węzłach,
+5.  zatrzymujemy wzrost drzewa po spełnieniu ustalonych warunków.
+
+Dzięki temu drzewo jest łatwe do wyznaczenia obliczeniowo.
+
+### Złożoność drzewa i ryzyko przeuczenia
+
+Drzewa decyzyjne bardzo dobrze dopasowują się do danych treningowych, lecz przy zbyt dużej złożoności mogą odwzorowywać nie tylko prawidłowości ogólne, ale również przypadkowy szum. Zjawisko to określamy mianem przeuczenia.
+
+Z punktu widzenia praktyki analitycznej szczególnie ważne są trzy mechanizmy regulujące złożoność modelu:
+
+- `tree_depth` — maksymalna głębokość drzewa,
+- `min_n` — minimalna liczba obserwacji potrzebna do dalszego podziału,
+- `cost_complexity` — parametr złożoności ograniczający tworzenie mało użytecznych rozgałęzień.
+
+Małe i płytkie drzewa są zwykle prostsze interpretacyjnie, ale mogą być zbyt sztywne i nie wychwytywać istotnych zależności. Z kolei drzewa bardzo rozbudowane lepiej odwzorowują dane uczące, lecz mogą gorzej działać na nowych obserwacjach. Dlatego w praktyce poszukuje się kompromisu między prostotą i trafnością klasyfikacji.
+
+### Ocena jakości modelu
+
+Ponieważ interesuje nas klasyfikacja, jako główną miarę jakości wykorzystamy trafność klasyfikacji (`accuracy`), czyli odsetek poprawnie sklasyfikowanych obserwacji.
+
+Dodatkowo uwzględnimy współczynnik Cohena (`kap`), który informuje, na ile zgodność między klasami prawdziwymi i przewidywanymi jest większa od zgodności oczekiwanej przypadkowo. Jest to miara szczególnie użyteczna wtedy, gdy chcemy ocenić jakość klasyfikacji w sposób bardziej wymagający niż sama trafność.
+
+W analizie rozróżnimy dwa poziomy oceny:
+
+1.  ocenę w walidacji krzyżowej na zbiorze treningowym,
+2.  końcową ocenę modelu na zbiorze testowym, który nie uczestniczył w uczeniu.
+
+Taki schemat pozwala oddzielić etap wyboru modelu od etapu końcowej weryfikacji jego zdolności uogólniania.
+
+## Opis danych
+
+Na początku przygotujmy dane do analizy.
+
+```{r}
+#| label: wyk3-przygotowanie-danych
+library(tidyverse)
+library(tidymodels)
+library(palmerpenguins)
+library(gt)
+library(rpart.plot)
+library(easystats)
+
+set.seed(2026)
+
+dane <- penguins |>
+  select(species, bill_length_mm, bill_depth_mm, flipper_length_mm,
+         body_mass_g, sex, island) |>
+  drop_na() |>
+  mutate(species = factor(species))
+
+dane |>
+  head() |>
+  gt() |>
+  tab_caption("Przykładowe obserwacje w zbiorze")
+```
+
+## Eksploracyjna analiza danych
+
+Zanim zbudujemy model, warto sprawdzić, jak wyglądają dane i czy już na poziomie prostych wykresów widać różnice między gatunkami. W przypadku drzew decyzyjnych ma to duże znaczenie, ponieważ model działa najlepiej wtedy, gdy istnieją cechy pozwalające dość wyraźnie rozdzielać klasy.
+
+### Liczebności klas
+
+```{r}
+#| label: wyk3-liczebnosci-klas
+#| fig-cap: "Liczebności gatunków w zbiorze danych"
+dane |>
+  count(species) |>
+  ggplot(aes(x = species, y = n)) +
+  geom_col(fill = "steelblue") +
+  labs(x = "Gatunek", y = "Liczba obserwacji") +
+  theme_minimal(base_size = 13)
+```
+
+Jeżeli liczebności klas są zbliżone, ocena jakości klasyfikacji jest zwykle prostsza w interpretacji. W tym zbiorze nie obserwujemy skrajnej nierównowagi klas, co oznacza, że trafność klasyfikacji nie powinna być sztucznie zawyżona przez dominację jednej kategorii.
+
+### Charakterystyka liczbowych predyktorów
+
+```{r}
+#| label: wyk3-stat-opisowe
+dane |>
+  select(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g) |>
+  report::report_table() |>
+  print_html()
+```
+
+Statystyki opisowe pozwalają ocenić skalę zmienności predyktorów. Już na tym etapie można zauważyć, że poszczególne cechy różnią się zakresem wartości, jednak w przypadku drzew decyzyjnych nie jest to problem interpretacyjny tej samej klasy co w wielu modelach liniowych, ponieważ drzewo opiera się na progach podziału, a nie na bezpośredniej interpretacji współczynników.
+
+### Zależności między cechami a gatunkiem
+
+```{r}
+#| label: wyk3-wykres-cechy-1
+#| fig-cap: "Długość i głębokość dzioba a gatunek pingwina"
+ggplot(dane, aes(x = bill_length_mm, y = bill_depth_mm, color = species)) +
+  geom_point(size = 2, alpha = 0.8) +
+  labs(
+    x = "Długość dzioba [mm]",
+    y = "Głębokość dzioba [mm]",
+    color = "Gatunek"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+```{r}
+#| label: wyk3-wykres-cechy-2
+#| fig-cap: "Długość płetwy i masa ciała a gatunek pingwina"
+ggplot(dane, aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
+  geom_point(size = 2, alpha = 0.8) +
+  labs(
+    x = "Długość płetwy [mm]",
+    y = "Masa ciała [g]",
+    color = "Gatunek"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+Na wykresach widać, że gatunki różnią się morfologicznie. Oznacza to, że istnieją przesłanki do zbudowania skutecznego modelu klasyfikacyjnego. Jeżeli klasy tworzą względnie odrębne skupienia w przestrzeni cech, drzewo decyzyjne może konstruować reguły podziału o wyraźnym sensie biologicznym.
+
+## Przygotowanie danych do modelowania
+
+W analizie predykcyjnej oddzielamy dane służące do uczenia modelu od danych przeznaczonych do końcowej oceny. Dzięki temu możemy rzetelniej ocenić, czy model potrafi generalizować na nowe obserwacje.
+
+```{r}
+#| label: wyk3-podzial
+split <- initial_split(dane, prop = 0.8, strata = species)
+train <- training(split)
+test <- testing(split)
+```
+
+Zbiór treningowy będzie wykorzystywany do estymacji i porównania konkurencyjnych wersji modelu, natomiast zbiór testowy posłuży do końcowej oceny jakości wybranego drzewa.
+
+## Budowa modelu
+
+### Specyfikacja drzewa decyzyjnego
+
+W tej analizie dopuścimy, aby algorytm dobrał korzystny poziom złożoności modelu, strojąc trzy opisane wcześniej parametry: `tree_depth`, `min_n` i `cost_complexity`.
+
+```{r}
+#| label: wyk3-model
+model_drzewa <- decision_tree(
+  cost_complexity = tune(),
+  tree_depth = tune(),
+  min_n = tune()
+) |>
+  set_engine("rpart") |>
+  set_mode("classification")
+```
+
+### Schemat przygotowania predyktorów
+
+Ponieważ w zbiorze występują zarówno zmienne liczbowe, jak i jakościowe, przygotowujemy spójny schemat przetwarzania danych. Ten etap ma charakter pomocniczy: jego celem nie jest sam w sobie „pokaz techniczny”, lecz zapewnienie, aby model otrzymał poprawnie uporządkowane dane wejściowe.
+
+```{r}
+#| label: wyk3-recipe
+recepta <- recipe(species ~ ., data = train) |>
+  step_nzv(all_predictors()) |>
+  step_dummy(all_nominal_predictors())
+```
+
+### Walidacja krzyżowa i strojenie parametrów
+
+Aby wybrać model, który nie tylko dobrze dopasowuje się do danych treningowych, lecz także dobrze uogólnia, zastosujemy pięciokrotną walidację krzyżową. Oznacza to, że zbiór treningowy zostanie wielokrotnie dzielony na część uczącą i walidacyjną, a jakość modelu zostanie oceniona w kilku niezależnych powtórzeniach.
+
+```{r}
+#| label: wyk3-walidacja
+foldy <- vfold_cv(train, v = 5, strata = species)
+
+siatka_parametrow <- grid_regular(
+  cost_complexity(range = c(-4, -1)),
+  tree_depth(range = c(1L, 8L)),
+  min_n(range = c(2L, 30L)),
+  levels = 4
+)
+
+workflow_drzewa <- workflow() |>
+  add_recipe(recepta) |>
+  add_model(model_drzewa)
+
+wyniki_strojenia <- tune_grid(
+  workflow_drzewa,
+  resamples = foldy,
+  grid = siatka_parametrow,
+  metrics = metric_set(accuracy, kap)
+)
+```
+
+Wyniki walidacji krzyżowej należy interpretować przede wszystkim jako ocenę zdolności modelu do uogólniania, a nie jako opis jakości dopasowania do jednego, konkretnego podziału danych. Jeżeli w czołowych konfiguracjach wartości `accuracy` i `kap` są wysokie oraz względnie zbliżone między kolejnymi zestawami parametrów, oznacza to, że problem klasyfikacyjny ma dość wyraźną strukturę, a drzewo nie wymaga skrajnie precyzyjnego strojenia, aby osiągać dobre wyniki.
+
+### Najlepsze ustawienia modelu
+
+```{r}
+#| label: wyk3-najlepszy-model
+najlepsze_ustawienia <- select_best(wyniki_strojenia, metric = "accuracy")
+
+show_best(wyniki_strojenia, metric = "accuracy", n = 10)
+```
+
+Tabela z najlepszymi wynikami pokazuje, które konfiguracje parametrów dawały najwyższą trafność w walidacji krzyżowej. Na tym etapie należy zwrócić uwagę nie tylko na samą wartość miary, lecz także na sens merytoryczny rozwiązania.
+
+Jeżeli najlepszy model okazuje się bardzo głęboki i słabo ograniczony przez parametr złożoności, może to oznaczać, że algorytm dąży do szczegółowego odwzorowania danych treningowych. Taki wynik nie musi być błędny, ale wymaga ostrożności, ponieważ bardziej rozbudowane drzewo częściej bywa niestabilne i trudniejsze do uogólnienia.
+
+Jeżeli natomiast dobre wyniki osiąga model płytszy, z większym `min_n` lub większą karą za złożoność, jest to często sygnał, że główna struktura danych jest stosunkowo prosta, a bardziej oszczędna postać modelu może być wystarczająca.
+
+## Model końcowy i ocena na zbiorze testowym
+
+Po wybraniu najlepszego zestawu parametrów budujemy model końcowy i oceniamy go na zbiorze testowym. Jest to najważniejszy etap z punktu widzenia wiarygodności wniosków predykcyjnych, ponieważ zbiór testowy nie brał udziału ani w uczeniu, ani w doborze parametrów.
+
+```{r}
+#| label: wyk3-model-koncowy
+finalny_workflow <- finalize_workflow(workflow_drzewa, najlepsze_ustawienia)
+
+final_fit <- last_fit(finalny_workflow, split)
+
+collect_metrics(final_fit)
+```
+
+`accuracy = 0.971` oznacza, że model poprawnie sklasyfikował 97,1% obserwacji. Jest to najprostsza i najbardziej intuicyjna miara trafności klasyfikacji. W praktyce mówi ona, jaki odsetek przypadków został przypisany do właściwej klasy. Taki wynik jest bardzo wysoki, ale trzeba pamiętać, że accuracy nie pokazuje, czy model dobrze rozróżnia wszystkie klasy jednakowo. Jeżeli zbiór danych jest niezrównoważony, to wysoka wartość tej metryki może czasem wynikać głównie z dobrego rozpoznawania klasy dominującej.
+
+`roc_auc = 0.974` przy metodzie hand_till odnosi się do uogólnienia pola pod krzywą ROC dla problemu wieloklasowego. W wersji binarnej AUC mierzy zdolność modelu do rozdzielania dwóch klas. W wersji wieloklasowej metoda Handa-Tilla opiera się na średniej jakości rozróżniania wszystkich par klas. Wartość 0.974 jest bardzo wysoka i oznacza, że model bardzo dobrze porządkuje obserwacje pod względem przynależności klasowej. Innymi słowy, gdy porównujemy dwie obserwacje z różnych klas, model z dużym prawdopodobieństwem przypisze wyższe prawdopodobieństwo właściwej klasie tej obserwacji, która rzeczywiście do niej należy. Ta metryka mówi więc bardziej o zdolności separacyjnej modelu niż o samej końcowej trafności decyzji.
+
+`brier_class = 0.0294` jest miarą jakości probabilistycznej predykcji. Ocena Brier’a mierzy różnicę między przewidywanymi prawdopodobieństwami a rzeczywistą klasą. Im mniejsza wartość, tym lepiej. W klasyfikacji wieloklasowej uwzględnia się cały wektor prawdopodobieństw, a nie tylko klasę wybraną jako najbardziej prawdopodobną. Wynik 0.0294 jest bardzo niski, co oznacza, że model nie tylko często wskazuje poprawną klasę, ale także przypisuje sensowne i dobrze skalibrowane prawdopodobieństwa. To ważne, bo dwa modele mogą mieć podobne accuracy, ale jeden może być znacznie lepszy w ocenie niepewności swoich decyzji.
+
+### Macierz pomyłek
+
+```{r}
+#| label: wyk3-macierz-pomylek
+predykcje_testowe <- collect_predictions(final_fit)
+
+predykcje_testowe |>
+  conf_mat(truth = species, estimate = .pred_class)
+```
+
+Macierz pomyłek pozwala sprawdzić, czy bardzo dobra wartość globalnych metryk jest równomiernie rozłożona między klasy. Jeżeli na przekątnej macierzy dominują wysokie liczebności, oznacza to, że model trafnie rozpoznaje większość obserwacji każdego gatunku. Nieliczne wartości poza przekątną wskazują natomiast konkretne pary klas, które są do siebie bardziej podobne z punktu widzenia zestawu analizowanych cech.
+
+W tym zadaniu ewentualne pomyłki należy interpretować przede wszystkim biologicznie, a nie wyłącznie technicznie. Jeżeli dwa gatunki są mylone częściej niż pozostałe, może to oznaczać, że ich cechy morfologiczne częściowo się nakładają. Wówczas błąd klasyfikacyjny nie musi świadczyć o słabości samego modelu, lecz raczej o ograniczonej rozdzielczości informacji zawartej w użytych predyktorach.
+
+## Interpretacja końcowego drzewa
+
+Poza samą trafnością klasyfikacji ważna jest interpretacja reguł decyzyjnych. Drzewo można przedstawić graficznie, dzięki czemu łatwo zobaczyć, które zmienne pojawiają się w pierwszych podziałach i jakie progi odgrywają kluczową rolę.
+
+```{r}
+#| label: wyk3-wizualizacja-dopasowania
+model_treningowy <- fit(finalny_workflow, data = train)
+obiekt_drzewa <- extract_fit_engine(model_treningowy)
+
+rpart.plot(
+  obiekt_drzewa,
+  main = "Drzewo decyzyjne — model końcowy"
+)
+```
+
+Graficzna postać drzewa umożliwia odczytanie, które zmienne zostały wykorzystane w pierwszych, a więc najważniejszych podziałach. W analizie gatunków pingwinów szczególnie istotne są zwykle cechy morfologiczne, takie jak długość płetwy oraz wymiary dzioba, ponieważ to one najlepiej porządkują obserwacje już na najwyższych poziomach struktury drzewa. Oznacza to, że model opiera klasyfikację na biologicznie sensownych różnicach budowy ciała.
+
+## Wnioski
+
+Przeprowadzona analiza pokazuje, że w badanym zbiorze danych gatunek pingwina można przewidywać z bardzo wysoką skutecznością na podstawie kilku cech morfologicznych i zmiennych opisowych. Oznacza to, że między klasami istnieją wyraźne różnice strukturalne, które drzewo decyzyjne potrafi uchwycić za pomocą prostych reguł podziału.
+
+Z perspektywy metodologicznej istotne jest również to, że wysoka jakość modelu pojawia się nie tylko na etapie strojenia, lecz utrzymuje się także na zbiorze testowym. Wzmacnia to wiarygodność wniosku, że model nie jest jedynie dopasowany do danych treningowych, ale rzeczywiście dobrze uogólnia zależności obecne w populacji opisanej przez zbiór `penguins`.
+
+Najważniejszą zaletą uzyskanego rozwiązania pozostaje interpretowalność. Model nie tylko zapewnia trafną klasyfikację, ale także wskazuje, które cechy są kluczowe dla odróżniania gatunków i w jakiej kolejności są wykorzystywane w procesie decyzyjnym. Dzięki temu drzewo decyzyjne można traktować jednocześnie jako narzędzie predykcyjne i narzędzie analizy struktury danych.
