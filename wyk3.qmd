@@ -1,5 +1,11 @@
 # Wykład 3: Drzewa decyzyjne — klasyfikacja gatunków pingwinów {.unnumbered}
 
+```{r}
+#| label: wyk3-utf8
+#| include: false
+source("R/setup.R")
+```
+
 ::: hidden
 $$ \def\E{\mathrm{E}}
  \def\Var{\mathrm{Var}}
@@ -130,7 +136,7 @@ Taki schemat pozwala oddzielić etap wyboru modelu od etapu końcowej weryfikacj
 
 ## Opis danych
 
-Na początku przygotujmy dane do analizy.
+Na początku wybieramy zmienne do analizy. Zachowujemy wszystkie obserwacje, w tym oryginalne braki w predyktorach. Nie uzupełniamy ich ani nie usuwamy wierszy: ich obsługę powierzamy mechanizmowi podziałów zastępczych w `rpart`.
 
 ```{r}
 #| label: wyk3-przygotowanie-danych
@@ -146,12 +152,12 @@ set.seed(2026)
 dane <- penguins |>
   select(species, bill_length_mm, bill_depth_mm, flipper_length_mm,
          body_mass_g, sex, island) |>
-  drop_na() |>
   mutate(species = factor(species))
 
 dane |>
   head() |>
   gt() |>
+  formatuj_tabele() |>
   tab_caption("Przykładowe obserwacje w zbiorze")
 ```
 
@@ -172,7 +178,7 @@ dane |>
   theme_minimal(base_size = 13)
 ```
 
-Jeżeli liczebności klas są zbliżone, ocena jakości klasyfikacji jest zwykle prostsza w interpretacji. W tym zbiorze nie obserwujemy skrajnej nierównowagi klas, co oznacza, że trafność klasyfikacji nie powinna być sztucznie zawyżona przez dominację jednej kategorii.
+Jeżeli liczebności klas są zbliżone, ocena jakości klasyfikacji jest zwykle prostsza w interpretacji. W tym zbiorze nie obserwujemy skrajnej nierównowagi klas, co oznacza, że trafność klasyfikacji nadal wymaga porównania z regułą klasy większościowej oraz czułością dla każdego gatunku.
 
 ### Charakterystyka liczbowych predyktorów
 
@@ -181,7 +187,8 @@ Jeżeli liczebności klas są zbliżone, ocena jakości klasyfikacji jest zwykle
 dane |>
   select(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g) |>
   report::report_table() |>
-  print_html()
+  as.data.frame() |>
+  tabela_wynikow("Statystyki opisowe predyktorów")
 ```
 
 Statystyki opisowe pozwalają ocenić skalę zmienności predyktorów. Już na tym etapie można zauważyć, że poszczególne cechy różnią się zakresem wartości, jednak w przypadku drzew decyzyjnych nie jest to problem interpretacyjny tej samej klasy co w wielu modelach liniowych, ponieważ drzewo opiera się na progach podziału, a nie na bezpośredniej interpretacji współczynników.
@@ -242,24 +249,25 @@ model_drzewa <- decision_tree(
   tree_depth = tune(),
   min_n = tune()
 ) |>
-  set_engine("rpart") |>
+  set_engine("rpart", usesurrogate = 2, maxsurrogate = 5) |>
   set_mode("classification")
 ```
 
 ### Schemat przygotowania predyktorów
 
-Ponieważ w zbiorze występują zarówno zmienne liczbowe, jak i jakościowe, przygotowujemy spójny schemat przetwarzania danych. Ten etap ma charakter pomocniczy: jego celem nie jest sam w sobie „pokaz techniczny”, lecz zapewnienie, aby model otrzymał poprawnie uporządkowane dane wejściowe.
+Drzewo CART z silnikiem `rpart` obsługuje bezpośrednio predyktory liczbowe i jakościowe. Zmienne `sex` oraz `island` pozostawiamy jako faktory, bez kodowania zero-jedynkowego. Dzięki temu podział węzła może rozdzielać poziomy zmiennej jakościowej na dwie grupy. Standaryzacja predyktorów liczbowych nie jest potrzebna. Braki pozostają w danych; ustawienie `usesurrogate = 2` włącza podziały zastępcze, a gdy nie ma dostępnej reguły zastępczej — skierowanie do liczniejszego potomka. `maxsurrogate = 5` pozwala zapisać do pięciu reguł zastępczych w każdym węźle. Są to domyślne wartości silnika, podane tutaj jawnie.
+
+Recepta usuwa jedynie predyktory o zerowej lub niemal zerowej zmienności (`step_nzv()`). Krok ten jest dopasowywany wewnątrz każdej części uczącej walidacji krzyżowej, a po wyborze parametrów — na całym zbiorze treningowym. Zbiór testowy nie służy do ustalania przekształceń.
 
 ```{r}
 #| label: wyk3-recipe
 recepta <- recipe(species ~ ., data = train) |>
-  step_nzv(all_predictors()) |>
-  step_dummy(all_nominal_predictors())
+  step_nzv(all_predictors())
 ```
 
 ### Walidacja krzyżowa i strojenie parametrów
 
-Aby wybrać model, który nie tylko dobrze dopasowuje się do danych treningowych, lecz także dobrze uogólnia, zastosujemy pięciokrotną walidację krzyżową. Oznacza to, że zbiór treningowy zostanie wielokrotnie dzielony na część uczącą i walidacyjną, a jakość modelu zostanie oceniona w kilku niezależnych powtórzeniach.
+Aby wybrać model, który nie tylko dobrze dopasowuje się do danych treningowych, lecz także dobrze uogólnia, zastosujemy pięciokrotną walidację krzyżową. Oznacza to, że zbiór treningowy zostanie wielokrotnie dzielony na część uczącą i walidacyjną, a jakość modelu zostanie oceniona na pięciu częściach walidacyjnych. Zbiory uczące nakładają się, więc wyniki foldów nie są niezależnymi powtórzeniami eksperymentu.
 
 ```{r}
 #| label: wyk3-walidacja
@@ -292,7 +300,9 @@ Wyniki walidacji krzyżowej należy interpretować przede wszystkim jako ocenę 
 #| label: wyk3-najlepszy-model
 najlepsze_ustawienia <- select_best(wyniki_strojenia, metric = "accuracy")
 
-show_best(wyniki_strojenia, metric = "accuracy", n = 10)
+show_best(wyniki_strojenia, metric = "accuracy", n = 10) |>
+  select(-any_of(c(".metric", ".estimator", ".config"))) |>
+  tabela_wynikow("Najlepsze ustawienia — strojenia")
 ```
 
 Tabela z najlepszymi wynikami pokazuje, które konfiguracje parametrów dawały najwyższą trafność w walidacji krzyżowej. Na tym etapie należy zwrócić uwagę nie tylko na samą wartość miary, lecz także na sens merytoryczny rozwiązania.
@@ -309,16 +319,22 @@ Po wybraniu najlepszego zestawu parametrów budujemy model końcowy i oceniamy g
 #| label: wyk3-model-koncowy
 finalny_workflow <- finalize_workflow(workflow_drzewa, najlepsze_ustawienia)
 
-final_fit <- last_fit(finalny_workflow, split)
+final_fit <- last_fit(
+  finalny_workflow, split,
+  metrics = metric_set(accuracy, roc_auc)
+)
 
-collect_metrics(final_fit)
+collect_metrics(final_fit) |>
+  select(.metric, .estimate) |>
+  rename(Metryka = .metric, Wartosc = .estimate) |>
+  tabela_wynikow("Wyniki na zbiorze testowym") |>
+  cols_label(Wartosc = "Wartość")
 ```
 
-`accuracy = 0.971` oznacza, że model poprawnie sklasyfikował 97,1% obserwacji. Jest to najprostsza i najbardziej intuicyjna miara trafności klasyfikacji. W praktyce mówi ona, jaki odsetek przypadków został przypisany do właściwej klasy. Taki wynik jest bardzo wysoki, ale trzeba pamiętać, że accuracy nie pokazuje, czy model dobrze rozróżnia wszystkie klasy jednakowo. Jeżeli zbiór danych jest niezrównoważony, to wysoka wartość tej metryki może czasem wynikać głównie z dobrego rozpoznawania klasy dominującej.
+Wartości należy odczytać z tabeli bieżącego wykonania: zmiana wersji pakietów lub podziału może je zmienić.
 
-`roc_auc = 0.974` przy metodzie hand_till odnosi się do uogólnienia pola pod krzywą ROC dla problemu wieloklasowego. W wersji binarnej AUC mierzy zdolność modelu do rozdzielania dwóch klas. W wersji wieloklasowej metoda Handa-Tilla opiera się na średniej jakości rozróżniania wszystkich par klas. Wartość 0.974 jest bardzo wysoka i oznacza, że model bardzo dobrze porządkuje obserwacje pod względem przynależności klasowej. Innymi słowy, gdy porównujemy dwie obserwacje z różnych klas, model z dużym prawdopodobieństwem przypisze wyższe prawdopodobieństwo właściwej klasie tej obserwacji, która rzeczywiście do niej należy. Ta metryka mówi więc bardziej o zdolności separacyjnej modelu niż o samej końcowej trafności decyzji.
-
-`brier_class = 0.0294` jest miarą jakości probabilistycznej predykcji. Ocena Brier’a mierzy różnicę między przewidywanymi prawdopodobieństwami a rzeczywistą klasą. Im mniejsza wartość, tym lepiej. W klasyfikacji wieloklasowej uwzględnia się cały wektor prawdopodobieństw, a nie tylko klasę wybraną jako najbardziej prawdopodobną. Wynik 0.0294 jest bardzo niski, co oznacza, że model nie tylko często wskazuje poprawną klasę, ale także przypisuje sensowne i dobrze skalibrowane prawdopodobieństwa. To ważne, bo dwa modele mogą mieć podobne accuracy, ale jeden może być znacznie lepszy w ocenie niepewności swoich decyzji.
+- `accuracy` to odsetek poprawnych decyzji; uzupełniamy go wynikami dla poszczególnych klas i porównaniem z klasą większościową.
+- `roc_auc` dla wielu klas (metoda Handa–Tilla) uśrednia rozróżnianie par klas na podstawie przewidywanych prawdopodobieństw. Ocenia uporządkowanie, nie kalibrację.
 
 ### Macierz pomyłek
 
@@ -326,8 +342,9 @@ collect_metrics(final_fit)
 #| label: wyk3-macierz-pomylek
 predykcje_testowe <- collect_predictions(final_fit)
 
-predykcje_testowe |>
+macierz <- predykcje_testowe |>
   conf_mat(truth = species, estimate = .pred_class)
+tabela_pomylek_gt(t(macierz$table), "Macierz pomyłek — gatunki pingwinów")
 ```
 
 Macierz pomyłek pozwala sprawdzić, czy bardzo dobra wartość globalnych metryk jest równomiernie rozłożona między klasy. Jeżeli na przekątnej macierzy dominują wysokie liczebności, oznacza to, że model trafnie rozpoznaje większość obserwacji każdego gatunku. Nieliczne wartości poza przekątną wskazują natomiast konkretne pary klas, które są do siebie bardziej podobne z punktu widzenia zestawu analizowanych cech.
@@ -349,12 +366,65 @@ rpart.plot(
 )
 ```
 
-Graficzna postać drzewa umożliwia odczytanie, które zmienne zostały wykorzystane w pierwszych, a więc najważniejszych podziałach. W analizie gatunków pingwinów szczególnie istotne są zwykle cechy morfologiczne, takie jak długość płetwy oraz wymiary dzioba, ponieważ to one najlepiej porządkują obserwacje już na najwyższych poziomach struktury drzewa. Oznacza to, że model opiera klasyfikację na biologicznie sensownych różnicach budowy ciała.
+Graficzna postać drzewa umożliwia odczytanie, które zmienne zostały wykorzystane w pierwszych podziałach. Ich pozycja nie stanowi uniwersalnego rankingu ważności; przy skorelowanych cechach inne drzewo może wybrać inne progi i predyktory. W analizie gatunków pingwinów szczególnie istotne są zwykle cechy morfologiczne, takie jak długość płetwy oraz wymiary dzioba, ponieważ to one najlepiej porządkują obserwacje już na najwyższych poziomach struktury drzewa. Oznacza to, że model opiera klasyfikację na biologicznie sensownych różnicach budowy ciała.
+
+### Ciekawostka: podziały zastępcze i brakujące wartości
+
+Gdy dla nowej obserwacji brakuje wartości predyktora użytego w podziale, CART może skorzystać z **podziału zastępczego** (*surrogate split*). Jest to reguła oparta na innym predyktorze, wybrana tak, aby możliwie wiernie odtwarzała skierowanie obserwacji do lewego i prawego potomka przez podział główny. Nie zastępuje ona brakującej wartości liczbowej — zastępuje decyzję o wyborze gałęzi.
+
+W tej analizie zachowaliśmy oryginalne braki. W zbiorze treningowym dotyczy to `r sum(!complete.cases(train))` obserwacji, a w testowym — `r sum(!complete.cases(test))`. Poniżej pokazujemy reguły zapisane w wybranym drzewie. Brak w predyktorze wymaga zastępstwa tylko wtedy, gdy dana obserwacja dociera do węzła dzielonego według tego predyktora; nie każdy brak uruchamia zatem podział zastępczy.
+
+```{r}
+#| label: wyk3-surrogate-splits
+summary(obiekt_drzewa, digits = 6)
+```
+
+W wydruku dla każdego węzła wewnętrznego:
+
+- pierwsza reguła w części **Primary splits** jest podziałem głównym; pozostałe są konkurencyjnymi kandydatami, a nie podziałami zastępczymi;
+- część **Surrogate splits** zawiera uporządkowane reguły zastępcze; zapis `to the left` lub `to the right` wskazuje kierunek dla warunku, a przy faktorach `L` i `R` oznaczają przypisanie poziomów do potomków;
+- **agree** oznacza zgodność podziału zastępczego z głównym, a nie trafność przewidywania gatunku; **adj** opisuje poprawę tej zgodności względem kierowania wszystkich obserwacji do liczniejszego potomka;
+- liczba w zapisie **(… split)** mówi, ile obserwacji uczących skierowano za pomocą danego podziału zastępczego. Dodatnia wartość pokazuje rzeczywiste użycie danej reguły podczas uczenia; zero oznacza, że regułę wyznaczono, ale nie była potrzebna przy kierowaniu obserwacji uczących.
+
+W korzeniu drzewa podział główny wykorzystuje `flipper_length_mm`. Dla obserwacji bez pomiarów morfologicznych nie można zastosować także pierwszych dwóch reguł zastępczych, opartych na `bill_depth_mm` i `body_mass_g`. Dostępna jest jednak zmienna `island`: zapis **(1 split)** przy jej regule pokazuje, że skierowano w ten sposób jedną obserwację uczącą. To rzeczywisty przykład użycia podziału zastępczego, a nie tylko lista potencjalnych reguł.
+
+Domyślnie `rpart` sprawdza dostępne podziały zastępcze po kolei. Jeżeli nie może użyć żadnego z nich, kieruje obserwację do liczniejszego potomka; w przypadku remisu może pozostawić ją w bieżącym węźle.
+
+#### Predykcje dla obserwacji z oryginalnymi brakami
+
+Poniżej pokazujemy wszystkie obserwacje z brakami, rozróżniając ich przynależność do zbioru treningowego i testowego. Nie zmieniamy wartości predyktorów. Przewidywania pochodzą z tego samego modelu dopasowanego wyłącznie na zbiorze treningowym.
+
+```{r}
+#| label: wyk3-surrogate-predykcja
+nazwy_predyktorow <- setdiff(names(train), "species")
+przyklady_z_brakami <- bind_rows(
+  mutate(train, zbior = "Treningowy"),
+  mutate(test, zbior = "Testowy")
+) |>
+  filter(if_any(all_of(nazwy_predyktorow), is.na))
+
+brakujace_zmienne <- apply(
+  is.na(select(przyklady_z_brakami, all_of(nazwy_predyktorow))),
+  1, function(braki) paste(nazwy_predyktorow[braki], collapse = ", ")
+)
+predykcje_z_brakami <- predict(model_treningowy, new_data = przyklady_z_brakami)
+stopifnot(!anyNA(predykcje_z_brakami$.pred_class))
+
+tibble(
+  zbior = przyklady_z_brakami$zbior,
+  brakujace_predyktory = brakujace_zmienne,
+  gatunek_obserwowany = przyklady_z_brakami$species,
+  gatunek_przewidywany = predykcje_z_brakami$.pred_class
+) |>
+  tabela_wynikow("Predykcje CART dla obserwacji z oryginalnymi brakami")
+```
+
+Model zwraca klasę także dla obserwacji z brakami. Sam fakt uzyskania predykcji nie oznacza jednak, że zawsze użyto podziału zastępczego: brak może dotyczyć niewykorzystanej zmiennej, a przy niedostępności wszystkich reguł może zadziałać wybór liczniejszego potomka. Wydruk drzewa powyżej pokazuje faktyczne użycie reguł zastępczych podczas uczenia. Tabela służy ilustracji; końcową ocenę jakości nadal opieramy wyłącznie na zbiorze testowym.
 
 ## Wnioski
 
 Przeprowadzona analiza pokazuje, że w badanym zbiorze danych gatunek pingwina można przewidywać z bardzo wysoką skutecznością na podstawie kilku cech morfologicznych i zmiennych opisowych. Oznacza to, że między klasami istnieją wyraźne różnice strukturalne, które drzewo decyzyjne potrafi uchwycić za pomocą prostych reguł podziału.
 
-Z perspektywy metodologicznej istotne jest również to, że wysoka jakość modelu pojawia się nie tylko na etapie strojenia, lecz utrzymuje się także na zbiorze testowym. Wzmacnia to wiarygodność wniosku, że model nie jest jedynie dopasowany do danych treningowych, ale rzeczywiście dobrze uogólnia zależności obecne w populacji opisanej przez zbiór `penguins`.
+Z perspektywy metodologicznej istotne jest również to, że wysoka jakość modelu pojawia się nie tylko na etapie strojenia, lecz utrzymuje się także na zbiorze testowym. To dowód ograniczony do tego podziału i populacji zbliżonej do danych. Wynik nie gwarantuje trafności dla nowych kolonii ani lat. Zmienna `island` może kodować lokalne występowanie gatunków; transportowalność warto badać przez podział według miejsca lub czasu. Zachowanie obserwacji z brakami pozwala wykorzystać pełny zbiór, ale skuteczność podziałów zastępczych zależy od dostępności i powiązań pozostałych cech.
 
 Najważniejszą zaletą uzyskanego rozwiązania pozostaje interpretowalność. Model nie tylko zapewnia trafną klasyfikację, ale także wskazuje, które cechy są kluczowe dla odróżniania gatunków i w jakiej kolejności są wykorzystywane w procesie decyzyjnym. Dzięki temu drzewo decyzyjne można traktować jednocześnie jako narzędzie predykcyjne i narzędzie analizy struktury danych.

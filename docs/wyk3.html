@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="pl" xml:lang="pl"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.10.18">
+<meta name="generator" content="quarto-1.10.19">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -80,9 +80,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-502dd8818b56a2c66749ffbc31bcd64e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
@@ -445,7 +445,10 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#macierz-pomyłek" id="toc-macierz-pomyłek" class="nav-link" data-scroll-target="#macierz-pomyłek">Macierz pomyłek</a></li>
   </ul></li>
-  <li><a href="#interpretacja-końcowego-drzewa" id="toc-interpretacja-końcowego-drzewa" class="nav-link" data-scroll-target="#interpretacja-końcowego-drzewa">Interpretacja końcowego drzewa</a></li>
+  <li><a href="#interpretacja-końcowego-drzewa" id="toc-interpretacja-końcowego-drzewa" class="nav-link" data-scroll-target="#interpretacja-końcowego-drzewa">Interpretacja końcowego drzewa</a>
+  <ul class="collapse">
+  <li><a href="#ciekawostka-podziały-zastępcze-i-brakujące-wartości" id="toc-ciekawostka-podziały-zastępcze-i-brakujące-wartości" class="nav-link" data-scroll-target="#ciekawostka-podziały-zastępcze-i-brakujące-wartości">Ciekawostka: podziały zastępcze i brakujące wartości</a></li>
+  </ul></li>
   <li><a href="#wnioski" id="toc-wnioski" class="nav-link" data-scroll-target="#wnioski">Wnioski</a></li>
   </ul>
 </nav>
@@ -611,7 +614,7 @@ window.Quarto = {
 </section>
 <section id="opis-danych" class="level2">
 <h2 class="anchored" data-anchor-id="opis-danych">Opis danych</h2>
-<p>Na początku przygotujmy dane do analizy.</p>
+<p>Na początku wybieramy zmienne do analizy. Zachowujemy wszystkie obserwacje, w tym oryginalne braki w predyktorach. Nie uzupełniamy ich ani nie usuwamy wierszy: ich obsługę powierzamy mechanizmowi podziałów zastępczych w <code>rpart</code>.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Kod</summary>
@@ -627,12 +630,12 @@ window.Quarto = {
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>dane <span class="ot">&lt;-</span> penguins <span class="sc">|&gt;</span></span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(species, bill_length_mm, bill_depth_mm, flipper_length_mm,</span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>         body_mass_g, sex, island) <span class="sc">|&gt;</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>() <span class="sc">|&gt;</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">species =</span> <span class="fu">factor</span>(species))</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>dane <span class="sc">|&gt;</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>() <span class="sc">|&gt;</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>() <span class="sc">|&gt;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">species =</span> <span class="fu">factor</span>(species))</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>dane <span class="sc">|&gt;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>() <span class="sc">|&gt;</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>() <span class="sc">|&gt;</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">formatuj_tabele</span>() <span class="sc">|&gt;</span></span>
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_caption</span>(<span class="st">"Przykładowe obserwacje w zbiorze"</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
@@ -1087,7 +1090,7 @@ window.Quarto = {
 </style>
 
 <table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
-<caption>Przyk&lt;U+0142&gt;adowe obserwacje w zbiorze</caption>
+<caption>Przykładowe obserwacje w zbiorze</caption>
 <thead>
 <tr class="gt_col_headings header">
 <th id="species" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">species</th>
@@ -1102,8 +1105,8 @@ window.Quarto = {
 <tbody class="gt_table_body">
 <tr class="odd">
 <td class="gt_row gt_center" headers="species">Adelie</td>
-<td class="gt_row gt_right" headers="bill_length_mm">39.1</td>
-<td class="gt_row gt_right" headers="bill_depth_mm">18.7</td>
+<td class="gt_row gt_right" headers="bill_length_mm">39,100</td>
+<td class="gt_row gt_right" headers="bill_depth_mm">18,700</td>
 <td class="gt_row gt_right" headers="flipper_length_mm">181</td>
 <td class="gt_row gt_right" headers="body_mass_g">3750</td>
 <td class="gt_row gt_center" headers="sex">male</td>
@@ -1111,8 +1114,8 @@ window.Quarto = {
 </tr>
 <tr class="even">
 <td class="gt_row gt_center" headers="species">Adelie</td>
-<td class="gt_row gt_right" headers="bill_length_mm">39.5</td>
-<td class="gt_row gt_right" headers="bill_depth_mm">17.4</td>
+<td class="gt_row gt_right" headers="bill_length_mm">39,500</td>
+<td class="gt_row gt_right" headers="bill_depth_mm">17,400</td>
 <td class="gt_row gt_right" headers="flipper_length_mm">186</td>
 <td class="gt_row gt_right" headers="body_mass_g">3800</td>
 <td class="gt_row gt_center" headers="sex">female</td>
@@ -1120,8 +1123,8 @@ window.Quarto = {
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="species">Adelie</td>
-<td class="gt_row gt_right" headers="bill_length_mm">40.3</td>
-<td class="gt_row gt_right" headers="bill_depth_mm">18.0</td>
+<td class="gt_row gt_right" headers="bill_length_mm">40,300</td>
+<td class="gt_row gt_right" headers="bill_depth_mm">18,000</td>
 <td class="gt_row gt_right" headers="flipper_length_mm">195</td>
 <td class="gt_row gt_right" headers="body_mass_g">3250</td>
 <td class="gt_row gt_center" headers="sex">female</td>
@@ -1129,29 +1132,29 @@ window.Quarto = {
 </tr>
 <tr class="even">
 <td class="gt_row gt_center" headers="species">Adelie</td>
-<td class="gt_row gt_right" headers="bill_length_mm">36.7</td>
-<td class="gt_row gt_right" headers="bill_depth_mm">19.3</td>
+<td class="gt_row gt_right" headers="bill_length_mm">—</td>
+<td class="gt_row gt_right" headers="bill_depth_mm">—</td>
+<td class="gt_row gt_right" headers="flipper_length_mm">—</td>
+<td class="gt_row gt_right" headers="body_mass_g">—</td>
+<td class="gt_row gt_center" headers="sex">—</td>
+<td class="gt_row gt_center" headers="island">Torgersen</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="species">Adelie</td>
+<td class="gt_row gt_right" headers="bill_length_mm">36,700</td>
+<td class="gt_row gt_right" headers="bill_depth_mm">19,300</td>
 <td class="gt_row gt_right" headers="flipper_length_mm">193</td>
 <td class="gt_row gt_right" headers="body_mass_g">3450</td>
 <td class="gt_row gt_center" headers="sex">female</td>
 <td class="gt_row gt_center" headers="island">Torgersen</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td class="gt_row gt_center" headers="species">Adelie</td>
-<td class="gt_row gt_right" headers="bill_length_mm">39.3</td>
-<td class="gt_row gt_right" headers="bill_depth_mm">20.6</td>
+<td class="gt_row gt_right" headers="bill_length_mm">39,300</td>
+<td class="gt_row gt_right" headers="bill_depth_mm">20,600</td>
 <td class="gt_row gt_right" headers="flipper_length_mm">190</td>
 <td class="gt_row gt_right" headers="body_mass_g">3650</td>
 <td class="gt_row gt_center" headers="sex">male</td>
-<td class="gt_row gt_center" headers="island">Torgersen</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_center" headers="species">Adelie</td>
-<td class="gt_row gt_right" headers="bill_length_mm">38.9</td>
-<td class="gt_row gt_right" headers="bill_depth_mm">17.8</td>
-<td class="gt_row gt_right" headers="flipper_length_mm">181</td>
-<td class="gt_row gt_right" headers="body_mass_g">3625</td>
-<td class="gt_row gt_center" headers="sex">female</td>
 <td class="gt_row gt_center" headers="island">Torgersen</td>
 </tr>
 </tbody>
@@ -1185,7 +1188,7 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<p>Jeżeli liczebności klas są zbliżone, ocena jakości klasyfikacji jest zwykle prostsza w interpretacji. W tym zbiorze nie obserwujemy skrajnej nierównowagi klas, co oznacza, że trafność klasyfikacji nie powinna być sztucznie zawyżona przez dominację jednej kategorii.</p>
+<p>Jeżeli liczebności klas są zbliżone, ocena jakości klasyfikacji jest zwykle prostsza w interpretacji. W tym zbiorze nie obserwujemy skrajnej nierównowagi klas, co oznacza, że trafność klasyfikacji nadal wymaga porównania z regułą klasy większościowej oraz czułością dla każdego gatunku.</p>
 </section>
 <section id="charakterystyka-liczbowych-predyktorów" class="level3">
 <h3 class="anchored" data-anchor-id="charakterystyka-liczbowych-predyktorów">Charakterystyka liczbowych predyktorów</h3>
@@ -1195,7 +1198,8 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>dane <span class="sc">|&gt;</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g) <span class="sc">|&gt;</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  report<span class="sc">::</span><span class="fu">report_table</span>() <span class="sc">|&gt;</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print_html</span>()</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tabela_wynikow</span>(<span class="st">"Statystyki opisowe predyktorów"</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div id="zbxsonqljv" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
@@ -1221,7 +1225,7 @@ window.Quarto = {
   margin-left: auto;
   margin-right: auto;
   color: #333333;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: normal;
   font-style: normal;
   background-color: #FFFFFF;
@@ -1271,7 +1275,7 @@ window.Quarto = {
 
 #zbxsonqljv .gt_heading {
   background-color: #FFFFFF;
-  text-align: center;
+  text-align: left;
   border-bottom-color: #FFFFFF;
   border-left-style: none;
   border-left-width: 1px;
@@ -1306,7 +1310,7 @@ window.Quarto = {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
-  font-weight: normal;
+  font-weight: bold;
   text-transform: inherit;
   border-left-style: none;
   border-left-width: 1px;
@@ -1326,7 +1330,7 @@ window.Quarto = {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
-  font-weight: normal;
+  font-weight: bold;
   text-transform: inherit;
   padding-top: 0;
   padding-bottom: 0;
@@ -1650,72 +1654,75 @@ window.Quarto = {
 
 <table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
 <thead>
-<tr class="gt_col_headings header">
+<tr class="gt_heading header">
+<td colspan="11" class="gt_heading gt_title gt_font_normal gt_bottom_border">Statystyki opisowe predyktorów</td>
+</tr>
+<tr class="gt_col_headings even">
 <th id="Variable" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Variable</th>
-<th id="n_Obs" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">n_Obs</th>
-<th id="Mean" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Mean</th>
-<th id="SD" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">SD</th>
-<th id="Median" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Median</th>
-<th id="MAD" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">MAD</th>
-<th id="Min" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Min</th>
-<th id="Max" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Max</th>
-<th id="Skewness" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Skewness</th>
-<th id="Kurtosis" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Kurtosis</th>
-<th id="percentage_Missing" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">percentage_Missing</th>
+<th id="n_Obs" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">n_Obs</th>
+<th id="Mean" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Mean</th>
+<th id="SD" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">SD</th>
+<th id="Median" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Median</th>
+<th id="MAD" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">MAD</th>
+<th id="Min" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Min</th>
+<th id="Max" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Max</th>
+<th id="Skewness" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Skewness</th>
+<th id="Kurtosis" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Kurtosis</th>
+<th id="percentage_Missing" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">percentage_Missing</th>
 </tr>
 </thead>
 <tbody class="gt_table_body">
 <tr class="odd">
 <td class="gt_row gt_left" headers="Variable">bill_length_mm</td>
-<td class="gt_row gt_center" headers="n_Obs">333</td>
-<td class="gt_row gt_center" headers="Mean">43.99</td>
-<td class="gt_row gt_center" headers="SD">5.47</td>
-<td class="gt_row gt_center" headers="Median">44.50</td>
-<td class="gt_row gt_center" headers="MAD">6.97</td>
-<td class="gt_row gt_center" headers="Min">32.10</td>
-<td class="gt_row gt_center" headers="Max">59.60</td>
-<td class="gt_row gt_center" headers="Skewness">0.05</td>
-<td class="gt_row gt_center" headers="Kurtosis">-0.88</td>
-<td class="gt_row gt_center" headers="percentage_Missing">0</td>
+<td class="gt_row gt_right" headers="n_Obs">344</td>
+<td class="gt_row gt_right" headers="Mean">43,922</td>
+<td class="gt_row gt_right" headers="SD">5,460</td>
+<td class="gt_row gt_right" headers="Median">44,450</td>
+<td class="gt_row gt_right" headers="MAD">7,042</td>
+<td class="gt_row gt_right" headers="Min">32,100</td>
+<td class="gt_row gt_right" headers="Max">59,600</td>
+<td class="gt_row gt_right" headers="Skewness">0,053</td>
+<td class="gt_row gt_right" headers="Kurtosis">−0,876</td>
+<td class="gt_row gt_right" headers="percentage_Missing">0,581</td>
 </tr>
 <tr class="even">
-<td class="gt_row gt_left" headers="Variable">bill_depth_mm</td>
-<td class="gt_row gt_center" headers="n_Obs">333</td>
-<td class="gt_row gt_center" headers="Mean">17.16</td>
-<td class="gt_row gt_center" headers="SD">1.97</td>
-<td class="gt_row gt_center" headers="Median">17.30</td>
-<td class="gt_row gt_center" headers="MAD">2.22</td>
-<td class="gt_row gt_center" headers="Min">13.10</td>
-<td class="gt_row gt_center" headers="Max">21.50</td>
-<td class="gt_row gt_center" headers="Skewness">-0.15</td>
-<td class="gt_row gt_center" headers="Kurtosis">-0.89</td>
-<td class="gt_row gt_center" headers="percentage_Missing">0</td>
+<td class="gt_row gt_left gt_striped" headers="Variable">bill_depth_mm</td>
+<td class="gt_row gt_right gt_striped" headers="n_Obs">344</td>
+<td class="gt_row gt_right gt_striped" headers="Mean">17,151</td>
+<td class="gt_row gt_right gt_striped" headers="SD">1,975</td>
+<td class="gt_row gt_right gt_striped" headers="Median">17,300</td>
+<td class="gt_row gt_right gt_striped" headers="MAD">2,224</td>
+<td class="gt_row gt_right gt_striped" headers="Min">13,100</td>
+<td class="gt_row gt_right gt_striped" headers="Max">21,500</td>
+<td class="gt_row gt_right gt_striped" headers="Skewness">−0,143</td>
+<td class="gt_row gt_right gt_striped" headers="Kurtosis">−0,907</td>
+<td class="gt_row gt_right gt_striped" headers="percentage_Missing">0,581</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="Variable">flipper_length_mm</td>
-<td class="gt_row gt_center" headers="n_Obs">333</td>
-<td class="gt_row gt_center" headers="Mean">200.97</td>
-<td class="gt_row gt_center" headers="SD">14.02</td>
-<td class="gt_row gt_center" headers="Median">197.00</td>
-<td class="gt_row gt_center" headers="MAD">16.31</td>
-<td class="gt_row gt_center" headers="Min">172.00</td>
-<td class="gt_row gt_center" headers="Max">231.00</td>
-<td class="gt_row gt_center" headers="Skewness">0.36</td>
-<td class="gt_row gt_center" headers="Kurtosis">-0.96</td>
-<td class="gt_row gt_center" headers="percentage_Missing">0</td>
+<td class="gt_row gt_right" headers="n_Obs">344</td>
+<td class="gt_row gt_right" headers="Mean">200,915</td>
+<td class="gt_row gt_right" headers="SD">14,062</td>
+<td class="gt_row gt_right" headers="Median">197,000</td>
+<td class="gt_row gt_right" headers="MAD">16,309</td>
+<td class="gt_row gt_right" headers="Min">172,000</td>
+<td class="gt_row gt_right" headers="Max">231,000</td>
+<td class="gt_row gt_right" headers="Skewness">0,346</td>
+<td class="gt_row gt_right" headers="Kurtosis">−0,984</td>
+<td class="gt_row gt_right" headers="percentage_Missing">0,581</td>
 </tr>
 <tr class="even">
-<td class="gt_row gt_left" headers="Variable">body_mass_g</td>
-<td class="gt_row gt_center" headers="n_Obs">333</td>
-<td class="gt_row gt_center" headers="Mean">4207.06</td>
-<td class="gt_row gt_center" headers="SD">805.22</td>
-<td class="gt_row gt_center" headers="Median">4050.00</td>
-<td class="gt_row gt_center" headers="MAD">889.56</td>
-<td class="gt_row gt_center" headers="Min">2700.00</td>
-<td class="gt_row gt_center" headers="Max">6300.00</td>
-<td class="gt_row gt_center" headers="Skewness">0.47</td>
-<td class="gt_row gt_center" headers="Kurtosis">-0.73</td>
-<td class="gt_row gt_center" headers="percentage_Missing">0</td>
+<td class="gt_row gt_left gt_striped" headers="Variable">body_mass_g</td>
+<td class="gt_row gt_right gt_striped" headers="n_Obs">344</td>
+<td class="gt_row gt_right gt_striped" headers="Mean">4 201,754</td>
+<td class="gt_row gt_right gt_striped" headers="SD">801,955</td>
+<td class="gt_row gt_right gt_striped" headers="Median">4 050,000</td>
+<td class="gt_row gt_right gt_striped" headers="MAD">889,560</td>
+<td class="gt_row gt_right gt_striped" headers="Min">2 700,000</td>
+<td class="gt_row gt_right gt_striped" headers="Max">6 300,000</td>
+<td class="gt_row gt_right gt_striped" headers="Skewness">0,470</td>
+<td class="gt_row gt_right gt_striped" headers="Kurtosis">−0,719</td>
+<td class="gt_row gt_right gt_striped" headers="percentage_Missing">0,581</td>
 </tr>
 </tbody>
 </table>
@@ -1798,26 +1805,26 @@ window.Quarto = {
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">tree_depth =</span> <span class="fu">tune</span>(),</span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">min_n =</span> <span class="fu">tune</span>()</span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"rpart"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"rpart"</span>, <span class="at">usesurrogate =</span> <span class="dv">2</span>, <span class="at">maxsurrogate =</span> <span class="dv">5</span>) <span class="sc">|&gt;</span></span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">"classification"</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
 <section id="schemat-przygotowania-predyktorów" class="level3">
 <h3 class="anchored" data-anchor-id="schemat-przygotowania-predyktorów">Schemat przygotowania predyktorów</h3>
-<p>Ponieważ w zbiorze występują zarówno zmienne liczbowe, jak i jakościowe, przygotowujemy spójny schemat przetwarzania danych. Ten etap ma charakter pomocniczy: jego celem nie jest sam w sobie „pokaz techniczny”, lecz zapewnienie, aby model otrzymał poprawnie uporządkowane dane wejściowe.</p>
+<p>Drzewo CART z silnikiem <code>rpart</code> obsługuje bezpośrednio predyktory liczbowe i jakościowe. Zmienne <code>sex</code> oraz <code>island</code> pozostawiamy jako faktory, bez kodowania zero-jedynkowego. Dzięki temu podział węzła może rozdzielać poziomy zmiennej jakościowej na dwie grupy. Standaryzacja predyktorów liczbowych nie jest potrzebna. Braki pozostają w danych; ustawienie <code>usesurrogate = 2</code> włącza podziały zastępcze, a gdy nie ma dostępnej reguły zastępczej — skierowanie do liczniejszego potomka. <code>maxsurrogate = 5</code> pozwala zapisać do pięciu reguł zastępczych w każdym węźle. Są to domyślne wartości silnika, podane tutaj jawnie.</p>
+<p>Recepta usuwa jedynie predyktory o zerowej lub niemal zerowej zmienności (<code>step_nzv()</code>). Krok ten jest dopasowywany wewnątrz każdej części uczącej walidacji krzyżowej, a po wyborze parametrów — na całym zbiorze treningowym. Zbiór testowy nie służy do ustalania przekształceń.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Kod</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>recepta <span class="ot">&lt;-</span> <span class="fu">recipe</span>(species <span class="sc">~</span> ., <span class="at">data =</span> train) <span class="sc">|&gt;</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_nzv</span>(<span class="fu">all_predictors</span>()) <span class="sc">|&gt;</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(<span class="fu">all_nominal_predictors</span>())</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_nzv</span>(<span class="fu">all_predictors</span>())</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
 <section id="walidacja-krzyżowa-i-strojenie-parametrów" class="level3">
 <h3 class="anchored" data-anchor-id="walidacja-krzyżowa-i-strojenie-parametrów">Walidacja krzyżowa i strojenie parametrów</h3>
-<p>Aby wybrać model, który nie tylko dobrze dopasowuje się do danych treningowych, lecz także dobrze uogólnia, zastosujemy pięciokrotną walidację krzyżową. Oznacza to, że zbiór treningowy zostanie wielokrotnie dzielony na część uczącą i walidacyjną, a jakość modelu zostanie oceniona w kilku niezależnych powtórzeniach.</p>
+<p>Aby wybrać model, który nie tylko dobrze dopasowuje się do danych treningowych, lecz także dobrze uogólnia, zastosujemy pięciokrotną walidację krzyżową. Oznacza to, że zbiór treningowy zostanie wielokrotnie dzielony na część uczącą i walidacyjną, a jakość modelu zostanie oceniona na pięciu częściach walidacyjnych. Zbiory uczące nakładają się, więc wyniki foldów nie są niezależnymi powtórzeniami eksperymentu.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Kod</summary>
@@ -1851,23 +1858,560 @@ window.Quarto = {
 <summary>Kod</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>najlepsze_ustawienia <span class="ot">&lt;-</span> <span class="fu">select_best</span>(wyniki_strojenia, <span class="at">metric =</span> <span class="st">"accuracy"</span>)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">show_best</span>(wyniki_strojenia, <span class="at">metric =</span> <span class="st">"accuracy"</span>, <span class="at">n =</span> <span class="dv">10</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">show_best</span>(wyniki_strojenia, <span class="at">metric =</span> <span class="st">"accuracy"</span>, <span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">any_of</span>(<span class="fu">c</span>(<span class="st">".metric"</span>, <span class="st">".estimator"</span>, <span class="st">".config"</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tabela_wynikow</span>(<span class="st">"Najlepsze ustawienia — strojenia"</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 10 x 9
-   cost_complexity tree_depth min_n .metric  .estimator  mean     n std_err
-             &lt;dbl&gt;      &lt;int&gt; &lt;int&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;
- 1          0.0001          5     2 accuracy multiclass 0.977     5 0.00930
- 2          0.0001          8     2 accuracy multiclass 0.977     5 0.00930
- 3          0.001           5     2 accuracy multiclass 0.977     5 0.00930
- 4          0.001           8     2 accuracy multiclass 0.977     5 0.00930
- 5          0.0001          3     2 accuracy multiclass 0.962     5 0.00614
- 6          0.001           3     2 accuracy multiclass 0.962     5 0.00614
- 7          0.01            3     2 accuracy multiclass 0.955     5 0.00482
- 8          0.01            5     2 accuracy multiclass 0.955     5 0.00482
- 9          0.01            8     2 accuracy multiclass 0.955     5 0.00482
-10          0.0001          3    11 accuracy multiclass 0.947     5 0.00717
-# i 1 more variable: .config &lt;chr&gt;</code></pre>
+<div class="cell-output-display">
+<div id="xmnemctwjr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#xmnemctwjr table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#xmnemctwjr thead, #xmnemctwjr tbody, #xmnemctwjr tfoot, #xmnemctwjr tr, #xmnemctwjr td, #xmnemctwjr th {
+  border-style: none;
+}
+
+#xmnemctwjr p {
+  margin: 0;
+  padding: 0;
+}
+
+#xmnemctwjr .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 14px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#xmnemctwjr .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#xmnemctwjr .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#xmnemctwjr .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#xmnemctwjr .gt_heading {
+  background-color: #FFFFFF;
+  text-align: left;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#xmnemctwjr .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#xmnemctwjr .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#xmnemctwjr .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: bold;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#xmnemctwjr .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: bold;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#xmnemctwjr .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#xmnemctwjr .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#xmnemctwjr .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#xmnemctwjr .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#xmnemctwjr .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#xmnemctwjr .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#xmnemctwjr .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#xmnemctwjr .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#xmnemctwjr .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#xmnemctwjr .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#xmnemctwjr .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#xmnemctwjr .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#xmnemctwjr .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#xmnemctwjr .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#xmnemctwjr .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#xmnemctwjr .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#xmnemctwjr .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#xmnemctwjr .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#xmnemctwjr .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#xmnemctwjr .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#xmnemctwjr .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#xmnemctwjr .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#xmnemctwjr .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#xmnemctwjr .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#xmnemctwjr .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#xmnemctwjr .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#xmnemctwjr .gt_left {
+  text-align: left;
+}
+
+#xmnemctwjr .gt_center {
+  text-align: center;
+}
+
+#xmnemctwjr .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#xmnemctwjr .gt_font_normal {
+  font-weight: normal;
+}
+
+#xmnemctwjr .gt_font_bold {
+  font-weight: bold;
+}
+
+#xmnemctwjr .gt_font_italic {
+  font-style: italic;
+}
+
+#xmnemctwjr .gt_super {
+  font-size: 65%;
+}
+
+#xmnemctwjr .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#xmnemctwjr .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#xmnemctwjr .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#xmnemctwjr .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#xmnemctwjr .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#xmnemctwjr .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#xmnemctwjr .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#xmnemctwjr .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#xmnemctwjr div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_heading header">
+<td colspan="6" class="gt_heading gt_title gt_font_normal gt_bottom_border">Najlepsze ustawienia — strojenia</td>
+</tr>
+<tr class="gt_col_headings even">
+<th id="cost_complexity" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">cost_complexity</th>
+<th id="tree_depth" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">tree_depth</th>
+<th id="min_n" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">min_n</th>
+<th id="mean" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">mean</th>
+<th id="n" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">n</th>
+<th id="std_err" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">std_err</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_right" headers="cost_complexity">1,000&nbsp;×&nbsp;10<sup>−4</sup></td>
+<td class="gt_row gt_right" headers="tree_depth">5</td>
+<td class="gt_row gt_right" headers="min_n">2</td>
+<td class="gt_row gt_right" headers="mean">0,978</td>
+<td class="gt_row gt_right" headers="n">5</td>
+<td class="gt_row gt_right" headers="std_err">0,009</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right gt_striped" headers="cost_complexity">1,000&nbsp;×&nbsp;10<sup>−4</sup></td>
+<td class="gt_row gt_right gt_striped" headers="tree_depth">8</td>
+<td class="gt_row gt_right gt_striped" headers="min_n">2</td>
+<td class="gt_row gt_right gt_striped" headers="mean">0,978</td>
+<td class="gt_row gt_right gt_striped" headers="n">5</td>
+<td class="gt_row gt_right gt_striped" headers="std_err">0,009</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="cost_complexity">0,001</td>
+<td class="gt_row gt_right" headers="tree_depth">5</td>
+<td class="gt_row gt_right" headers="min_n">2</td>
+<td class="gt_row gt_right" headers="mean">0,978</td>
+<td class="gt_row gt_right" headers="n">5</td>
+<td class="gt_row gt_right" headers="std_err">0,009</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right gt_striped" headers="cost_complexity">0,001</td>
+<td class="gt_row gt_right gt_striped" headers="tree_depth">8</td>
+<td class="gt_row gt_right gt_striped" headers="min_n">2</td>
+<td class="gt_row gt_right gt_striped" headers="mean">0,978</td>
+<td class="gt_row gt_right gt_striped" headers="n">5</td>
+<td class="gt_row gt_right gt_striped" headers="std_err">0,009</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="cost_complexity">0,010</td>
+<td class="gt_row gt_right" headers="tree_depth">3</td>
+<td class="gt_row gt_right" headers="min_n">2</td>
+<td class="gt_row gt_right" headers="mean">0,960</td>
+<td class="gt_row gt_right" headers="n">5</td>
+<td class="gt_row gt_right" headers="std_err">0,011</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right gt_striped" headers="cost_complexity">0,010</td>
+<td class="gt_row gt_right gt_striped" headers="tree_depth">5</td>
+<td class="gt_row gt_right gt_striped" headers="min_n">2</td>
+<td class="gt_row gt_right gt_striped" headers="mean">0,960</td>
+<td class="gt_row gt_right gt_striped" headers="n">5</td>
+<td class="gt_row gt_right gt_striped" headers="std_err">0,011</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="cost_complexity">0,010</td>
+<td class="gt_row gt_right" headers="tree_depth">8</td>
+<td class="gt_row gt_right" headers="min_n">2</td>
+<td class="gt_row gt_right" headers="mean">0,960</td>
+<td class="gt_row gt_right" headers="n">5</td>
+<td class="gt_row gt_right" headers="std_err">0,011</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right gt_striped" headers="cost_complexity">1,000&nbsp;×&nbsp;10<sup>−4</sup></td>
+<td class="gt_row gt_right gt_striped" headers="tree_depth">3</td>
+<td class="gt_row gt_right gt_striped" headers="min_n">2</td>
+<td class="gt_row gt_right gt_striped" headers="mean">0,960</td>
+<td class="gt_row gt_right gt_striped" headers="n">5</td>
+<td class="gt_row gt_right gt_striped" headers="std_err">0,011</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="cost_complexity">0,001</td>
+<td class="gt_row gt_right" headers="tree_depth">3</td>
+<td class="gt_row gt_right" headers="min_n">2</td>
+<td class="gt_row gt_right" headers="mean">0,960</td>
+<td class="gt_row gt_right" headers="n">5</td>
+<td class="gt_row gt_right" headers="std_err">0,011</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right gt_striped" headers="cost_complexity">1,000&nbsp;×&nbsp;10<sup>−4</sup></td>
+<td class="gt_row gt_right gt_striped" headers="tree_depth">3</td>
+<td class="gt_row gt_right gt_striped" headers="min_n">20</td>
+<td class="gt_row gt_right gt_striped" headers="mean">0,945</td>
+<td class="gt_row gt_right gt_striped" headers="n">5</td>
+<td class="gt_row gt_right gt_striped" headers="std_err">0,014</td>
+</tr>
+</tbody>
+</table>
+
+</div>
 </div>
 </div>
 <p>Tabela z najlepszymi wynikami pokazuje, które konfiguracje parametrów dawały najwyższą trafność w walidacji krzyżowej. Na tym etapie należy zwrócić uwagę nie tylko na samą wartość miary, lecz także na sens merytoryczny rozwiązania.</p>
@@ -1881,40 +2425,1013 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Kod</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>finalny_workflow <span class="ot">&lt;-</span> <span class="fu">finalize_workflow</span>(workflow_drzewa, najlepsze_ustawienia)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>final_fit <span class="ot">&lt;-</span> <span class="fu">last_fit</span>(finalny_workflow, split)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">collect_metrics</span>(final_fit)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>finalny_workflow <span class="ot">&lt;-</span> <span class="fu">finalize_workflow</span>(workflow_drzewa, najlepsze_ustawienia)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>final_fit <span class="ot">&lt;-</span> <span class="fu">last_fit</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  finalny_workflow, split,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">metrics =</span> <span class="fu">metric_set</span>(accuracy, roc_auc)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">collect_metrics</span>(final_fit) <span class="sc">|&gt;</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(.metric, .estimate) <span class="sc">|&gt;</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Metryka =</span> .metric, <span class="at">Wartosc =</span> .estimate) <span class="sc">|&gt;</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tabela_wynikow</span>(<span class="st">"Wyniki na zbiorze testowym"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_label</span>(<span class="at">Wartosc =</span> <span class="st">"Wartość"</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 3 x 4
-  .metric     .estimator .estimate .config        
-  &lt;chr&gt;       &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;          
-1 accuracy    multiclass    0.971  pre0_mod0_post0
-2 roc_auc     hand_till     0.983  pre0_mod0_post0
-3 brier_class multiclass    0.0294 pre0_mod0_post0</code></pre>
+<div class="cell-output-display">
+<div id="imzudclnts" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#imzudclnts table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#imzudclnts thead, #imzudclnts tbody, #imzudclnts tfoot, #imzudclnts tr, #imzudclnts td, #imzudclnts th {
+  border-style: none;
+}
+
+#imzudclnts p {
+  margin: 0;
+  padding: 0;
+}
+
+#imzudclnts .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 14px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#imzudclnts .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#imzudclnts .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#imzudclnts .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#imzudclnts .gt_heading {
+  background-color: #FFFFFF;
+  text-align: left;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#imzudclnts .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#imzudclnts .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#imzudclnts .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: bold;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#imzudclnts .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: bold;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#imzudclnts .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#imzudclnts .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#imzudclnts .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#imzudclnts .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#imzudclnts .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#imzudclnts .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#imzudclnts .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#imzudclnts .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#imzudclnts .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#imzudclnts .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#imzudclnts .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#imzudclnts .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#imzudclnts .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#imzudclnts .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#imzudclnts .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#imzudclnts .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#imzudclnts .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#imzudclnts .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#imzudclnts .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#imzudclnts .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#imzudclnts .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#imzudclnts .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#imzudclnts .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#imzudclnts .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#imzudclnts .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#imzudclnts .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#imzudclnts .gt_left {
+  text-align: left;
+}
+
+#imzudclnts .gt_center {
+  text-align: center;
+}
+
+#imzudclnts .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#imzudclnts .gt_font_normal {
+  font-weight: normal;
+}
+
+#imzudclnts .gt_font_bold {
+  font-weight: bold;
+}
+
+#imzudclnts .gt_font_italic {
+  font-style: italic;
+}
+
+#imzudclnts .gt_super {
+  font-size: 65%;
+}
+
+#imzudclnts .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#imzudclnts .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#imzudclnts .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#imzudclnts .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#imzudclnts .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#imzudclnts .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#imzudclnts .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#imzudclnts .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#imzudclnts div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_heading header">
+<td colspan="2" class="gt_heading gt_title gt_font_normal gt_bottom_border">Wyniki na zbiorze testowym</td>
+</tr>
+<tr class="gt_col_headings even">
+<th id="Metryka" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Metryka</th>
+<th id="Wartosc" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Wartość</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="Metryka">accuracy</td>
+<td class="gt_row gt_right" headers="Wartosc">0,957</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_striped" headers="Metryka">roc_auc</td>
+<td class="gt_row gt_right gt_striped" headers="Wartosc">0,966</td>
+</tr>
+</tbody>
+</table>
+
 </div>
 </div>
-<p><code>accuracy = 0.971</code> oznacza, że model poprawnie sklasyfikował 97,1% obserwacji. Jest to najprostsza i najbardziej intuicyjna miara trafności klasyfikacji. W praktyce mówi ona, jaki odsetek przypadków został przypisany do właściwej klasy. Taki wynik jest bardzo wysoki, ale trzeba pamiętać, że accuracy nie pokazuje, czy model dobrze rozróżnia wszystkie klasy jednakowo. Jeżeli zbiór danych jest niezrównoważony, to wysoka wartość tej metryki może czasem wynikać głównie z dobrego rozpoznawania klasy dominującej.</p>
-<p><code>roc_auc = 0.974</code> przy metodzie hand_till odnosi się do uogólnienia pola pod krzywą ROC dla problemu wieloklasowego. W wersji binarnej AUC mierzy zdolność modelu do rozdzielania dwóch klas. W wersji wieloklasowej metoda Handa-Tilla opiera się na średniej jakości rozróżniania wszystkich par klas. Wartość 0.974 jest bardzo wysoka i oznacza, że model bardzo dobrze porządkuje obserwacje pod względem przynależności klasowej. Innymi słowy, gdy porównujemy dwie obserwacje z różnych klas, model z dużym prawdopodobieństwem przypisze wyższe prawdopodobieństwo właściwej klasie tej obserwacji, która rzeczywiście do niej należy. Ta metryka mówi więc bardziej o zdolności separacyjnej modelu niż o samej końcowej trafności decyzji.</p>
-<p><code>brier_class = 0.0294</code> jest miarą jakości probabilistycznej predykcji. Ocena Brier’a mierzy różnicę między przewidywanymi prawdopodobieństwami a rzeczywistą klasą. Im mniejsza wartość, tym lepiej. W klasyfikacji wieloklasowej uwzględnia się cały wektor prawdopodobieństw, a nie tylko klasę wybraną jako najbardziej prawdopodobną. Wynik 0.0294 jest bardzo niski, co oznacza, że model nie tylko często wskazuje poprawną klasę, ale także przypisuje sensowne i dobrze skalibrowane prawdopodobieństwa. To ważne, bo dwa modele mogą mieć podobne accuracy, ale jeden może być znacznie lepszy w ocenie niepewności swoich decyzji.</p>
+</div>
+<p>Wartości należy odczytać z tabeli bieżącego wykonania: zmiana wersji pakietów lub podziału może je zmienić.</p>
+<ul>
+<li><code>accuracy</code> to odsetek poprawnych decyzji; uzupełniamy go wynikami dla poszczególnych klas i porównaniem z klasą większościową.</li>
+<li><code>roc_auc</code> dla wielu klas (metoda Handa–Tilla) uśrednia rozróżnianie par klas na podstawie przewidywanych prawdopodobieństw. Ocenia uporządkowanie, nie kalibrację.</li>
+</ul>
 <section id="macierz-pomyłek" class="level3">
 <h3 class="anchored" data-anchor-id="macierz-pomyłek">Macierz pomyłek</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Kod</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>predykcje_testowe <span class="ot">&lt;-</span> <span class="fu">collect_predictions</span>(final_fit)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>predykcje_testowe <span class="sc">|&gt;</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">conf_mat</span>(<span class="at">truth =</span> species, <span class="at">estimate =</span> .pred_class)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>predykcje_testowe <span class="ot">&lt;-</span> <span class="fu">collect_predictions</span>(final_fit)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>macierz <span class="ot">&lt;-</span> predykcje_testowe <span class="sc">|&gt;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">conf_mat</span>(<span class="at">truth =</span> species, <span class="at">estimate =</span> .pred_class)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tabela_pomylek_gt</span>(<span class="fu">t</span>(macierz<span class="sc">$</span>table), <span class="st">"Macierz pomyłek — gatunki pingwinów"</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code>           Truth
-Prediction  Adelie Chinstrap Gentoo
-  Adelie        28         0      0
-  Chinstrap      2        14      0
-  Gentoo         0         0     24</code></pre>
+<div class="cell-output-display">
+<div id="xzvkbibzkv" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#xzvkbibzkv table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#xzvkbibzkv thead, #xzvkbibzkv tbody, #xzvkbibzkv tfoot, #xzvkbibzkv tr, #xzvkbibzkv td, #xzvkbibzkv th {
+  border-style: none;
+}
+
+#xzvkbibzkv p {
+  margin: 0;
+  padding: 0;
+}
+
+#xzvkbibzkv .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 14px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#xzvkbibzkv .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#xzvkbibzkv .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#xzvkbibzkv .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#xzvkbibzkv .gt_heading {
+  background-color: #FFFFFF;
+  text-align: left;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#xzvkbibzkv .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#xzvkbibzkv .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#xzvkbibzkv .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: bold;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#xzvkbibzkv .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: bold;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#xzvkbibzkv .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#xzvkbibzkv .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#xzvkbibzkv .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#xzvkbibzkv .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#xzvkbibzkv .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#xzvkbibzkv .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#xzvkbibzkv .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#xzvkbibzkv .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#xzvkbibzkv .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#xzvkbibzkv .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#xzvkbibzkv .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#xzvkbibzkv .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#xzvkbibzkv .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#xzvkbibzkv .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#xzvkbibzkv .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#xzvkbibzkv .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#xzvkbibzkv .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#xzvkbibzkv .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#xzvkbibzkv .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#xzvkbibzkv .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#xzvkbibzkv .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#xzvkbibzkv .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#xzvkbibzkv .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#xzvkbibzkv .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#xzvkbibzkv .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#xzvkbibzkv .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#xzvkbibzkv .gt_left {
+  text-align: left;
+}
+
+#xzvkbibzkv .gt_center {
+  text-align: center;
+}
+
+#xzvkbibzkv .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#xzvkbibzkv .gt_font_normal {
+  font-weight: normal;
+}
+
+#xzvkbibzkv .gt_font_bold {
+  font-weight: bold;
+}
+
+#xzvkbibzkv .gt_font_italic {
+  font-style: italic;
+}
+
+#xzvkbibzkv .gt_super {
+  font-size: 65%;
+}
+
+#xzvkbibzkv .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#xzvkbibzkv .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#xzvkbibzkv .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#xzvkbibzkv .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#xzvkbibzkv .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#xzvkbibzkv .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#xzvkbibzkv .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#xzvkbibzkv .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#xzvkbibzkv div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="gt_heading header">
+<td colspan="4" class="gt_heading gt_title gt_font_normal gt_bottom_border">Macierz pomyłek — gatunki pingwinów</td>
+</tr>
+<tr class="gt_col_headings gt_spanner_row even">
+<th rowspan="2" id="Obserwowane" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Obserwowane</th>
+<th colspan="3" id="Przewidywana klasa" class="gt_center gt_columns_top_border gt_column_spanner_outer" data-quarto-table-cell-role="th" scope="colgroup"><div class="gt_column_spanner">
+Przewidywana klasa
+</div></th>
+</tr>
+<tr class="gt_col_headings header">
+<th id="Adelie" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Adelie</th>
+<th id="Chinstrap" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Chinstrap</th>
+<th id="Gentoo" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Gentoo</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="Obserwowane">Adelie</td>
+<td class="gt_row gt_right" headers="Adelie">29</td>
+<td class="gt_row gt_right" headers="Chinstrap">1</td>
+<td class="gt_row gt_right" headers="Gentoo">1</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_striped" headers="Obserwowane">Chinstrap</td>
+<td class="gt_row gt_right gt_striped" headers="Adelie">1</td>
+<td class="gt_row gt_right gt_striped" headers="Chinstrap">13</td>
+<td class="gt_row gt_right gt_striped" headers="Gentoo">0</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="Obserwowane">Gentoo</td>
+<td class="gt_row gt_right" headers="Adelie">0</td>
+<td class="gt_row gt_right" headers="Chinstrap">0</td>
+<td class="gt_row gt_right" headers="Gentoo">25</td>
+</tr>
+</tbody><tfoot>
+<tr class="gt_sourcenotes odd">
+<td colspan="4" class="gt_sourcenote">Wiersze: klasa obserwowana; kolumny: klasa przewidywana.</td>
+</tr>
+</tfoot>
+
+</table>
+
+</div>
 </div>
 </div>
 <p>Macierz pomyłek pozwala sprawdzić, czy bardzo dobra wartość globalnych metryk jest równomiernie rozłożona między klasy. Jeżeli na przekątnej macierzy dominują wysokie liczebności, oznacza to, że model trafnie rozpoznaje większość obserwacji każdego gatunku. Nieliczne wartości poza przekątną wskazują natomiast konkretne pary klas, które są do siebie bardziej podobne z punktu widzenia zestawu analizowanych cech.</p>
@@ -1927,13 +3444,13 @@ Prediction  Adelie Chinstrap Gentoo
 <div class="cell">
 <details class="code-fold">
 <summary>Kod</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>model_treningowy <span class="ot">&lt;-</span> <span class="fu">fit</span>(finalny_workflow, <span class="at">data =</span> train)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>obiekt_drzewa <span class="ot">&lt;-</span> <span class="fu">extract_fit_engine</span>(model_treningowy)</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rpart.plot</span>(</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  obiekt_drzewa,</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Drzewo decyzyjne — model końcowy"</span></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>model_treningowy <span class="ot">&lt;-</span> <span class="fu">fit</span>(finalny_workflow, <span class="at">data =</span> train)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>obiekt_drzewa <span class="ot">&lt;-</span> <span class="fu">extract_fit_engine</span>(model_treningowy)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rpart.plot</span>(</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  obiekt_drzewa,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Drzewo decyzyjne — model końcowy"</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -1943,12 +3460,792 @@ Prediction  Adelie Chinstrap Gentoo
 </div>
 </div>
 </div>
-<p>Graficzna postać drzewa umożliwia odczytanie, które zmienne zostały wykorzystane w pierwszych, a więc najważniejszych podziałach. W analizie gatunków pingwinów szczególnie istotne są zwykle cechy morfologiczne, takie jak długość płetwy oraz wymiary dzioba, ponieważ to one najlepiej porządkują obserwacje już na najwyższych poziomach struktury drzewa. Oznacza to, że model opiera klasyfikację na biologicznie sensownych różnicach budowy ciała.</p>
+<p>Graficzna postać drzewa umożliwia odczytanie, które zmienne zostały wykorzystane w pierwszych podziałach. Ich pozycja nie stanowi uniwersalnego rankingu ważności; przy skorelowanych cechach inne drzewo może wybrać inne progi i predyktory. W analizie gatunków pingwinów szczególnie istotne są zwykle cechy morfologiczne, takie jak długość płetwy oraz wymiary dzioba, ponieważ to one najlepiej porządkują obserwacje już na najwyższych poziomach struktury drzewa. Oznacza to, że model opiera klasyfikację na biologicznie sensownych różnicach budowy ciała.</p>
+<section id="ciekawostka-podziały-zastępcze-i-brakujące-wartości" class="level3">
+<h3 class="anchored" data-anchor-id="ciekawostka-podziały-zastępcze-i-brakujące-wartości">Ciekawostka: podziały zastępcze i brakujące wartości</h3>
+<p>Gdy dla nowej obserwacji brakuje wartości predyktora użytego w podziale, CART może skorzystać z <strong>podziału zastępczego</strong> (<em>surrogate split</em>). Jest to reguła oparta na innym predyktorze, wybrana tak, aby możliwie wiernie odtwarzała skierowanie obserwacji do lewego i prawego potomka przez podział główny. Nie zastępuje ona brakującej wartości liczbowej — zastępuje decyzję o wyborze gałęzi.</p>
+<p>W tej analizie zachowaliśmy oryginalne braki. W zbiorze treningowym dotyczy to 9 obserwacji, a w testowym — 2. Poniżej pokazujemy reguły zapisane w wybranym drzewie. Brak w predyktorze wymaga zastępstwa tylko wtedy, gdy dana obserwacja dociera do węzła dzielonego według tego predyktora; nie każdy brak uruchamia zatem podział zastępczy.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(obiekt_drzewa, <span class="at">digits =</span> <span class="dv">6</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+rpart::rpart(formula = ..y ~ ., data = data, cp = ~1e-04, maxdepth = ~5, 
+    minsplit = min_rows(2, data), usesurrogate = ~2, maxsurrogate = ~5)
+  n= 274 
+
+          CP nsplit  rel error    xerror      xstd
+1 0.64052288      0 1.00000000 1.0000000 0.0537244
+2 0.28104575      1 0.35947712 0.3594771 0.0433348
+3 0.02614379      2 0.07843137 0.1111111 0.0260990
+4 0.01307190      3 0.05228758 0.0718954 0.0212377
+5 0.00653595      6 0.01307190 0.0588235 0.0192831
+6 0.00326797      7 0.00653595 0.0392157 0.0158335
+7 0.00010000      9 0.00000000 0.0392157 0.0158335
+
+Variable importance
+   bill_length_mm flipper_length_mm     bill_depth_mm       body_mass_g 
+               24                24                20                18 
+           island 
+               13 
+
+Node number 1: 274 observations,    complexity param=0.640523
+  predicted class=Adelie     expected loss=0.558394  P(node) =1
+    class counts:   121    54    99
+   probabilities: 0.442 0.197 0.361 
+  left son=2 (172 obs) right son=3 (102 obs)
+  Primary splits:
+      flipper_length_mm &lt; 206.5  to the left,  improve=93.8203, (1 missing)
+      bill_length_mm    &lt; 42.35  to the left,  improve=88.9553, (1 missing)
+      bill_depth_mm     &lt; 16.45  to the right, improve=80.9890, (1 missing)
+      body_mass_g       &lt; 4325   to the left,  improve=68.9655, (1 missing)
+      island            splits as  RLL,        improve=53.8029, (0 missing)
+  Surrogate splits:
+      bill_depth_mm  &lt; 16.35  to the right, agree=0.938, adj=0.833, (0 split)
+      body_mass_g    &lt; 4637.5 to the left,  agree=0.916, adj=0.775, (0 split)
+      island         splits as  RLL,        agree=0.842, adj=0.578, (1 split)
+      bill_length_mm &lt; 43.25  to the left,  agree=0.795, adj=0.451, (0 split)
+
+Node number 2: 172 observations,    complexity param=0.281046
+  predicted class=Adelie     expected loss=0.296512  P(node) =0.627737
+    class counts:   121    50     1
+   probabilities: 0.703 0.291 0.006 
+  left son=4 (122 obs) right son=5 (50 obs)
+  Primary splits:
+      bill_length_mm    &lt; 43.35  to the left,  improve=56.94820, (1 missing)
+      island            splits as  LRL,        improve=23.55430, (0 missing)
+      flipper_length_mm &lt; 195.5  to the left,  improve= 7.11018, (1 missing)
+      body_mass_g       &lt; 3225   to the left,  improve= 2.93898, (1 missing)
+      bill_depth_mm     &lt; 14.95  to the right, improve= 1.57551, (1 missing)
+  Surrogate splits:
+      flipper_length_mm &lt; 199.5  to the left,  agree=0.754, adj=0.16, (0 split)
+
+Node number 3: 102 observations,    complexity param=0.0261438
+  predicted class=Gentoo     expected loss=0.0392157  P(node) =0.372263
+    class counts:     0     4    98
+   probabilities: 0.000 0.039 0.961 
+  left son=6 (4 obs) right son=7 (98 obs)
+  Primary splits:
+      bill_depth_mm     &lt; 18.15  to the right, improve=7.686270, (0 missing)
+      island            splits as  RL-,        improve=7.686270, (0 missing)
+      body_mass_g       &lt; 4325   to the left,  improve=1.957550, (0 missing)
+      flipper_length_mm &lt; 212.5  to the left,  improve=0.829132, (0 missing)
+      bill_length_mm    &lt; 48.9   to the right, improve=0.551139, (0 missing)
+
+Node number 4: 122 observations,    complexity param=0.0130719
+  predicted class=Adelie     expected loss=0.0327869  P(node) =0.445255
+    class counts:   118     4     0
+   probabilities: 0.967 0.033 0.000 
+  left son=8 (112 obs) right son=9 (10 obs)
+  Primary splits:
+      bill_length_mm    &lt; 42.35  to the left,  improve=2.935540, (1 missing)
+      bill_depth_mm     &lt; 17.35  to the right, improve=0.735537, (1 missing)
+      flipper_length_mm &lt; 187.5  to the right, improve=0.446648, (1 missing)
+      island            splits as  LRL,        improve=0.418556, (0 missing)
+      body_mass_g       &lt; 3375   to the right, improve=0.303719, (1 missing)
+  Surrogate splits:
+      body_mass_g &lt; 4687.5 to the left,  agree=0.926, adj=0.1, (0 split)
+
+Node number 5: 50 observations,    complexity param=0.0130719
+  predicted class=Chinstrap  expected loss=0.08  P(node) =0.182482
+    class counts:     3    46     1
+   probabilities: 0.060 0.920 0.020 
+  left son=10 (3 obs) right son=11 (47 obs)
+  Primary splits:
+      island            splits as  LRL,        improve=4.189220, (0 missing)
+      body_mass_g       &lt; 4175   to the right, improve=3.194290, (0 missing)
+      bill_depth_mm     &lt; 15.4   to the right, improve=1.847350, (0 missing)
+      bill_length_mm    &lt; 46.05  to the left,  improve=1.167650, (0 missing)
+      flipper_length_mm &lt; 202.5  to the left,  improve=0.371304, (0 missing)
+  Surrogate splits:
+      body_mass_g &lt; 4575   to the right, agree=0.98, adj=0.667, (0 split)
+
+Node number 6: 4 observations
+  predicted class=Chinstrap  expected loss=0  P(node) =0.0145985
+    class counts:     0     4     0
+   probabilities: 0.000 1.000 0.000 
+
+Node number 7: 98 observations
+  predicted class=Gentoo     expected loss=0  P(node) =0.357664
+    class counts:     0     0    98
+   probabilities: 0.000 0.000 1.000 
+
+Node number 8: 112 observations
+  predicted class=Adelie     expected loss=0  P(node) =0.408759
+    class counts:   112     0     0
+   probabilities: 1.000 0.000 0.000 
+
+Node number 9: 10 observations,    complexity param=0.0130719
+  predicted class=Adelie     expected loss=0.4  P(node) =0.0364964
+    class counts:     6     4     0
+   probabilities: 0.600 0.400 0.000 
+  left son=18 (6 obs) right son=19 (4 obs)
+  Primary splits:
+      bill_depth_mm     &lt; 17.45  to the right, improve=4.8, (0 missing)
+      flipper_length_mm &lt; 189.5  to the right, improve=4.8, (0 missing)
+      sex               splits as  RL,         improve=4.8, (0 missing)
+      body_mass_g       &lt; 3837.5 to the right, improve=3.2, (0 missing)
+      island            splits as  LRL,        improve=3.2, (0 missing)
+  Surrogate splits:
+      flipper_length_mm &lt; 189.5  to the right, agree=1.0, adj=1.00, (0 split)
+      body_mass_g       &lt; 3425   to the right, agree=0.9, adj=0.75, (0 split)
+      bill_length_mm    &lt; 42.6   to the right, agree=0.8, adj=0.50, (0 split)
+
+Node number 10: 3 observations,    complexity param=0.00653595
+  predicted class=Adelie     expected loss=0.333333  P(node) =0.0109489
+    class counts:     2     0     1
+   probabilities: 0.667 0.000 0.333 
+  left son=20 (2 obs) right son=21 (1 obs)
+  Primary splits:
+      bill_length_mm    &lt; 47.2   to the left,  improve=1.33333, (0 missing)
+      bill_depth_mm     &lt; 17.35  to the right, improve=1.33333, (0 missing)
+      flipper_length_mm &lt; 198.5  to the left,  improve=1.33333, (0 missing)
+      body_mass_g       &lt; 4612.5 to the left,  improve=1.33333, (0 missing)
+      sex               splits as  RL,         improve=1.33333, (0 missing)
+
+Node number 11: 47 observations,    complexity param=0.00326797
+  predicted class=Chinstrap  expected loss=0.0212766  P(node) =0.171533
+    class counts:     1    46     0
+   probabilities: 0.021 0.979 0.000 
+  left son=22 (2 obs) right son=23 (45 obs)
+  Primary splits:
+      bill_length_mm    &lt; 44.65  to the left,  improve=0.9574470, (0 missing)
+      body_mass_g       &lt; 4350   to the right, improve=0.6241130, (0 missing)
+      bill_depth_mm     &lt; 19.65  to the right, improve=0.2431610, (0 missing)
+      sex               splits as  RL,         improve=0.0483559, (0 missing)
+      flipper_length_mm &lt; 195.5  to the right, improve=0.0374468, (0 missing)
+
+Node number 18: 6 observations
+  predicted class=Adelie     expected loss=0  P(node) =0.0218978
+    class counts:     6     0     0
+   probabilities: 1.000 0.000 0.000 
+
+Node number 19: 4 observations
+  predicted class=Chinstrap  expected loss=0  P(node) =0.0145985
+    class counts:     0     4     0
+   probabilities: 0.000 1.000 0.000 
+
+Node number 20: 2 observations
+  predicted class=Adelie     expected loss=0  P(node) =0.00729927
+    class counts:     2     0     0
+   probabilities: 1.000 0.000 0.000 
+
+Node number 21: 1 observations
+  predicted class=Gentoo     expected loss=0  P(node) =0.00364964
+    class counts:     0     0     1
+   probabilities: 0.000 0.000 1.000 
+
+Node number 22: 2 observations,    complexity param=0.00326797
+  predicted class=Adelie     expected loss=0.5  P(node) =0.00729927
+    class counts:     1     1     0
+   probabilities: 0.500 0.500 0.000 
+  left son=44 (1 obs) right son=45 (1 obs)
+  Primary splits:
+      bill_length_mm    &lt; 43.8   to the right, improve=1, (0 missing)
+      bill_depth_mm     &lt; 18.9   to the right, improve=1, (0 missing)
+      flipper_length_mm &lt; 199    to the left,  improve=1, (0 missing)
+      body_mass_g       &lt; 3900   to the right, improve=1, (0 missing)
+      sex               splits as  RL,         improve=1, (0 missing)
+
+Node number 23: 45 observations
+  predicted class=Chinstrap  expected loss=0  P(node) =0.164234
+    class counts:     0    45     0
+   probabilities: 0.000 1.000 0.000 
+
+Node number 44: 1 observations
+  predicted class=Adelie     expected loss=0  P(node) =0.00364964
+    class counts:     1     0     0
+   probabilities: 1.000 0.000 0.000 
+
+Node number 45: 1 observations
+  predicted class=Chinstrap  expected loss=0  P(node) =0.00364964
+    class counts:     0     1     0
+   probabilities: 0.000 1.000 0.000 </code></pre>
+</div>
+</div>
+<p>W wydruku dla każdego węzła wewnętrznego:</p>
+<ul>
+<li>pierwsza reguła w części <strong>Primary splits</strong> jest podziałem głównym; pozostałe są konkurencyjnymi kandydatami, a nie podziałami zastępczymi;</li>
+<li>część <strong>Surrogate splits</strong> zawiera uporządkowane reguły zastępcze; zapis <code>to the left</code> lub <code>to the right</code> wskazuje kierunek dla warunku, a przy faktorach <code>L</code> i <code>R</code> oznaczają przypisanie poziomów do potomków;</li>
+<li><strong>agree</strong> oznacza zgodność podziału zastępczego z głównym, a nie trafność przewidywania gatunku; <strong>adj</strong> opisuje poprawę tej zgodności względem kierowania wszystkich obserwacji do liczniejszego potomka;</li>
+<li>liczba w zapisie <strong>(… split)</strong> mówi, ile obserwacji uczących skierowano za pomocą danego podziału zastępczego. Dodatnia wartość pokazuje rzeczywiste użycie danej reguły podczas uczenia; zero oznacza, że regułę wyznaczono, ale nie była potrzebna przy kierowaniu obserwacji uczących.</li>
+</ul>
+<p>W korzeniu drzewa podział główny wykorzystuje <code>flipper_length_mm</code>. Dla obserwacji bez pomiarów morfologicznych nie można zastosować także pierwszych dwóch reguł zastępczych, opartych na <code>bill_depth_mm</code> i <code>body_mass_g</code>. Dostępna jest jednak zmienna <code>island</code>: zapis <strong>(1 split)</strong> przy jej regule pokazuje, że skierowano w ten sposób jedną obserwację uczącą. To rzeczywisty przykład użycia podziału zastępczego, a nie tylko lista potencjalnych reguł.</p>
+<p>Domyślnie <code>rpart</code> sprawdza dostępne podziały zastępcze po kolei. Jeżeli nie może użyć żadnego z nich, kieruje obserwację do liczniejszego potomka; w przypadku remisu może pozostawić ją w bieżącym węźle.</p>
+<section id="predykcje-dla-obserwacji-z-oryginalnymi-brakami" class="level4">
+<h4 class="anchored" data-anchor-id="predykcje-dla-obserwacji-z-oryginalnymi-brakami">Predykcje dla obserwacji z oryginalnymi brakami</h4>
+<p>Poniżej pokazujemy wszystkie obserwacje z brakami, rozróżniając ich przynależność do zbioru treningowego i testowego. Nie zmieniamy wartości predyktorów. Przewidywania pochodzą z tego samego modelu dopasowanego wyłącznie na zbiorze treningowym.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Kod</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>nazwy_predyktorow <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="fu">names</span>(train), <span class="st">"species"</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>przyklady_z_brakami <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(train, <span class="at">zbior =</span> <span class="st">"Treningowy"</span>),</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(test, <span class="at">zbior =</span> <span class="st">"Testowy"</span>)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">if_any</span>(<span class="fu">all_of</span>(nazwy_predyktorow), is.na))</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>brakujace_zmienne <span class="ot">&lt;-</span> <span class="fu">apply</span>(</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">is.na</span>(<span class="fu">select</span>(przyklady_z_brakami, <span class="fu">all_of</span>(nazwy_predyktorow))),</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  <span class="dv">1</span>, <span class="cf">function</span>(braki) <span class="fu">paste</span>(nazwy_predyktorow[braki], <span class="at">collapse =</span> <span class="st">", "</span>)</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>predykcje_z_brakami <span class="ot">&lt;-</span> <span class="fu">predict</span>(model_treningowy, <span class="at">new_data =</span> przyklady_z_brakami)</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="sc">!</span><span class="fu">anyNA</span>(predykcje_z_brakami<span class="sc">$</span>.pred_class))</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">zbior =</span> przyklady_z_brakami<span class="sc">$</span>zbior,</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">brakujace_predyktory =</span> brakujace_zmienne,</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">gatunek_obserwowany =</span> przyklady_z_brakami<span class="sc">$</span>species,</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">gatunek_przewidywany =</span> predykcje_z_brakami<span class="sc">$</span>.pred_class</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tabela_wynikow</span>(<span class="st">"Predykcje CART dla obserwacji z oryginalnymi brakami"</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="nwjhssvbeq" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#nwjhssvbeq table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#nwjhssvbeq thead, #nwjhssvbeq tbody, #nwjhssvbeq tfoot, #nwjhssvbeq tr, #nwjhssvbeq td, #nwjhssvbeq th {
+  border-style: none;
+}
+
+#nwjhssvbeq p {
+  margin: 0;
+  padding: 0;
+}
+
+#nwjhssvbeq .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 14px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#nwjhssvbeq .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#nwjhssvbeq .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#nwjhssvbeq .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#nwjhssvbeq .gt_heading {
+  background-color: #FFFFFF;
+  text-align: left;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#nwjhssvbeq .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nwjhssvbeq .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#nwjhssvbeq .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: bold;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#nwjhssvbeq .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: bold;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#nwjhssvbeq .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#nwjhssvbeq .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#nwjhssvbeq .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#nwjhssvbeq .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#nwjhssvbeq .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#nwjhssvbeq .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#nwjhssvbeq .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#nwjhssvbeq .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#nwjhssvbeq .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#nwjhssvbeq .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nwjhssvbeq .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#nwjhssvbeq .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#nwjhssvbeq .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#nwjhssvbeq .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nwjhssvbeq .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#nwjhssvbeq .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#nwjhssvbeq .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nwjhssvbeq .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nwjhssvbeq .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#nwjhssvbeq .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nwjhssvbeq .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#nwjhssvbeq .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nwjhssvbeq .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#nwjhssvbeq .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nwjhssvbeq .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#nwjhssvbeq .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nwjhssvbeq .gt_left {
+  text-align: left;
+}
+
+#nwjhssvbeq .gt_center {
+  text-align: center;
+}
+
+#nwjhssvbeq .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#nwjhssvbeq .gt_font_normal {
+  font-weight: normal;
+}
+
+#nwjhssvbeq .gt_font_bold {
+  font-weight: bold;
+}
+
+#nwjhssvbeq .gt_font_italic {
+  font-style: italic;
+}
+
+#nwjhssvbeq .gt_super {
+  font-size: 65%;
+}
+
+#nwjhssvbeq .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#nwjhssvbeq .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#nwjhssvbeq .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#nwjhssvbeq .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#nwjhssvbeq .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#nwjhssvbeq .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#nwjhssvbeq .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#nwjhssvbeq .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#nwjhssvbeq div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_heading header">
+<td colspan="4" class="gt_heading gt_title gt_font_normal gt_bottom_border">Predykcje CART dla obserwacji z oryginalnymi brakami</td>
+</tr>
+<tr class="gt_col_headings even">
+<th id="zbior" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">zbior</th>
+<th id="brakujace_predyktory" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">brakujace_predyktory</th>
+<th id="gatunek_obserwowany" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">gatunek_obserwowany</th>
+<th id="gatunek_przewidywany" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">gatunek_przewidywany</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="zbior">Treningowy</td>
+<td class="gt_row gt_left" headers="brakujace_predyktory">bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g, sex</td>
+<td class="gt_row gt_center" headers="gatunek_obserwowany">Adelie</td>
+<td class="gt_row gt_center" headers="gatunek_przewidywany">Adelie</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_striped" headers="zbior">Treningowy</td>
+<td class="gt_row gt_left gt_striped" headers="brakujace_predyktory">sex</td>
+<td class="gt_row gt_center gt_striped" headers="gatunek_obserwowany">Adelie</td>
+<td class="gt_row gt_center gt_striped" headers="gatunek_przewidywany">Adelie</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="zbior">Treningowy</td>
+<td class="gt_row gt_left" headers="brakujace_predyktory">sex</td>
+<td class="gt_row gt_center" headers="gatunek_obserwowany">Adelie</td>
+<td class="gt_row gt_center" headers="gatunek_przewidywany">Adelie</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_striped" headers="zbior">Treningowy</td>
+<td class="gt_row gt_left gt_striped" headers="brakujace_predyktory">sex</td>
+<td class="gt_row gt_center gt_striped" headers="gatunek_obserwowany">Adelie</td>
+<td class="gt_row gt_center gt_striped" headers="gatunek_przewidywany">Adelie</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="zbior">Treningowy</td>
+<td class="gt_row gt_left" headers="brakujace_predyktory">sex</td>
+<td class="gt_row gt_center" headers="gatunek_obserwowany">Adelie</td>
+<td class="gt_row gt_center" headers="gatunek_przewidywany">Adelie</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_striped" headers="zbior">Treningowy</td>
+<td class="gt_row gt_left gt_striped" headers="brakujace_predyktory">sex</td>
+<td class="gt_row gt_center gt_striped" headers="gatunek_obserwowany">Gentoo</td>
+<td class="gt_row gt_center gt_striped" headers="gatunek_przewidywany">Gentoo</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="zbior">Treningowy</td>
+<td class="gt_row gt_left" headers="brakujace_predyktory">sex</td>
+<td class="gt_row gt_center" headers="gatunek_obserwowany">Gentoo</td>
+<td class="gt_row gt_center" headers="gatunek_przewidywany">Gentoo</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_striped" headers="zbior">Treningowy</td>
+<td class="gt_row gt_left gt_striped" headers="brakujace_predyktory">sex</td>
+<td class="gt_row gt_center gt_striped" headers="gatunek_obserwowany">Gentoo</td>
+<td class="gt_row gt_center gt_striped" headers="gatunek_przewidywany">Gentoo</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="zbior">Treningowy</td>
+<td class="gt_row gt_left" headers="brakujace_predyktory">sex</td>
+<td class="gt_row gt_center" headers="gatunek_obserwowany">Gentoo</td>
+<td class="gt_row gt_center" headers="gatunek_przewidywany">Gentoo</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_striped" headers="zbior">Testowy</td>
+<td class="gt_row gt_left gt_striped" headers="brakujace_predyktory">sex</td>
+<td class="gt_row gt_center gt_striped" headers="gatunek_obserwowany">Adelie</td>
+<td class="gt_row gt_center gt_striped" headers="gatunek_przewidywany">Adelie</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="zbior">Testowy</td>
+<td class="gt_row gt_left" headers="brakujace_predyktory">bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g, sex</td>
+<td class="gt_row gt_center" headers="gatunek_obserwowany">Gentoo</td>
+<td class="gt_row gt_center" headers="gatunek_przewidywany">Gentoo</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Model zwraca klasę także dla obserwacji z brakami. Sam fakt uzyskania predykcji nie oznacza jednak, że zawsze użyto podziału zastępczego: brak może dotyczyć niewykorzystanej zmiennej, a przy niedostępności wszystkich reguł może zadziałać wybór liczniejszego potomka. Wydruk drzewa powyżej pokazuje faktyczne użycie reguł zastępczych podczas uczenia. Tabela służy ilustracji; końcową ocenę jakości nadal opieramy wyłącznie na zbiorze testowym.</p>
+</section>
+</section>
 </section>
 <section id="wnioski" class="level2">
 <h2 class="anchored" data-anchor-id="wnioski">Wnioski</h2>
 <p>Przeprowadzona analiza pokazuje, że w badanym zbiorze danych gatunek pingwina można przewidywać z bardzo wysoką skutecznością na podstawie kilku cech morfologicznych i zmiennych opisowych. Oznacza to, że między klasami istnieją wyraźne różnice strukturalne, które drzewo decyzyjne potrafi uchwycić za pomocą prostych reguł podziału.</p>
-<p>Z perspektywy metodologicznej istotne jest również to, że wysoka jakość modelu pojawia się nie tylko na etapie strojenia, lecz utrzymuje się także na zbiorze testowym. Wzmacnia to wiarygodność wniosku, że model nie jest jedynie dopasowany do danych treningowych, ale rzeczywiście dobrze uogólnia zależności obecne w populacji opisanej przez zbiór <code>penguins</code>.</p>
+<p>Z perspektywy metodologicznej istotne jest również to, że wysoka jakość modelu pojawia się nie tylko na etapie strojenia, lecz utrzymuje się także na zbiorze testowym. To dowód ograniczony do tego podziału i populacji zbliżonej do danych. Wynik nie gwarantuje trafności dla nowych kolonii ani lat. Zmienna <code>island</code> może kodować lokalne występowanie gatunków; transportowalność warto badać przez podział według miejsca lub czasu. Zachowanie obserwacji z brakami pozwala wykorzystać pełny zbiór, ale skuteczność podziałów zastępczych zależy od dostępności i powiązań pozostałych cech.</p>
 <p>Najważniejszą zaletą uzyskanego rozwiązania pozostaje interpretowalność. Model nie tylko zapewnia trafną klasyfikację, ale także wskazuje, które cechy są kluczowe dla odróżniania gatunków i w jakiej kolejności są wykorzystywane w procesie decyzyjnym. Dzięki temu drzewo decyzyjne można traktować jednocześnie jako narzędzie predykcyjne i narzędzie analizy struktury danych.</p>
 
 

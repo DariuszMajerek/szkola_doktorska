@@ -1,5 +1,11 @@
 # Wykład 1: Regresja liniowa — predykcja efektywności paliwowej {.unnumbered}
 
+```{r}
+#| label: wyk1-utf8
+#| include: false
+source("R/setup.R")
+```
+
 ::: hidden
 $$
  \def\E{\mathrm{E}}
@@ -38,10 +44,10 @@ W zbiorze `mtcars` zmienna `mpg` oznacza liczbę mil, które samochód przejedzi
 -   **Zmienna objaśniana (zależna, przewidywana):** `mpg`
 -   **Potencjalne zmienne objaśniające (predyktory):**
     -   `wt` - masa samochodu w tysiącach funtów,
-    -   `hp` - moc silnika,
+    -   `hp` - moc silnika w jednostkach gross horsepower (hp),
     -   `qsec` - czas przejazdu 1/4 mili w sekundach,
     -   `am` - rodzaj skrzyni biegów (`automat` lub `manualna`),
-    -   `disp` - pojemność skokowa silnika.
+    -   `disp` - pojemność skokowa silnika w calach sześciennych.
 
 ### Problem badawczy
 
@@ -88,9 +94,10 @@ Aby wyniki modelu były wiarygodne, sprawdzamy następujące założenia:
 
 1.  **Liniowość zależności**: średni związek między `mpg` a predyktorami można opisać liniowo.
 2.  **Niezależność obserwacji**: błędy dla różnych obserwacji nie wpływają na siebie.
-3.  **Stałość wariancji reszt**: rozrzut błędów jest podobny dla różnych poziomów wartości dopasowanych.
-4.  **Przybliżona normalność reszt**: potrzebna głównie do klasycznej inferencji statystycznej.
-5.  **Brak silnej współliniowości**: predyktory nie powinny przenosić prawie tej samej informacji.
+3.  **Stałość wariancji błędów warunkowo względem predyktorów**: rozrzut błędów jest podobny dla różnych poziomów wartości dopasowanych.
+4.  **Przybliżona normalność błędów warunkowo względem predyktorów**: potrzebna głównie do klasycznej inferencji statystycznej.
+5.  **Pełny rząd macierzy projektu**: brak dokładnej współliniowości zapewnia jednoznaczność estymatora. Silna, choć niedokładna współliniowość zwiększa niepewność współczynników.
+6.  **Poprawna średnia warunkowa**: $\E(\varepsilon_i \mid X)=0$. Reszty są narzędziem diagnostycznym, a nie obserwacjami niezależnych błędów. Normalność predyktorów ani samej zmiennej `mpg` nie jest wymagana.
 
 ::: callout-tip
 ### Uwaga praktyczna
@@ -114,7 +121,7 @@ $$
 \hat{\beta} = (X^T X)^{-1} X^T y.
 $$
 
-Jeżeli dodatkowo założymy normalność błędów, to estymator MNK jest jednocześnie estymatorem **największej wiarygodności**. W praktyce oznacza to, że ta sama procedura ma mocne uzasadnienie zarówno algebraiczne, jak i probabilistyczne.
+Wzór z odwrotnością wymaga pełnego rzędu macierzy $X$; numerycznie stosuje się np. rozkład QR. Jeżeli dodatkowo założymy niezależne błędy normalne o wspólnej wariancji, to estymator MNK jest jednocześnie estymatorem **największej wiarygodności**. W praktyce oznacza to, że ta sama procedura ma mocne uzasadnienie zarówno algebraiczne, jak i probabilistyczne.
 
 ## Opis danych
 
@@ -136,6 +143,7 @@ dane <- mtcars |>
 dane |>
   head() |>
   gt() |>
+  formatuj_tabele() |>
   tab_caption("Przykładowe obserwacje w zbiorze")
 ```
 
@@ -149,8 +157,9 @@ Zanim zbudujemy model, dobrze jest zobaczyć dane. Pozwala to zorientować się,
 #| label: wyk1-stat-opisowe
 dane |>
   select(mpg, wt, hp, qsec, disp) |>
-  report::report_table() %>%
-  print_html()
+  report::report_table() |>
+  as.data.frame() |>
+  tabela_wynikow("Statystyki opisowe predyktorów")
 ```
 
 ### Rozkład zmiennej objaśnianej
@@ -226,13 +235,15 @@ indeks_trening <- sample(seq_len(nrow(dane)), size = floor(0.7 * nrow(dane)))
 trening <- dane[indeks_trening, ]
 test <- dane[-indeks_trening, ]
 
-print(sprintf("trening: %d, test: %d", nrow(trening), nrow(test)))
+tibble(zbior = c("Treningowy", "Testowy"),
+       liczba_obserwacji = c(nrow(trening), nrow(test))) |>
+  tabela_wynikow("Podział danych")
 ```
 
 ::: callout-warning
 ### Ograniczenie: mała liczba obserwacji
 
-Przy zaledwie 32 obserwacjach podział 70/30 daje około 22 obserwacje treningowe i 10 testowych. Przy 4–5 predyktorach to bardzo mała próba — RMSE na zbiorze testowym będzie niestabilny. Dla tak małego zbioru bardziej wiarygodna byłaby walidacja krzyżowa (np. LOOCV). Podział train/test stosujemy tu przede wszystkim w celach dydaktycznych.
+Przy zaledwie 32 obserwacjach podział 70/30 daje około 22 obserwacje treningowe i 10 testowych. Przy 4–5 predyktorach to bardzo mała próba — RMSE na zbiorze testowym będzie niestabilny. Warto rozważyć powtarzaną walidację krzyżową lub bootstrap, raportując zmienność wyników. LOOCV także może mieć dużą wariancję. Jeżeli walidacja służy wyborowi modelu, ocenę całej procedury należy oddzielić od tego wyboru (np. walidacją zagnieżdżoną). Podział train/test stosujemy tu przede wszystkim w celach dydaktycznych.
 :::
 
 ### Modele kandydackie
@@ -276,13 +287,14 @@ porownanie_modeli <- tibble(
 #| echo: false
 porownanie_modeli |>
   gt() |>
+  formatuj_tabele() |>
   fmt_number(columns = 3:4, decimals = 3) |>
   tab_caption("Porównanie modeli kandydackich")
 ```
 
 ### Wybór modelu końcowego
 
-Na podstawie miar dopasowania na zbiorze treningowym, model 3 osiąga wyraźnie lepszy skorygowany $R^2$ i niższe AIC niż modele prostsze. Model 4, mimo dodatkowego predyktora (`disp`), nie poprawia istotnie tych miar, a jest bardziej złożony.
+Model 3 ma najniższe AIC na danych treningowych, ale różnica względem Modelu 2 wynosi tylko około 2.1. To ograniczone poparcie dla bardziej złożonej struktury, a nie dowód jej przewagi predykcyjnej. Model 4 ma wyższe AIC. AIC i skorygowany $R^2$ nie są testami istotności różnic jakości prognoz.
 
 Dlatego jako **model końcowy** wybierzemy:
 
@@ -301,10 +313,11 @@ Po wyborze struktury modelu dopasujmy go ponownie na całym zbiorze danych, aby 
 model_koncowy <- lm(mpg ~ wt + hp + qsec + am, data = dane)
 
 model_parameters(model_koncowy) |>
-  print_html()
+  as.data.frame() |>
+  tabela_wynikow("Współczynniki modelu końcowego")
 ```
 
-Aby ocenić wpływ poszczególnych zmiennych liczymy również standaryzowane współczynniki modelu.
+Dla porównania skal obliczamy standaryzowane współczynniki. Nie są one uniwersalną miarą ważności: zależą od zmienności i korelacji predyktorów w tej próbie. Dla `am` odchylenie standardowe wskaźnika zależy od proporcji grup; bardziej czytelna jest różnica manualna–automat w jednostkach `mpg`.
 
 ```{r}
 X <- model.matrix(model_koncowy)[, -1, drop = FALSE] # macierz predyktorów (dokładnie tak, jak w modelu)
@@ -322,6 +335,7 @@ tibble(
 ) |>
   arrange(desc(abs(beta_std))) |>
   gt() |>
+  formatuj_tabele() |>
   fmt_number(columns = 2:5, decimals = 3)
 ```
 
@@ -329,7 +343,8 @@ tibble(
 
 Do oceny dopasowania wykorzystamy kilka miar.
 
--   $R^2$ i skorygowany $R^2$ mówią, jaka część zróżnicowania `mpg` została wyjaśniona przez model dopasowany na pełnych danych.
+-   $R^2$ opisuje część zmienności `mpg` odtworzoną na danych dopasowania. Skorygowany $R^2$ uwzględnia liczbę parametrów; nie ma dosłownej interpretacji odsetka wyjaśnionej zmienności i może być ujemny.
+-   **Statystyka F i jej wartość p** służą do oceny łącznej istotności predyktorów: porównujemy model końcowy z modelem zawierającym tylko wyraz wolny.
 -   **Błąd standardowy reszt** informuje o typowej skali błędu dopasowania modelu końcowego.
 -   **RMSE na zbiorze testowym** mówi, jak duży jest przeciętny błąd prognozy dla nowych obserwacji — obliczony na podstawie modelu estymowanego wyłącznie na danych treningowych.
 
@@ -337,30 +352,53 @@ Do oceny dopasowania wykorzystamy kilka miar.
 #| label: wyk1-miary-dopasowania
 #| echo: false
 rmse_model3_test <- rmse(test$mpg, predict(model_3, newdata = test))
+podsumowanie_modelu <- summary(model_koncowy)
+f_modelu <- podsumowanie_modelu$fstatistic
+p_f_modelu <- pf(
+  f_modelu[["value"]],
+  df1 = f_modelu[["numdf"]],
+  df2 = f_modelu[["dendf"]],
+  lower.tail = FALSE
+)
 
 miary_dopasowania <- tibble(
   miara = c(
     "R2",
     "Skorygowany R2",
+    sprintf("Statystyka F (%d, %d)", f_modelu[["numdf"]], f_modelu[["dendf"]]),
+    "Wartość p testu F",
     "Błąd standardowy reszt",
     "RMSE na zbiorze testowym"
   ),
   wartosc = c(
     summary(model_koncowy)$r.squared,
     summary(model_koncowy)$adj.r.squared,
+    unname(f_modelu[["value"]]),
+    unname(p_f_modelu),
     summary(model_koncowy)$sigma,
     rmse_model3_test
   )
-) |>
-  mutate(wartosc = round(wartosc, 3))
+)
 
 miary_dopasowania |>
   gt() |>
+  formatuj_tabele() |>
   fmt_number(columns = wartosc, decimals = 3) |>
+  fmt(columns = wartosc, rows = miara == "Wartość p testu F",
+      fns = function(x) ifelse(x < 0.001, "< 0,001",
+                              formatC(x, digits = 3, format = "f", decimal.mark = ","))) |>
   tab_caption("Wybrane miary dopasowania modelu końcowego")
 ```
 
-W tym przykładzie model wyjaśnia dużą część zmienności `mpg`, a przeciętny błąd predykcji na zbiorze testowym jest stosunkowo niewielki. To oznacza, że model może być użyteczny jako narzędzie prognostyczne, choć oczywiście nie daje prognoz idealnych.
+### Interpretacja testu F
+
+Test F sprawdza hipotezę zerową $H_0: \beta_{wt} = \beta_{hp} = \beta_{qsec} = \beta_{am} = 0$ wobec alternatywy, że co najmniej jeden z tych współczynników jest różny od zera. Przy spełnieniu klasycznych założeń modelu liniowego, w tym niezależności, normalności i stałej wariancji błędów, statystyka ma pod $H_0$ rozkład F o 4 i 27 stopniach swobody.
+
+W tym przykładzie otrzymujemy $F(4, 27) = `r round(unname(f_modelu[["value"]]), 2)`$ oraz $p = `r format.pval(p_f_modelu, digits = 3, eps = 0)`$. Tak mała wartość p daje podstawę do odrzucenia $H_0$ na poziomie istotności 0,05: model z predyktorami wyjaśnia zmienność `mpg` istotnie lepiej niż model z samym wyrazem wolnym. Nie oznacza to, że każdy predyktor jest istotny osobno, że zależności są przyczynowe ani że model dobrze przewiduje nowe obserwacje.
+
+Jest to nominalna wartość p dla ustalonej postaci modelu; nie uwzględnia wcześniejszego wyboru predyktorów na podstawie danych. Ponadto sygnały nieliniowości omówione w diagnostyce ograniczają wiarygodność klasycznej interpretacji testu.
+
+Wysokie $R^2$ opisuje dopasowanie na pełnych danych. Testowe RMSE dotyczy innego dopasowania (`model_3`, uczonego na 22 autach); wynik z 10 aut ma dużą niepewność. Jego użyteczność trzeba ocenić względem modelu bazowego (np. średniej treningowej) i akceptowalnego błędu w jednostkach `mpg`. Nie jest to walidacja modelu ponownie dopasowanego na wszystkich 32 autach.
 
 ## Sprawdzanie założeń
 
@@ -412,24 +450,28 @@ diagnostyka <- tibble(
 #| echo: false
 diagnostyka |>
   gt() |>
-  fmt_number(columns = wartosc, decimals = 4) |>
+  formatuj_tabele() |>
+  fmt_number(columns = wartosc, decimals = 3) |>
   tab_caption("Wybrane wyniki diagnostyczne")
 
 vif_manual(model_koncowy) |>
   mutate(vif = round(vif, 3)) |>
   gt() |>
+  formatuj_tabele() |>
   fmt_number(columns = vif, decimals = 3) |>
   tab_caption("Współczynniki VIF")
 ```
 
 #### Interpretacja diagnostyki
 
--   Wartość `p-value` w teście Shapiro-Wilka wynosi `r round(shapiro.test(resid(model_koncowy))$p.value, 4)`, więc przy poziomie istotności 0.05 nie ma podstaw do odrzucenia hipotezy o normalności reszt. Oznacza to, że założenie normalności można uznać za w przybliżeniu spełnione, choć wynik jest dość bliski granicy istotności.
--   Współczynniki VIF są umiarkowane, więc nie obserwujemy skrajnej współliniowości (gdy VIF\>10 jest to niepokojące).
--   Maksymalna odległość Cooka wynosi `r round(max(cooks.distance(model_koncowy)), 3)`, a więc przekracza pomocniczy próg $4/n =$ `r round(4/nrow(dane), 3)`. To sugeruje, że w danych może występować co najmniej jedna obserwacja o podwyższonym wpływie na wyniki modelu, którą warto dodatkowo sprawdzić.
--   Wykres wartości dopasowanych vs. reszt (panel *Linearity* generowany przez `check_model()`) pozwala ocenić liniowość zależności. Jeśli widoczna jest systematyczna krzywoliniowość, założenie liniowości może być naruszone. W naszym przypadku wykres sugeruje pewne odchylenia od liniowości dla skrajnych wartości dopasowanych, co warto mieć na uwadze.
+- Test Shapiro–Wilka dla reszt daje $p \approx$ `r round(shapiro.test(resid(model_koncowy))$p.value, 3)`. Ponieważ $p > 0{,}05$, na poziomie istotności 0,05 nie ma podstaw do odrzucenia hipotezy o normalności błędów.
+- VIF wynosi około 2.5–4.9. Nie ma dokładnej współliniowości, ale niepewność współczynników jest zwiększona. Progi 5 i 10 są heurystykami, a nie testami poprawności modelu.
+- Cook przekracza $4/n$ dla Chrysler Imperial i Toyota Corolla. To sygnał do sprawdzenia danych, dźwigni i analizy wrażliwości. Nie uzasadnia automatycznego usuwania poprawnych obserwacji.
+- Panel *Linearity* przedstawia reszty względem wartości dopasowanych. Oczekujemy wygładzenia bliskiego poziomej linii przy zerze, a nie układu punktów wzdłuż rosnącej prostej. W tym przykładzie wygładzenie ma wyraźny kształt litery U: model zaniża `mpg` na krańcach, a zawyża w środkowym zakresie wartości dopasowanych. To rzeczywisty sygnał niedopasowania postaci średniej, a nie potwierdzenie liniowości. Niepewność na krańcach jest duża. Brak wyraźnej krzywizny także nie dowodzi liniowości wszystkich efektów warunkowych.
+- Na panelu *Homogeneity of Variance* wygładzenie rośnie dla większych wartości dopasowanych. Może to wskazywać nierówną wariancję, ale również wynikać z nieliniowej średniej; obie kwestie trzeba rozpatrywać łącznie. Wtedy trzeba sprawdzić specyfikację średniej i rozważyć przedziały z odporną macierzą kowariancji (np. HC3); nie naprawia to nieliniowości.
+- Niezależności nie potwierdzimy tymi wykresami. `mtcars` obejmuje historyczne modele aut, nie próbę losową współczesnego rynku; podobieństwo konstrukcji może ograniczać niezależność i zakres uogólniania.
 
-Na tej podstawie można uznać, że model jest **akceptowalny diagnostycznie**, ale zawiera przynajmniej jedną potencjalnie wpływową obserwację oraz sygnały ewentualnej nieliniowości, co należy mieć na uwadze przy interpretacji wyników.
+Diagnostyka wskazuje powody do ostrożności, a nie podstawy do ogólnego uznania modelu za „poprawny”. Poniżej pokazujemy wpływ obserwacji, a następnie sprawdzamy wrażliwość współczynników.
 
 ```{r}
 tibble(
@@ -453,12 +495,40 @@ W praktyce budowa modelu często wymaga korekt. W naszym przykładzie korekta po
 
 Warto też zauważyć, że nie każda zmienna musi być istotna statystycznie sama w sobie, aby była użyteczna w modelu predykcyjnym. W modelach prognostycznych liczy się przede wszystkim jakość przewidywania dla nowych danych.
 
-Gdyby diagnostyka była słabsza, można byłoby rozważyć:
+Już zaobserwowane sygnały uzasadniają analizę wrażliwości. Można rozważyć:
 
 1.  transformację zmiennej objaśnianej, np. logarytmowanie,
-2.  usunięcie obserwacji wyraźnie odstających po wcześniejszym uzasadnieniu merytorycznym,
+2.  sprawdzenie obserwacji wpływowych i porównanie dopasowań; usuwanie tylko po uzasadnieniu błędu danych lub niezgodności z populacją docelową,
 3.  dodanie interakcji lub składników nieliniowych,
 4.  zastosowanie regresji odpornej albo metod regularizacji.
+
+### Analiza wrażliwości i odporne błędy standardowe
+
+```{r}
+#| label: wyk1-wrazliwosc
+wplywowe <- which(cooks.distance(model_koncowy) > 4 / nrow(dane))
+model_bez_wplywowych <- lm(formula(model_koncowy), data = dane[-wplywowe, ])
+tibble(
+  parametr = names(coef(model_koncowy)),
+  pelne_dane = unname(coef(model_koncowy)),
+  bez_wplywowych = unname(coef(model_bez_wplywowych))
+) |> gt() |> formatuj_tabele() |> fmt_number(columns = 2:3, decimals = 3)
+wyniki_hc3 <- lmtest::coeftest(
+  model_koncowy, vcov. = sandwich::vcovHC(model_koncowy, type = "HC3")
+)
+tibble(
+  parametr = rownames(wyniki_hc3),
+  oszacowanie = wyniki_hc3[, 1],
+  blad_standardowy_HC3 = wyniki_hc3[, 2],
+  statystyka_t = wyniki_hc3[, 3],
+  p_value = wyniki_hc3[, 4]
+) |>
+  tabela_wynikow("Współczynniki modelu — odporne błędy standardowe HC3") |>
+  cols_label(parametr = "Parametr", oszacowanie = "Oszacowanie",
+             blad_standardowy_HC3 = "Błąd standardowy HC3", statystyka_t = "t")
+```
+
+To porównanie nie wybiera „lepszego” zbioru danych. Zmiana współczynników pokazuje, jak silnie wnioski zależą od wskazanych aut. HC3 ogranicza wrażliwość błędów standardowych na nierówną wariancję, ale nie usuwa wpływu obserwacji na oszacowania ani nie uwzględnia wyboru modelu. Testy i przedziały po selekcji struktury traktujemy jako eksploracyjne. Alternatywne postacie średniej (np. składnik kwadratowy `wt`) należy oceniać wewnątrz walidacji, bez ponownego wykorzystywania testu do strojenia.
 
 ## Predykcja na zbiorze testowym
 
@@ -468,7 +538,8 @@ Prognozę dla obserwacji testowych obliczamy na podstawie modelu estymowanego wy
 pred <- predict(model_3, newdata = test)
 bind_cols(test, pred = pred) |>
   gt() |>
-  fmt_number(columns = pred, decimals = 2)
+  formatuj_tabele() |>
+  fmt_number(columns = pred, decimals = 3)
 ```
 
 ## Interpretacja wyników w kontekście problemu
@@ -480,7 +551,7 @@ Teraz przejdźmy do najważniejszej części: co ten model mówi o badanym probl
 Przy pozostałych zmiennych utrzymanych na stałym poziomie:
 
 1.  Wzrost masy samochodu o 1 tysiąc funtów wiąże się przeciętnie ze spadkiem `mpg` o około `r abs(round(coef(model_koncowy)["wt"], 2))`.
-2.  Wzrost mocy silnika o 1 KM wiąże się przeciętnie ze spadkiem `mpg` o około `r abs(round(coef(model_koncowy)["hp"], 3))`, choć w tym modelu efekt ten nie jest bardzo precyzyjnie oszacowany.
+2.  Wzrost mocy silnika o 1 hp wiąże się przeciętnie ze spadkiem `mpg` o około `r abs(round(coef(model_koncowy)["hp"], 3))`, choć w tym modelu efekt ten nie jest bardzo precyzyjnie oszacowany.
 3.  Wzrost `qsec` o 1 sekundę wiąże się przeciętnie ze wzrostem `mpg` o około `r round(coef(model_koncowy)["qsec"], 2)`.
 4.  Samochody z manualną skrzynią biegów mają przeciętnie `mpg` większe o około `r round(coef(model_koncowy)["ammanualna"], 2)` niż samochody z automatyczną skrzynią biegów, przy tych samych pozostałych cechach.
 
@@ -492,9 +563,9 @@ Nie mówimy tutaj, że dana zmienna "powoduje" zmianę `mpg`. Model regresji w t
 
 ### Które zmienne wydają się najważniejsze?
 
-Najsilniejszy i najbardziej stabilny związek z `mpg` obserwujemy dla masy samochodu `wt`. To intuicyjny wynik: cięższe samochody są przeciętnie mniej oszczędne.
+Najwyraźniejszy w tym dopasowaniu związek z `mpg` obserwujemy dla masy samochodu `wt`. To intuicyjny wynik: cięższe samochody są przeciętnie mniej oszczędne.
 
-Rodzaj skrzyni biegów również wnosi istotną informację do modelu. Moc silnika i czas przejazdu 1/4 mili także pomagają poprawić trafność prognozy, choć ich interpretacja wymaga większej ostrożności ze względu na współzależności między cechami technicznymi pojazdu.
+Dla skrzyni biegów klasyczny test daje wynik bliski 0.05; jest on wrażliwy na założenia i selekcję modelu. Przedziały dla `hp` i `qsec` obejmują zero. Nie dowodzi to braku związku, ale nie pozwala stanowczo przypisać im poprawy prognoz. Taką poprawę trzeba wykazać w walidacji, uwzględniając współzależności cech.
 
 ## Wnioski
 
@@ -502,18 +573,7 @@ Na podstawie przeprowadzonej analizy możemy sformułować następujące wnioski
 
 1.  Regresja liniowa może być skutecznym narzędziem do przewidywania wartości liczbowej dla danych tabularycznych.
 2.  W analizowanym przykładzie sensowną zmienną objaśnianą było `mpg`, a użytecznymi zmiennymi objaśniającymi okazały się `wt`, `hp`, `qsec` i `am`.
-3.  Wybrany model oferuje dobry kompromis między jakością predykcji, interpretowalnością i poprawnością diagnostyczną.
+3.  Wybrany model jest kandydatem dydaktycznym; mała próba, wpływowe auta i sygnały nieliniowości ograniczają pewność wniosków.
 4.  Najważniejszym predyktorem efektywności paliwowej okazała się masa samochodu.
 5.  Model ten nadaje się do celów dydaktycznych i do wstępnych prognoz, ale nie powinien być traktowany jako model uniwersalny dla wszystkich współczesnych pojazdów.
-6.  Diagnostyka wykazała pewne sygnały odchyleń od liniowości (widoczne na wykresie reszt vs. wartości dopasowanych), co sugeruje, że można byłoby szukać korekt postaci modelu (np. transformacji zmiennych lub składników nieliniowych), ale to wykracza poza zakres tych analiz.
-
-### Podsumowanie dydaktyczne
-
-W praktyce pracy badawczej warto zapamiętać następującą sekwencję działań:
-
-1.  Najpierw jasno określ cel predykcyjny i wskaż zmienną objaśnianą.
-2.  Następnie wybierz sensowne zmienne objaśniające.
-3.  Sprawdź dane i zależności między zmiennymi.
-4.  Zbuduj kilka modeli konkurencyjnych.
-5.  Porównaj je nie tylko pod względem dopasowania, ale także jakości prognoz i interpretowalności.
-6.  Na końcu sprawdź założenia, opisz ograniczenia i sformułuj wnioski w języku problemu badawczego.
+6.  Diagnostyka wykazała pewne sygnały odchyleń od liniowości (widoczne na wykresie reszt vs. wartości dopasowanych), co sugeruje, że można byłoby szukać korekt postaci modelu (np. transformacji zmiennych lub składników nieliniowych), a ich przydatność należy sprawdzić w walidacji.

@@ -1,5 +1,11 @@
 # Wykład 2: Regresja logistyczna — czynniki ryzyka niskiej masy urodzeniowej {.unnumbered}
 
+```{r}
+#| label: wyk2-utf8
+#| include: false
+source("R/setup.R")
+```
+
 ::: hidden
 
 $$ \def\E{\mathrm{E}}
@@ -17,21 +23,21 @@ Skorzystamy ze zbioru `birthwt` z pakietu `MASS`, zawierającego dane o 189 poro
 ::: callout-note
 ### Co będzie wynikiem tej analizy?
 
-Na końcu będziemy umieli odpowiedzieć na pytanie, które czynniki istotnie zwiększają ryzyko urodzenia dziecka z niską masą urodzeniową, jak silny jest wpływ każdego z nich oraz jak interpretować wyniki modelu regresji logistycznej.
+Na końcu będziemy umieli odpowiedzieć na pytanie, które cechy wiążą się z niską masą urodzeniową w tej próbie, jak duże i jak niepewne są oszacowane związki oraz jak interpretować wyniki modelu regresji logistycznej.
 :::
 
 ## Formułowanie celu i problemów badawczych
 
 ### Cel badawczy
 
-Chcemy zbadać, które czynniki związane z matką i przebiegiem ciąży istotnie wpływają na ryzyko niskiej masy urodzeniowej noworodka (poniżej 2500 g).
+Chcemy zbadać związki cech matki i przebiegu ciąży z prawdopodobieństwem niskiej masy urodzeniowej noworodka (poniżej 2500 g).
 
 W zbiorze `birthwt` zmienna `low` oznacza, czy masa urodzeniowa noworodka jest niska (`1` — tak, `0` — nie). Jest to zmienna binarna i stanowi naturalny cel dla regresji logistycznej.
 
 ::: callout-important
 ### Jasne określenie celu
 
-**Cel badawczy:** identyfikacja czynników istotnie wpływających na ryzyko niskiej masy urodzeniowej i ocena siły ich wpływu za pomocą ilorazów szans.
+**Cel badawczy:** opis warunkowych związków cech z niską masą urodzeniową i ocena ich niepewności za pomocą ilorazów szans.
 :::
 
 ### Zmienna objaśniana i zmienne objaśniające
@@ -49,7 +55,7 @@ W zbiorze `birthwt` zmienna `low` oznacza, czy masa urodzeniowa noworodka jest n
 
 Interesuje nas odpowiedź na następujące pytania:
 
-1.  Które spośród wybranych czynników istotnie wpływają na ryzyko niskiej masy urodzeniowej?
+1.  Które spośród wybranych cech wiążą się z prawdopodobieństwem niskiej masy urodzeniowej?
 2.  Jak silny jest wpływ poszczególnych czynników wyrażony ilorazami szans?
 3.  Czy przyjęty model jest dobrze dopasowany do danych?
 4.  Jak interpretować wyniki modelu w języku problemu badawczego?
@@ -84,15 +90,17 @@ Równoważnym zapisem modelu jest:
 
 $$\logit(p_i) = \ln\!\left(\frac{p_i}{1 - p_i}\right) = \beta_0 + \beta_1 X_{i1} + \dots + \beta_p X_{ip}.$$
 
-Wyrażenie $\frac{p_i}{1 - p_i}$ nazywamy **ilorazem szans** (ang. *odds*). Jest to stosunek prawdopodobieństwa sukcesu do prawdopodobieństwa porażki. Logarytm tego ilorazu — **logit** — jest liniową funkcją predyktorów.
+Wyrażenie $\frac{p_i}{1 - p_i}$ nazywamy **szansą** (ang. *odds*). Jest to stosunek prawdopodobieństwa sukcesu do prawdopodobieństwa porażki. Logarytm szansy — **logit** — jest liniową funkcją predyktorów.
 
 ### Interpretacja współczynników — ilorazy szans
 
-To najważniejsza część zrozumienia regresji logistycznej. Współczynnik $\beta_j$ mówi nam, o ile zmienia się **logarytm ilorazu szans** przy wzroście predyktora $X_j$ o 1 jednostkę, przy pozostałych predyktorach utrzymanych na stałym poziomie.
+To najważniejsza część zrozumienia regresji logistycznej. Współczynnik $\beta_j$ mówi nam, o ile zmienia się **logarytm szansy** przy wzroście predyktora $X_j$ o 1 jednostkę, przy pozostałych predyktorach utrzymanych na stałym poziomie.
 
 W praktyce interpretujemy **iloraz szans** (ang. *odds ratio*, OR):
 
-$$\text{OR}_j = \exp(\beta_j).$$
+$$\text{OR}_j = \frac{\mathrm{odds}(X_j+1, X_{-j})}{\mathrm{odds}(X_j, X_{-j})} = \exp(\beta_j).$$
+
+Szansa dotyczy jednego profilu: przy $p=0.2$ wynosi $0.2/0.8=0.25$ (1 do 4). Iloraz szans porównuje dwa profile. Dla wzrostu predyktora o $\Delta$ jednostek OR wynosi $\exp(\Delta\beta_j)$; dla zmiennej jakościowej porównujemy kategorię z referencyjną. Te proste interpretacje zakładają brak interakcji z danym predyktorem.
 
 - $\text{OR} = 1$: brak związku predyktora ze zdarzeniem.
 - $\text{OR} > 1$: wzrost predyktora zwiększa szanse wystąpienia zdarzenia.
@@ -100,34 +108,20 @@ $$\text{OR}_j = \exp(\beta_j).$$
 
 Na przykład, jeżeli $\text{OR}_{\text{smoke}} = 2.5$, to szanse niskiej masy urodzeniowej u dzieci matek palących są 2.5 razy większe niż u dzieci matek niepalących, przy kontrolowaniu pozostałych zmiennych.
 
-::: callout-tip
-### Iloraz szans a ryzyko względne
-
-W badaniach medycznych często interesuje nas **ryzyko względne** (ang. *relative risk*, RR), czyli stosunek prawdopodobieństw zdarzenia w dwóch grupach:
-
-$$\text{RR} = \frac{p_1}{p_0}, \qquad \text{OR} = \frac{p_1 / (1 - p_1)}{p_0 / (1 - p_0)}.$$
-
-Gdy zdarzenie jest rzadkie ($p_0$ i $p_1$ bliskie zeru), mianowniki $(1-p)$ są bliskie 1, więc OR $\approx$ RR. Na przykład, jeśli $p_0 = 0.02$ i $p_1 = 0.04$, to RR $= 2.0$, a OR $= 2.08$ — różnica jest minimalna.
-
-Jednak gdy zdarzenie jest częste, rozbieżność rośnie. Dla $p_0 = 0.3$ i $p_1 = 0.5$ mamy RR $= 1.67$, ale OR $= \frac{0.5/0.5}{0.3/0.7} = 2.33$. Iloraz szans **przeszacowuje** siłę związku w stosunku do ryzyka względnego.
-
-W naszym zbiorze niska masa urodzeniowa występuje u około 31% obserwacji, więc OR nie należy wprost utożsamiać z ryzykiem względnym. Ilorazy szans interpretujemy jako miary siły związku na skali szans, a nie prawdopodobieństw.
-:::
-
 ### Założenia regresji logistycznej
 
-Regresja logistyczna ma mniej założeń niż regresja liniowa, ale nadal wymaga:
+Regresja logistyczna ma inne założenia niż klasyczna regresja liniowa. W tym modelu wymagamy:
 
 1.  **Zmienna objaśniana jest binarna**: $Y_i \in \{0, 1\}$.
 2.  **Niezależność obserwacji**: wyniki poszczególnych obserwacji nie zależą od siebie.
 3.  **Liniowość logitu**: związek między predyktorami ciągłymi a logitem prawdopodobieństwa jest liniowy.
 4.  **Brak silnej współliniowości**: predyktory nie przenoszą prawie tej samej informacji.
-5.  **Odpowiednio duża próba**: jako orientacyjna reguła kciuka przyjmuje się, że na każdy estymowany parametr powinno przypadać co najmniej 10–20 zdarzeń (obserwacji z $Y=1$).
+5.  **Dostateczna informacja do estymacji**: małe liczebności kombinacji predyktorów oraz pełna lub quasi-pełna separacja mogą uniemożliwić skończoną, stabilną estymację MNW. Liczba zdarzeń na parametr to wskazówka, nie kryterium spełnienia założeń.
 
 ::: callout-note
 ### Czego NIE zakładamy
 
-Regresja logistyczna **nie wymaga** normalności zmiennych, normalności reszt ani stałości wariancji. To odróżnia ją od klasycznej regresji liniowej.
+Regresja logistyczna **nie wymaga** normalności zmiennych, normalności reszt ani stałości wariancji. Wariancja warunkowa wynika jednak z modelu Bernoulliego: $\Var(Y_i\mid X_i)=p_i(1-p_i)$. Regresja liniowa również nie wymaga normalności predyktorów.
 :::
 
 ### Estymacja parametrów — metoda największej wiarygodności
@@ -150,15 +144,17 @@ W regresji logistycznej używamy kilku uzupełniających się miar:
 
 #### Dewiancja i test ilorazu wiarygodności
 
-**Dewiancja** (ang. *deviance*) jest odpowiednikiem sumy kwadratów reszt w regresji liniowej:
+**Dewiancja** porównuje model dopasowany z modelem nasyconym:
 
-$$D = -2\,\ell(\hat\beta).$$
+$$D = 2[\ell_{\mathrm{sat}}-\ell(\hat\beta)].$$
+
+Dla indywidualnych obserwacji Bernoulliego $\ell_{\mathrm{sat}}=0$, więc tutaj $D=-2\ell(\hat\beta)$. Nie jest to uniwersalna tożsamość dla wszystkich GLM. Samej dewiancji rezydualnej nie interpretujemy jako prostego testu dopasowania $\chi^2$ dla rzadkich, niepogrupowanych danych binarnych.
 
 Test ilorazu wiarygodności (LRT) porównuje dewiancję dwóch zagnieżdżonych modeli. Statystyka testowa $\Delta D = D_{\text{mniejszy}} - D_{\text{większy}}$ ma asymptotycznie rozkład $\chi^2$ z liczbą stopni swobody równą różnicy liczby parametrów.
 
 #### Kryterium informacyjne Akaike (AIC)
 
-$$\text{AIC} = D + 2k,$$
+$$\text{AIC} = -2\ell(\hat\beta) + 2k = D + 2k \quad\text{(tutaj)},$$
 
 gdzie $k$ to liczba estymowanych parametrów. Niższe AIC oznacza lepszy kompromis między dopasowaniem a złożonością modelu.
 
@@ -172,11 +168,7 @@ Przy ustalonym progu odcięcia (najczęściej 0.5) klasyfikujemy obserwacje i li
 
 #### Krzywa ROC i pole pod krzywą (AUC)
 
-Krzywa ROC przedstawia zależność czułości od $(1 - \text{swoistość})$ dla wszystkich możliwych progów odcięcia. **AUC** (pole pod krzywą) jest liczbą z zakresu $[0.5, 1]$:
-
-- $\text{AUC} \approx 0.5$: model nie ma zdolności dyskryminacyjnej.
-- $\text{AUC} \geq 0.7$: akceptowalna zdolność dyskryminacyjna.
-- $\text{AUC} \geq 0.8$: dobra zdolność dyskryminacyjna.
+Krzywa ROC przedstawia czułość względem $1-\text{swoistość}$ dla różnych progów. AUC należy do $[0,1]$ i określa prawdopodobieństwo, że losowy przypadek zdarzenia otrzyma wyższy wynik niż losowy brak zdarzenia (z połową wagi dla remisów). AUC około 0.5 oznacza losowe uporządkowanie; poniżej 0.5 możliwy jest odwrócony kierunek wyniku. Nie stosujemy automatycznych etykiet „akceptowalny” dla AUC $>0.7$: użyteczność zależy od zadania. AUC nie ocenia kalibracji ani kosztów błędów.
 
 ## Opis danych
 
@@ -203,8 +195,7 @@ dane <- MASS::birthwt |>
 
 dane |>
     head(8) |>
-    gt() |>
-    tab_caption("Przykładowe obserwacje w zbiorze")
+    tabela_wynikow("Przykładowe obserwacje w zbiorze")
 ```
 
 ## Eksploracyjna analiza danych
@@ -299,7 +290,7 @@ ggbetweenstats(
 )
 ```
 
-Na etapie eksploracji widać, że palenie w ciąży, nadciśnienie tętnicze i drażliwość macicy mogą zwiększać odsetek niskiej masy urodzeniowej. Masa ciała matki wydaje się nieco niższa w grupie z niską masą urodzeniową. Wiek matki nie wykazuje wyraźnego związku dwuwymiarowego, ale może okazać się istotny po kontrolowaniu pozostałych zmiennych.
+Na etapie eksploracji widać, że palenie w ciąży, nadciśnienie tętnicze i drażliwość macicy wiążą się z większym odsetkiem niskiej masy urodzeniowej. Masa ciała matki wydaje się nieco niższa w grupie z niską masą urodzeniową. Wiek matki nie wykazuje wyraźnego związku dwuwymiarowego, ale może okazać się istotny po kontrolowaniu pozostałych zmiennych.
 
 ## Budowa modelu
 
@@ -307,7 +298,7 @@ Na etapie eksploracji widać, że palenie w ciąży, nadciśnienie tętnicze i d
 
 Budujemy cztery modele o rosnącej złożoności. Każdy z nich musi być uzasadniony merytorycznie:
 
-1.  **Model 1**: tylko palenie — najsilniejszy pojedynczy kandydat z literatury.
+1.  **Model 1**: tylko palenie — wyjściowy predyktor w tym przykładzie.
 2.  **Model 2**: palenie + masa ciała matki — dodajemy zmienną ciągłą opisującą budowę matki.
 3.  **Model 3**: palenie + masa ciała matki + nadciśnienie + drażliwość macicy — dodajemy czynniki kliniczne.
 4.  **Model 4**: jak Model 3, ale dodatkowo przynależność etniczna i wiek matki — model pełny.
@@ -339,15 +330,15 @@ modele <- list(
 
 porownanie <- tibble(
     model = names(modele),
-    liczba_parametrow = map_dbl(modele, ~ length(coef(.x))),
+    liczba_parametrow = map_int(modele, ~ length(coef(.x))),
     dewiancja = map_dbl(modele, deviance),
     aic = map_dbl(modele, AIC)
-) |>
-    mutate(across(where(is.numeric), ~ round(.x, 2)))
+)
 
 porownanie |>
     gt() |>
-    fmt_number(columns = 2:4, decimals = 2) |>
+    formatuj_tabele() |>
+    fmt_number(columns = c(dewiancja, aic), decimals = 3) |>
     tab_caption("Porównanie modeli kandydackich")
 ```
 
@@ -379,13 +370,8 @@ tibble(
         lrt_4vs3$`Pr(>Chi)`[2]
     )
 ) |>
-    mutate(
-        chi2 = round(abs(chi2), 3),
-        p_value = round(p_value, 4)
-    ) |>
-    gt() |>
-    fmt_number(columns = c(chi2, p_value), decimals = 4) |>
-    tab_caption("Testy ilorazu wiarygodności dla zagnieżdżonych modeli")
+    mutate(chi2 = abs(chi2), df = as.integer(df)) |>
+    tabela_wynikow("Testy ilorazu wiarygodności dla zagnieżdżonych modeli")
 ```
 
 ### Wybór modelu końcowego
@@ -394,11 +380,13 @@ Na podstawie wyników AIC i testów ilorazu wiarygodności:
 
 - Przejście z Modelu 1 do Modelu 2 (dodanie `lwt`) obniża AIC i jest istotne w LRT — masa ciała matki wnosi dodatkową informację.
 - Przejście z Modelu 2 do Modelu 3 (dodanie `ht` i `ui`) dalej obniża AIC, a LRT wskazuje na istotną poprawę — czynniki kliniczne są ważne.
-- Przejście z Modelu 3 do Modelu 4 (dodanie `race` i `age`) jest istotne w LRT i obniża AIC — przynależność etniczna wnosi dodatkową informację predykcyjną, co jest zgodne z literaturą epidemiologiczną dotyczącą niskiej masy urodzeniowej.
+- Przejście z Modelu 3 do Modelu 4 (dodanie `race` i `age`) jest istotne w LRT i obniża AIC — zestaw `race` i `age` poprawia dopasowanie w tej próbie. Test dotyczy `race` i `age` łącznie, nie dowodzi wkładu każdej z tych zmiennych oddzielnie.
 
 Ponieważ każde kolejne rozszerzenie modelu jest uzasadnione zarówno statystycznie (istotny LRT), jak i merytorycznie, jako **model końcowy** wybieramy **Model 4**:
 
 $$\logit\!\big(\P(\texttt{low} = 1)\big) = \beta_0 + \beta_1 \cdot \texttt{smoke} + \beta_2 \cdot \texttt{lwt} + \beta_3 \cdot \texttt{ht} + \beta_4 \cdot \texttt{ui} + \beta_5 \cdot \texttt{race}_{\text{czarnoskóra}} + \beta_6 \cdot \texttt{race}_{\text{inna}} + \beta_7 \cdot \texttt{age}.$$
+
+Wybór na tych samych danych powoduje, że późniejsze testy i przedziały nie uwzględniają niepewności selekcji. AIC i LRT oceniają względne dopasowanie, a nie trafność na nowych porodach. Historyczne kategorie `race` nie są miarą mechanizmu biologicznego; mogą odzwierciedlać nieuwzględnione uwarunkowania społeczne i dostęp do opieki.
 
 Model ten uwzględnia zarówno czynniki kliniczne (`smoke`, `ht`, `ui`), jak i demograficzne (`lwt`, `race`, `age`).
 
@@ -407,7 +395,9 @@ Model ten uwzględnia zarówno czynniki kliniczne (`smoke`, `ht`, `ui`), jak i d
 model_koncowy <- model_4
 
 model_parameters(model_koncowy, exponentiate = TRUE) |>
-    print_html()
+    as.data.frame() |>
+    rename(p_value = p) |>
+    tabela_wynikow("Parametry modelu końcowego — skala po eksponentacji")
 ```
 
 ## Ocena dopasowania modelu końcowego
@@ -436,6 +426,7 @@ miary <- tibble(
 
 miary |>
     gt() |>
+    formatuj_tabele() |>
     fmt_number(columns = wartosc, decimals = 3) |>
     tab_caption("Miary dopasowania modelu końcowego")
 ```
@@ -460,7 +451,7 @@ tabela_pomylek <- table(
     Przewidywane = dane_model$pred_klasa
 )
 
-tabela_pomylek
+tabela_pomylek_gt(tabela_pomylek, "Macierz pomyłek — próg 0,5")
 ```
 
 ```{r}
@@ -482,6 +473,7 @@ miary_klas <- tibble(
 
 miary_klas |>
     gt() |>
+    formatuj_tabele() |>
     fmt_number(columns = wartosc, decimals = 3) |>
     tab_caption("Miary klasyfikacyjne (próg = 0.5)")
 ```
@@ -491,53 +483,131 @@ miary_klas |>
 ```{r}
 #| label: wyk2-roc
 #| fig-cap: "Krzywa ROC modelu końcowego"
-roc_obj <- roc(dane_model$low01, dane_model$pred_prob, quiet = TRUE)
+roc_obj <- roc(dane_model$low01, dane_model$pred_prob,
+               levels = c(0, 1), direction = "<", quiet = TRUE)
 
-ggroc(roc_obj, color = "firebrick", linewidth = 1) +
-    geom_abline(slope = 1, intercept = 1, linetype = "dashed", color = "grey50") +
+progi_roc <- pROC::coords(
+    roc_obj,
+    x = c(0.3, 0.4, 0.5, 0.6, 0.7),
+    input = "threshold",
+    ret = c("threshold", "specificity", "sensitivity"),
+    transpose = FALSE
+) |>
+    as_tibble() |>
+    mutate(
+        fpr = 1 - specificity,
+        etykieta = sprintf("próg = %.1f", threshold)
+    )
+
+ggroc(roc_obj, legacy.axes = TRUE, color = "firebrick", linewidth = 1) +
+    geom_point(
+        data = progi_roc,
+        aes(x = fpr, y = sensitivity),
+        inherit.aes = FALSE, color = "firebrick", size = 2.5
+    ) +
+    ggrepel::geom_label_repel(
+        data = progi_roc,
+        aes(x = fpr, y = sensitivity, label = etykieta),
+        inherit.aes = FALSE, seed = 42, size = 3.5,
+        box.padding = 0.5, point.padding = 0.3,
+        min.segment.length = 0, max.overlaps = Inf
+    ) +
+    annotate(
+        "segment", x = 0, y = 0, xend = 1, yend = 1,
+        linetype = "dashed", color = "grey50"
+    ) +
+    annotate(
+        "text", x = 0.75, y = 0.65,
+        label = "AUC = 0.5", color = "grey50", size = 4
+    ) +
     annotate(
         "text",
-        x = 0.3, y = 0.3,
+        x = 0.3, y = 0.2,
         label = sprintf("AUC = %.3f", auc(roc_obj)),
         size = 5, color = "firebrick"
     ) +
-    labs(x = "Swoistość", y = "Czułość", title = "Krzywa ROC") +
+    labs(x = "1-Specyficzność", y = "Czułość", title = "Krzywa ROC") +
     theme_minimal(base_size = 13)
 ```
 
-Wartość AUC wynosi `r round(auc(roc_obj), 3)`, co oznacza `r ifelse(auc(roc_obj) >= 0.8, "dobrą", ifelse(auc(roc_obj) >= 0.7, "akceptowalną", "słabą"))` zdolność dyskryminacyjną modelu. Jest to typowy wynik dla modeli opartych na danych klinicznych z ograniczoną liczbą predyktorów.
+AUC wynosi `r round(as.numeric(auc(roc_obj)), 3)`, ale obliczono je na danych dopasowania i wyboru modelu. Podobnie macierz pomyłek i miary klasyfikacyjne są ocenami pozornymi, zwykle optymistycznymi. Accuracy porównujemy z klasyfikacją większościową (tutaj około 69%). Próg 0.5 jest przykładowy; jego dobór wymaga uzasadnienia kosztami błędów i walidacji. Pseudo-$R^2$ Nagelkerkego nie jest odsetkiem wyjaśnionej wariancji.
 
 ## Sprawdzanie założeń
 
 ### Liniowość logitu dla zmiennej ciągłej
 
-Dla zmiennej ciągłej `lwt` sprawdzamy, czy związek z logitem jest w przybliżeniu liniowy.
+Wykres logitów w arbitralnych przedziałach `lwt` nie sprawdza liniowości **warunkowej** w modelu wielorakim. Pomija pozostałe predyktory, jest wrażliwy na granice przedziałów i liczebności. Usunięcie grup z odsetkiem 0 lub 1 dodatkowo zniekształca obraz. Dopasowanie prostej do kilku punktów nie potwierdza założenia.
+
+Porównajmy więc model liniowy w `lwt` i `age` z modelem zawierającym naturalne splajny obu zmiennych, przy zachowaniu pozostałych predyktorów.
 
 ```{r}
 #| label: wyk2-liniowosc-logitu
-#| fig-cap: "Sprawdzenie liniowości logitu dla zmiennej lwt"
-dane_model |>
-    mutate(lwt_bin = cut(lwt, breaks = 5)) |>
-    group_by(lwt_bin) |>
-    summarise(
-        prop = mean(low01),
-        logit_empiryczny = log(prop / (1 - prop)),
-        lwt_mean = mean(lwt),
-        .groups = "drop"
-    ) |>
-    filter(is.finite(logit_empiryczny)) |>
-    ggplot(aes(x = lwt_mean, y = logit_empiryczny)) +
-    geom_point(size = 3) +
-    geom_smooth(method = "lm", se = FALSE, color = "firebrick") +
-    labs(
-        x = "Średnia lwt w przedziale",
-        y = "Empiryczny logit",
-        title = "Liniowość logitu: lwt"
+model_splajny <- glm(
+  low01 ~ smoke + splines::ns(lwt, df = 3) + ht + ui + race +
+    splines::ns(age, df = 3),
+  data = dane_model, family = binomial
+)
+porownanie_splajnow <- anova(model_koncowy, model_splajny, test = "Chisq")
+tibble(
+  model = c("Liniowy logit", "Splajny: lwt i age"),
+  df_reszt = porownanie_splajnow$`Resid. Df`,
+  dewiancja_reszt = porownanie_splajnow$`Resid. Dev`,
+  roznica_df = porownanie_splajnow$Df,
+  roznica_dewiancji = porownanie_splajnow$Deviance,
+  p_value = porownanie_splajnow$`Pr(>Chi)`
+) |> tabela_wynikow("Liniowość logitu — test ilorazu wiarygodności") |>
+  cols_label(model = "Model", df_reszt = "df reszt",
+             dewiancja_reszt = "Dewiancja reszt", roznica_df = "Różnica df",
+             roznica_dewiancji = "Różnica dewiancji")
+
+wykres_liniowosci_logitu <- function(zmienna, etykieta) {
+  profil <- dane_model[rep(1, 100), ]
+  profil$lwt <- median(dane_model$lwt)
+  profil$age <- median(dane_model$age)
+  profil[[zmienna]] <- seq(
+    min(dane_model[[zmienna]]), max(dane_model[[zmienna]]), length.out = 100
+  )
+  profil$smoke <- factor("nie", levels = levels(dane_model$smoke))
+  profil$ht <- factor("nie", levels = levels(dane_model$ht))
+  profil$ui <- factor("nie", levels = levels(dane_model$ui))
+  profil$race <- factor("biała", levels = levels(dane_model$race))
+  p_splajn <- predict(model_splajny, newdata = profil, type = "link", se.fit = TRUE)
+  tibble(
+    x = profil[[zmienna]],
+    liniowy = predict(model_koncowy, newdata = profil, type = "link"),
+    splajn = as.numeric(p_splajn$fit),
+    dol = splajn - 1.96 * p_splajn$se.fit,
+    gora = splajn + 1.96 * p_splajn$se.fit
+  ) |>
+    ggplot(aes(x)) +
+    geom_ribbon(aes(ymin = dol, ymax = gora), alpha = 0.15) +
+    geom_line(aes(y = splajn, colour = "Splajny")) +
+    geom_line(aes(y = liniowy, colour = "Model liniowy"), linetype = "dashed") +
+    geom_rug(
+      data = tibble(x = dane_model[[zmienna]]), aes(x = x),
+      inherit.aes = FALSE, alpha = 0.3
     ) +
-    theme_minimal(base_size = 13)
+    labs(x = etykieta, y = "Warunkowy logit", colour = "Postać") +
+    theme_minimal() +
+    theme(plot.margin = margin(8, 8, 8, 24))
+}
 ```
 
-Jeśli punkty układają się w przybliżeniu wzdłuż prostej, założenie liniowości logitu jest spełnione.
+Na obu wykresach porównujemy liniową i splajnową postać zależności. Ustalamy profil matki niepalącej, bez nadciśnienia i drażliwości macicy, w kategorii `race = "biała"`. Przy zmianie `lwt` wiek utrzymujemy na medianie, a przy zmianie `age` — masę ciała na medianie.
+
+```{r}
+#| label: wyk2-liniowosc-logitu-lwt
+#| fig-cap: "Liniowość logitu — masa ciała matki (lwt), przy ustalonych pozostałych cechach"
+wykres_liniowosci_logitu("lwt", "Masa ciała matki (funty)")
+```
+
+```{r}
+#| label: wyk2-liniowosc-logitu-age
+#| fig-cap: "Liniowość logitu — wiek matki (age), przy ustalonych pozostałych cechach"
+wykres_liniowosci_logitu("age", "Wiek matki (lata)")
+```
+
+Łączny LRT dla dodatkowych 4 stopni swobody daje tutaj $p \approx$ `r round(porownanie_splajnow[["Pr(>Chi)"]][2], 3)`. Na poziomie istotności 0,05 nie ma podstaw do odrzucenia modelu liniowego na rzecz modelu ze splajnami. Test dotyczy łącznie `lwt` i `age`; nie ocenia każdego efektu oddzielnie. Przerywane proste są narzucone przez model liniowy, a krzywe splajnowe pozwalają ocenić możliwe odchylenia od tej postaci. Pasy wokół splajnów to punktowe 95% przedziały ufności logitu dla ustalonych profili, a nie test różnicy modeli. Kreski na osiach pokazują rozmieszczenie obserwacji; na krańcach danych informacja jest skąpa. Zwiększanie elastyczności wymaga kontroli przeuczenia i walidacji.
 
 ### Współliniowość predyktorów (VIF)
 
@@ -549,9 +619,13 @@ vif_wartosci <- car::vif(model_koncowy)
 if (is.matrix(vif_wartosci)) {
     tibble(
         zmienna = rownames(vif_wartosci),
-        GVIF = round(as.numeric(vif_wartosci[, 1]), 3)
+        GVIF = round(as.numeric(vif_wartosci[, 1]), 3),
+        df = vif_wartosci[, 2],
+        GVIF_skorygowany = round(vif_wartosci[, 3], 3)
     ) |>
         gt() |>
+        formatuj_tabele() |>
+        fmt_number(columns = c(GVIF, GVIF_skorygowany), decimals = 3) |>
         tab_caption("Uogólnione współczynniki VIF")
 } else {
     tibble(
@@ -559,22 +633,38 @@ if (is.matrix(vif_wartosci)) {
         VIF = round(as.numeric(vif_wartosci), 3)
     ) |>
         gt() |>
+        formatuj_tabele() |>
+        fmt_number(columns = VIF, decimals = 3) |>
         tab_caption("Współczynniki VIF")
 }
 ```
 
-Wartości VIF bliskie 1 oznaczają brak istotnej współliniowości między predyktorami.
+Dla terminów o różnej liczbie stopni swobody porównujemy $GVIF^{1/(2df)}$, nie surowe GVIF. Dla `df = 1` jest to pierwiastek VIF, więc nie przykładamy do niego progów 5 lub 10. Wynik bliski 1 sugeruje niewielką inflację niepewności, a nie „brak istotnej” współliniowości w sensie testu. Zob. [dokumentacja `car::vif`](https://www.stat.ethz.ch/CRAN/web/packages/car/refman/car.html).
 
 ### Reguła kciuka — liczba zdarzeń na parametr
 
 ```{r}
 #| label: wyk2-epp
 n_zdarzen <- sum(dane_model$low01)
-n_parametrow <- length(coef(model_koncowy))
+n_parametrow <- length(coef(model_koncowy)) - 1 # współczynniki nachylenia
 epp <- n_zdarzen / n_parametrow
 ```
 
-W zbiorze jest `r n_zdarzen` przypadków niskiej masy urodzeniowej, a model ma `r n_parametrow` parametrów. Daje to `r round(epp, 1)` zdarzeń na parametr, co `r ifelse(epp >= 10, "spełnia", "nie spełnia")` reguły kciuka (co najmniej 10 zdarzeń na parametr).
+W zbiorze jest `r n_zdarzen` zdarzeń i `r nrow(dane_model) - n_zdarzen` braków zdarzenia. Model zawiera `r n_parametrow` współczynników predyktorów (bez wyrazu wolnego; `race` wymaga dwóch). EPP wynosi `r round(epp, 1)`, poniżej historycznej reguły 10. Nie oznacza to automatycznej nieważności modelu; sugeruje ryzyko niestabilności i zbyt optymistycznego dopasowania. Uwzględniamy też liczbę rozważanych parametrów, selekcję i rzadkie kategorie. [Zalecenia dotyczące liczebności](https://www.bmj.com/content/368/bmj.m441) odchodzą od jednego uniwersalnego progu.
+
+### Zbieżność, separacja i obserwacje wpływowe
+
+```{r}
+#| label: wyk2-wplyw
+stopifnot(model_koncowy$converged, all(is.finite(coef(model_koncowy))))
+tibble(wiersz = seq_len(nrow(dane_model)),
+       Cook = cooks.distance(model_koncowy),
+       dzwignia = hatvalues(model_koncowy)) |>
+  arrange(desc(Cook)) |> slice_head(n = 5) |>
+  tabela_wynikow("Obserwacje o największej odległości Cooka")
+```
+
+Sama zbieżność nie wyklucza quasi-separacji ani dużej niepewności: sprawdzamy liczebności kategorii, duże błędy standardowe i skrajne prognozy. Wpływowe wiersze wymagają weryfikacji danych i analizy wrażliwości, nie automatycznego usuwania. Przy separacji można rozważyć estymację z redukcją obciążenia (np. Firtha), a przy przeuczeniu regularyzację lub uproszczenie modelu i walidację. Dla porodów zależnych (np. tej samej matki) trzeba uwzględnić grupowanie, zamiast zakładać niezależność.
 
 ## Interpretacja parametrów modelu
 
@@ -583,20 +673,18 @@ W zbiorze jest `r n_zdarzen` przypadków niskiej masy urodzeniowej, a model ma `
 or_tabela <- tibble(
     parametr = names(coef(model_koncowy)),
     beta = coef(model_koncowy),
-    OR = exp(coef(model_koncowy)),
+    OR = ifelse(names(coef(model_koncowy)) == "(Intercept)", NA_real_,
+                exp(coef(model_koncowy))),
     ci_low = exp(confint.default(model_koncowy)[, 1]),
     ci_high = exp(confint.default(model_koncowy)[, 2]),
     p_value = summary(model_koncowy)$coefficients[, 4]
-) |>
-    mutate(across(c(beta, OR, ci_low, ci_high), ~ round(.x, 3))) |>
-    mutate(p_value = round(p_value, 4))
+)
 
 or_tabela |>
-    gt() |>
-    fmt_number(columns = c(beta, OR, ci_low, ci_high), decimals = 3) |>
-    fmt_number(columns = p_value, decimals = 4) |>
-    tab_caption("Współczynniki modelu z ilorazami szans i 95% przedziałami ufności")
+    tabela_wynikow("Współczynniki i 95% przedziały Walda po eksponentacji (dla nachyleń: OR)")
 ```
+
+Wyraz wolny po eksponentacji jest szansą dla profilu referencyjnego z `lwt = 0` i `age = 0`, nie ilorazem szans. Taki profil leży poza zakresem danych. Przedziały w tabeli są przybliżonymi przedziałami Walda; przy małej informacji warto porównać je z profilowymi i zbadać stabilność.
 
 ### Interpretacja poszczególnych efektów
 
@@ -604,20 +692,20 @@ Przy pozostałych zmiennych utrzymanych na stałym poziomie:
 
 1.  **Palenie** (`smoke`): iloraz szans wynosi `r round(exp(coef(model_koncowy)["smoketak"]), 2)`. Oznacza to, że szanse niskiej masy urodzeniowej u dzieci matek palących w ciąży są `r round(exp(coef(model_koncowy)["smoketak"]), 2)` razy `r ifelse(exp(coef(model_koncowy)["smoketak"]) > 1, "większe", "mniejsze")` niż u dzieci matek niepalących.
 
-2.  **Masa ciała matki** (`lwt`): iloraz szans wynosi `r round(exp(coef(model_koncowy)["lwt"]), 3)`. Wzrost masy ciała matki o 1 funt wiąże się z `r ifelse(exp(coef(model_koncowy)["lwt"]) < 1, "zmniejszeniem", "zwiększeniem")` szans niskiej masy urodzeniowej o `r round(abs(1 - exp(coef(model_koncowy)["lwt"])) * 100, 1)`%. Efekt ten jest niewielki w skali pojedynczego funta, ale istotny klinicznie przy większych różnicach masy.
+2.  **Masa ciała matki** (`lwt`): iloraz szans wynosi `r round(exp(coef(model_koncowy)["lwt"]), 3)`. Wzrost masy ciała matki o 1 funt wiąże się z `r ifelse(exp(coef(model_koncowy)["lwt"]) < 1, "zmniejszeniem", "zwiększeniem")` szans niskiej masy urodzeniowej o `r round(abs(1 - exp(coef(model_koncowy)["lwt"])) * 100, 1)`%. Dla różnicy 10 funtów OR wynosi `r round(exp(10 * coef(model_koncowy)["lwt"]), 3)`. Znaczenia klinicznego nie ustalamy wyłącznie na podstawie OR: potrzebne są ryzyka bezwzględne, przedziały i kontekst.
 
 3.  **Nadciśnienie** (`ht`): iloraz szans wynosi `r round(exp(coef(model_koncowy)["httak"]), 2)`. Matki z nadciśnieniem w wywiadzie mają `r round(exp(coef(model_koncowy)["httak"]), 2)` razy `r ifelse(exp(coef(model_koncowy)["httak"]) > 1, "większe", "mniejsze")` szanse urodzenia dziecka z niską masą urodzeniową.
 
-4.  **Drażliwość macicy** (`ui`): iloraz szans wynosi `r round(exp(coef(model_koncowy)["uitak"]), 2)`. Obecność drażliwości macicy wiąże się z `r round(exp(coef(model_koncowy)["uitak"]), 2)`-krotnym `r ifelse(exp(coef(model_koncowy)["uitak"]) > 1, "wzrostem", "spadkiem")` szans niskiej masy urodzeniowej.
+4.  **Drażliwość macicy** (`ui`): iloraz szans wynosi `r round(exp(coef(model_koncowy)["uitak"]), 2)`. Obecność drażliwości macicy wiąże się z `r round(exp(coef(model_koncowy)["uitak"]), 2)`-krotną szansą niskiej masy urodzeniowej.
 
 5.  **Przynależność etniczna** (`race`): w porównaniu z matkami białymi (kategoria referencyjna), matki czarnoskóre mają iloraz szans równy `r round(exp(coef(model_koncowy)["raceczarnoskóra"]), 2)`, a matki z grupy „inna” — `r round(exp(coef(model_koncowy)["raceinna"]), 2)`. Oznacza to odpowiednio `r round(exp(coef(model_koncowy)["raceczarnoskóra"]), 2)`-krotne i `r round(exp(coef(model_koncowy)["raceinna"]), 2)`-krotne `r ifelse(exp(coef(model_koncowy)["raceczarnoskóra"]) > 1, "wyższe", "niższe")` szanse niskiej masy urodzeniowej.
 
-6.  **Wiek matki** (`age`): iloraz szans wynosi `r round(exp(coef(model_koncowy)["age"]), 3)`. Każdy dodatkowy rok życia matki wiąże się ze zmianą szans o `r round(abs(1 - exp(coef(model_koncowy)["age"])) * 100, 1)`%. Efekt ten jest niewielki i może nie osiągać istotności statystycznej, ale został włączony do modelu, ponieważ test ilorazu wiarygodności wykazuje istotną poprawę modelu po dodaniu `race` i `age` łącznie.
+6.  **Wiek matki** (`age`): iloraz szans wynosi `r round(exp(coef(model_koncowy)["age"]), 3)`. Każdy dodatkowy rok życia matki wiąże się z `r ifelse(coef(model_koncowy)["age"] < 0, "obniżeniem", "podwyższeniem")` szansy o `r round(abs(1 - exp(coef(model_koncowy)["age"])) * 100, 1)`%. Przedział ufności obejmuje 1 (p około 0.606), więc dane są zgodne zarówno ze spadkiem, jak i wzrostem szans, ale został włączony do modelu, ponieważ test ilorazu wiarygodności wykazuje istotną poprawę modelu po dodaniu `race` i `age` łącznie.
 
 ::: callout-note
 ### Istotność statystyczna a istotność kliniczna
 
-O istotności statystycznej decyduje p-value (porównanie z poziomem istotności, np. 0.05). Jednak nawet istotny statystycznie efekt może być klinicznie nieistotny, jeśli iloraz szans jest bliski 1. Dlatego zawsze interpretujemy wyniki łącznie — patrząc na OR, przedział ufności i p-value.
+O istotności statystycznej decyduje p-value (porównanie z poziomem istotności, np. 0.05). Jednak istotność statystyczna nie ustala znaczenia klinicznego. OR bliski 1 dla jednostkowej zmiany może oznaczać duży związek w szerszej skali, a duży OR może odpowiadać małej różnicy ryzyka bezwzględnego. Dlatego zawsze interpretujemy wyniki łącznie — patrząc na OR, przedział ufności i p-value.
 :::
 
 ## Predykcja dla wybranych obserwacji
@@ -646,12 +734,22 @@ nowe <- nowe |>
         klasyfikacja = ifelse(prob >= 0.5, "niska", "prawidłowa")
     )
 
+niepewnosc <- predict(model_koncowy, newdata = nowe, type = "link", se.fit = TRUE)
+nowe <- nowe |>
+    mutate(
+        prob_dol = plogis(niepewnosc$fit - 1.96 * niepewnosc$se.fit),
+        prob_gora = plogis(niepewnosc$fit + 1.96 * niepewnosc$se.fit)
+    )
+
 nowe |>
-    select(opis, logit, prob, klasyfikacja) |>
+    select(opis, logit, prob, prob_dol, prob_gora, klasyfikacja) |>
     gt() |>
-    fmt_number(columns = c(logit, prob), decimals = 3) |>
+    formatuj_tabele() |>
+    fmt_number(columns = c(logit, prob, prob_dol, prob_gora), decimals = 3) |>
     tab_caption("Predykcja dla dwóch przykładowych pacjentek")
 ```
+
+Kolumny `prob_dol` i `prob_gora` to przybliżone 95% przedziały ufności dla prawdopodobieństwa danego profilu (po transformacji przedziału na skali logitu). Nie są przedziałem dla wyniku pojedynczego porodu, który jest binarny, ani nie uwzględniają selekcji struktury i błędnej specyfikacji. Etykieta „prawidłowa” oznacza wyłącznie przewidywaną masę co najmniej 2500 g według progu, nie ocenę zdrowia dziecka.
 
 ### Co się dzieje krok po kroku?
 
@@ -671,7 +769,7 @@ Prawdopodobieństwo niskiej masy urodzeniowej wynosi `r round(nowe$prob[1] * 100
 
 #### Pacjentka B
 
-Pacjentka B jest niepalącą kobietą o masie ciała 170 lb, bez nadciśnienia i bez drażliwości macicy, białą, w wieku 30 lat. Brak klinicznych czynników ryzyka.
+Pacjentka B jest niepalącą kobietą o masie ciała 170 lb, bez nadciśnienia i bez drażliwości macicy, białą, w wieku 30 lat. Brak trzech uwzględnionych wskaźników (`smoke`, `ht`, `ui`) nie oznacza braku wszystkich czynników ryzyka.
 
 $$\eta_B = \hat\beta_0 + \hat\beta_{\text{smoke}} \cdot 0 + \hat\beta_{\text{lwt}} \cdot 170 + \hat\beta_{\text{ht}} \cdot 0 + \hat\beta_{\text{ui}} \cdot 0 + \hat\beta_{\text{race:inna}} \cdot 0 + \hat\beta_{\text{age}} \cdot 30 = `r round(nowe$logit[2], 3)`$$
 
@@ -682,27 +780,13 @@ Prawdopodobieństwo niskiej masy urodzeniowej wynosi `r round(nowe$prob[2] * 100
 ::: callout-tip
 ### Porównanie pacjentek
 
-Pacjentka A, u której współistnieją wszystkie badane czynniki ryzyka, ma wyraźnie wyższe przewidywane prawdopodobieństwo niskiej masy urodzeniowej niż Pacjentka B, u której nie występuje żaden z tych czynników. To dobrze ilustruje addytywny charakter efektów w regresji logistycznej na skali logitu.
+Pacjentka A, u której obecne są palenie, nadciśnienie i drażliwość macicy, ma wyraźnie wyższe przewidywane prawdopodobieństwo niskiej masy urodzeniowej niż Pacjentka B, u której te trzy wskaźniki mają wartość „nie”. Różni je jednak także wiek, masa i kategoria `race`, więc to porównanie nie izoluje związku żadnego pojedynczego predyktora. To dobrze ilustruje addytywny charakter efektów w regresji logistycznej na skali logitu.
 :::
 
 ## Wnioski
 
-1.  Regresja logistyczna jest właściwym narzędziem do badania czynników ryzyka zdarzeń binarnych i pozwala na interpretację wyników w kategoriach ilorazów szans.
-2.  Spośród badanych zmiennych za istotne czynniki ryzyka niskiej masy urodzeniowej można uznać te, których iloraz szans istotnie różni się od 1 (p \< 0.05).
-3.  Model końcowy (`smoke + lwt + ht + ui + race + age`) został wybrany na podstawie istotnego testu ilorazu wiarygodności i najniższego AIC spośród rozpatrywanych modeli.
-4.  Zdolność dyskryminacyjna modelu (AUC = `r round(auc(roc_obj), 3)`) jest `r ifelse(auc(roc_obj) >= 0.7, "akceptowalna", "ograniczona")`, a pseudo-$R^2$ (Nagelkerke) wynosi `r round(as.numeric(pseudo_r2), 3)`, co jest typowe dla danych klinicznych z umiarkowaną liczbą predyktorów.
-5.  Predykcja dla konkretnych obserwacji ilustruje addytywność efektów na skali logitu — kumulacja czynników ryzyka wyraźnie zwiększa przewidywane prawdopodobieństwo zdarzenia.
-6.  Wyniki mają charakter obserwacyjny i nie powinny być interpretowane przyczynowo bez dodatkowych założeń badawczych.
-
-### Podsumowanie dydaktyczne
-
-W przypadku binarnej zmiennej objaśnianej warto zapamiętać następującą sekwencję:
-
-1.  Jasno określ, jakie zdarzenie modelujesz ($Y = 1$).
-2.  Wybierz sensowne zmienne objaśniające i uzasadnij je merytorycznie.
-3.  Zbuduj kilka modeli i porównaj je za pomocą AIC i testu ilorazu wiarygodności.
-4.  Wybierz model na zasadzie kompromisu między dopasowaniem, prostotą i interpretowalnością.
-5.  Oceń dopasowanie (dewiancja, pseudo-$R^2$, macierz pomyłek, AUC).
-6.  Interpretuj wyniki za pomocą ilorazów szans (OR) z przedziałami ufności.
-7.  Sprawdź założenia: liniowość logitu, współliniowość, wystarczającą liczbę zdarzeń na parametr.
-8.  Sformułuj wnioski w języku problemu badawczego.
+1. Regresja logistyczna modeluje prawdopodobieństwo przez liniowy logit; eksponentowane współczynniki nachylenia to warunkowe ilorazy szans (OR).
+2. Model 4 ma najniższe AIC spośród kandydatów. Łączny LRT dla `race` i `age` nie dowodzi związku wieku oddzielnie.
+3. AUC i macierz pomyłek z danych dopasowania nie stanowią walidacji predykcji na nowych danych. Pseudo-$R^2$ nie jest odsetkiem wyjaśnionej wariancji.
+4. Porównanie ze splajnami nie potwierdza liniowości; ograniczona liczba zdarzeń i rzadkie kategorie uzasadniają ostrożność, analizę stabilności i walidację.
+5. Dane obserwacyjne z jednego szpitala w 1986 r. nie uzasadniają wniosków przyczynowych ani automatycznego przenoszenia prognoz na dzisiejsze populacje. Przykład jest dydaktyczny.

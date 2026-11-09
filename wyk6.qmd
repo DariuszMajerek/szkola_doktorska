@@ -83,11 +83,11 @@ Propagacja w przód (*forward pass*) to proces obliczania predykcji sieci dla da
 2.  Każda kolejna warstwa ukryta oblicza $\mathbf{a}^{(l)} = f^{(l)}(\mathbf{W}^{(l)} \mathbf{a}^{(l-1)} + \mathbf{b}^{(l)})$.
 3.  Warstwa wyjściowa daje końcową predykcję $\hat{y}$.
 
-Wielowarstwowość jest kluczowa: pojedyncza warstwa ukryta pozwala sieci być **uniwersalnym aproksymatorem**, a kolejne warstwy umożliwiają uczenie się hierarchicznych reprezentacji cech.
+Wielowarstwowość jest kluczowa: pojedyncza dostatecznie szeroka warstwa ukryta z odpowiednią nieliniową aktywacją pozwala aproksymować funkcje ciągłe na zbiorze zwartym z dowolną dokładnością, a kolejne warstwy umożliwiają uczenie się hierarchicznych reprezentacji cech.
 
 ### Funkcje aktywacji
 
-Funkcja aktywacji wprowadza **nieliniowość**. Bez niej cała sieć – niezależnie od liczby warstw – byłaby równoważna pojedynczej transformacji liniowej.
+Funkcja aktywacji wprowadza **nieliniowość**. Bez niej cała sieć – niezależnie od liczby warstw – byłaby równoważna pojedynczej transformacji afinicznej (liniowej z wyrazem wolnym).
 
 Najczęściej stosowane funkcje aktywacji:
 
@@ -101,11 +101,31 @@ Najczęściej stosowane funkcje aktywacji:
 ::: callout-tip
 ### Dlaczego ReLU?
 
-ReLU jest domyślnym wyborem dla warstw ukrytych, ponieważ nie cierpi na problem zanikającego gradientu (w przeciwieństwie do sigmoida i tanh), jest szybkie obliczeniowo i zwykle prowadzi do lepszej zbieżności treningu.
+ReLU jest domyślnym wyborem dla warstw ukrytych, ponieważ dla dodatnich wejść ma pochodną 1 i ogranicza problem nasycenia znany z sigmoida i tanh. Nie usuwa jednak ogólnego problemu zanikających gradientów, a dla ujemnych wejść ma pochodną zero (ryzyko „martwych” neuronów). Jest szybkie obliczeniowo.
 :::
 
 ```{python}
 #| label: wyk6-funkcje-aktywacji
+import pandas as pd
+from IPython.display import display
+
+def pokaz_tabele(dane, tytul, formaty=None):
+    tabela = pd.DataFrame(dane)
+    formatowanie = {kolumna: "{:.3f}" for kolumna in tabela.select_dtypes("floating").columns}
+    formatowanie.update(formaty or {})
+    display(
+        tabela.style.hide(axis="index")
+        .set_caption(tytul)
+        .format(formatowanie, na_rep="—", decimal=",", thousands=" ", escape="html")
+        .set_table_styles([
+            {"selector": "caption", "props": [("text-align", "left"), ("font-weight", "600"), ("font-size", "1.1em"), ("padding", "12px 0")]},
+            {"selector": "th", "props": [("text-align", "left"), ("border-bottom", "2px solid #718096"), ("padding", "10px 14px")]},
+            {"selector": "td", "props": [("padding", "9px 14px"), ("border-bottom", "1px solid #cbd5e1")]},
+            {"selector": "tbody tr:nth-child(even)", "props": [("background-color", "rgba(127,127,127,0.08)")]},
+            {"selector": "", "props": [("width", "100%"), ("font-size", "0.95em")]},
+        ])
+    )
+
 #| fig-cap: "Kształty najczęściej stosowanych funkcji aktywacji"
 import torch
 import numpy as np
@@ -211,7 +231,7 @@ W praktyce nie używamy pełnego zbioru danych do obliczenia gradientu (byłoby 
 
 ```{python}
 #| label: wyk6-sgd-ilustracja
-#| fig-cap: "Ilustracja SGD: optymalizacja prostej funkcji dwóch zmiennych"
+#| fig-cap: "Ilustracja spadku gradientowego: optymalizacja funkcji dwóch zmiennych"
 import torch
 
 def rosenbrock(x, y):
@@ -241,17 +261,17 @@ Z_plot = rosenbrock(torch.tensor(X_plot), torch.tensor(Y_plot))
 plt.figure(figsize=(8, 5))
 plt.contourf(X_plot, Y_plot, np.log1p(Z_plot), levels=30, cmap="viridis", alpha=0.7)
 plt.colorbar(label="log(1 + f(x,y))")
-plt.plot(historia[:, 0], historia[:, 1], "r.-", markersize=2, label="Ścieżka SGD")
+plt.plot(historia[:, 0], historia[:, 1], "r.-", markersize=2, label="Ścieżka spadku gradientowego")
 plt.plot(1, 1, "w*", markersize=14, markeredgecolor="black", label="Minimum (1,1)")
 plt.xlabel("x")
 plt.ylabel("y")
-plt.title("SGD na funkcji Rosenbrocka")
+plt.title("Spadek gradientowy na funkcji Rosenbrocka")
 plt.legend()
 plt.tight_layout()
 plt.show()
 ```
 
-Powyższa ilustracja pokazuje, jak SGD krok po kroku przesuwa parametry w kierunku minimum funkcji Rosenbrocka – klasycznego problemu testowego dla algorytmów optymalizacyjnych.
+Powyższa ilustracja pokazuje deterministyczny spadek gradientowy: choć używa klasy `torch.optim.SGD`, gradient pochodzi za każdym razem z tej samej pełnej funkcji, bez losowania obserwacji. Pokazuje, jak algorytm krok po kroku przesuwa parametry w kierunku minimum funkcji Rosenbrocka – klasycznego problemu testowego dla algorytmów optymalizacyjnych.
 
 ::: callout-tip
 ### Mini-batch, learning rate i epoki
@@ -275,7 +295,7 @@ Przewidywanie mediany wartości domu (w setkach tysięcy dolarów) na podstawie 
 
 ### Opis danych
 
-Zbiór `California Housing` zawiera **20 640 obserwacji**, co czyni go dobrze dopasowanym do uczenia sieci neuronowych. Każda obserwacja opisuje jedną dzielnicę (tzw. *block group*) za pomocą 8 cech:
+Zbiór `California Housing` zawiera **20 640 obserwacji**, co umożliwia przeprowadzenie przykładu, lecz samo w sobie nie gwarantuje przewagi sieci nad prostszymi modelami. Każda obserwacja opisuje jedną dzielnicę (tzw. *block group*) za pomocą 8 cech:
 
 - `MedInc` – mediana dochodu w dzielnicy,
 - `HouseAge` – mediana wieku domów,
@@ -298,10 +318,10 @@ from sklearn.preprocessing import StandardScaler
 data = fetch_california_housing()
 X, y = data.data, data.target
 
-print(f"Liczba obserwacji: {X.shape[0]}")
-print(f"Liczba cech: {X.shape[1]}")
-print(f"Zakres zmiennej docelowej: [{y.min():.2f}, {y.max():.2f}] (×100k USD)")
-print(f"Nazwy cech: {data.feature_names}")
+pokaz_tabele({
+    "Charakterystyka": ["Liczba obserwacji", "Liczba cech", "Zakres celu (×100k USD)", "Predyktory"],
+    "Wartość": [str(X.shape[0]), str(X.shape[1]), f"{y.min():.3f}–{y.max():.3f}", ", ".join(data.feature_names)],
+}, "California Housing — opis danych")
 ```
 
 Dla tego zbioru wydzielamy trzy podzbiory:
@@ -349,9 +369,10 @@ y_test_t  = torch.tensor(y_test_s, dtype=torch.float32)
 train_dataset = TensorDataset(X_train_t, y_train_t)
 train_loader  = DataLoader(train_dataset, batch_size=256, shuffle=True)
 
-print(f"Trening:    {len(X_train_t)} obserwacji")
-print(f"Walidacja:  {len(X_val_t)} obserwacji")
-print(f"Test:       {len(X_test_t)} obserwacji")
+pokaz_tabele({
+    "Zbiór": ["Treningowy", "Walidacyjny", "Testowy"],
+    "Liczba obserwacji": [len(X_train_t), len(X_val_t), len(X_test_t)],
+}, "Podział danych")
 ```
 
 ### Architektura sieci
@@ -382,19 +403,22 @@ class RegressionMLP(nn.Module):
         )
 
     def forward(self, x):
-        return self.net(x).squeeze()
+        return self.net(x).squeeze(-1)
 
 torch.manual_seed(42)
 model_reg = RegressionMLP(input_dim=X.shape[1])
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model_reg.parameters(), lr=0.001, weight_decay=1e-4)
 
-print(model_reg)
+pokaz_tabele({
+    "Warstwa": list(range(1, len(model_reg.net) + 1)),
+    "Konfiguracja": [str(warstwa) for warstwa in model_reg.net],
+}, "Sieć regresyjna — architektura")
 ```
 
 ### Trening sieci
 
-Trening prowadzimy za pomocą mini-batch SGD z `DataLoader` (batch size = 256). W każdej epoce monitorujemy stratę na zbiorze treningowym i walidacyjnym oraz zapamiętujemy najlepszy stan modelu według straty walidacyjnej. Zbiór testowy pozostaje nietknięty aż do końcowej oceny.
+Trening prowadzimy za pomocą optymalizatora Adam z gradientami liczonymi na mini-batchach z `DataLoader` (batch size = 256). W każdej epoce monitorujemy stratę na zbiorze treningowym i walidacyjnym oraz zapamiętujemy najlepszy stan modelu według straty walidacyjnej. Zbiór testowy pozostaje nietknięty aż do końcowej oceny.
 
 ```{python}
 #| label: wyk6-regresja-trening
@@ -434,9 +458,10 @@ for epoch in range(n_epochs):
 # Przywróć najlepszy model
 model_reg.load_state_dict(best_state)
 
-print(f"Najlepsza strata walidacyjna (MSE): {best_val_loss:.4f}")
-print(f"Końcowa strata treningowa (MSE):    {train_losses[-1]:.4f}")
-print(f"Końcowa strata walidacyjna (MSE):   {val_losses[-1]:.4f}")
+pokaz_tabele({
+    "Pomiar": ["Najlepsza walidacja", "Trening — ostatnia epoka", "Walidacja — ostatnia epoka"],
+    "MSE": [best_val_loss, train_losses[-1], val_losses[-1]],
+}, "Przebieg uczenia — regresja")
 ```
 
 ```{python}
@@ -454,7 +479,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-Adam stabilnie optymalizuje sieć – krzywa walidacyjna opada płynnie wraz z treningową. Przywracamy najlepszy stan modelu według walidacji, aby uniknąć sytuacji, w której ostatnia epoka przypadkowo wypadła gorzej.
+Krzywe należy ocenić po wykonaniu kodu: oscylacje i rozchodzenie się strat mogą wskazywać problemy z uczeniem lub przeuczenie. Przywracamy najlepszy stan modelu według walidacji, aby uniknąć sytuacji, w której ostatnia epoka przypadkowo wypadła gorzej.
 
 ### Ocena modelu
 
@@ -484,9 +509,11 @@ r2_train   = r2_score(y_train_orig, y_pred_train_orig)
 r2_val     = r2_score(y_val_orig, y_pred_val_orig)
 r2_test    = r2_score(y_test_orig, y_pred_test_orig)
 
-print(f"RMSE / R² – trening:  {rmse_train:.3f} / {r2_train:.3f}")
-print(f"RMSE / R² – walidacja: {rmse_val:.3f} / {r2_val:.3f}")
-print(f"RMSE / R² – test:      {rmse_test:.3f} / {r2_test:.3f}")
+pokaz_tabele({
+    "Zbiór": ["Treningowy", "Walidacyjny", "Testowy"],
+    "RMSE (×100k USD)": [rmse_train, rmse_val, rmse_test],
+    "R²": [r2_train, r2_val, r2_test],
+}, "Jakość predykcji — regresja")
 ```
 
 ```{python}
@@ -508,7 +535,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-Punkty układają się wzdłuż przekątnej, a wartości $R^2$ na trzech zbiorach są spójne – model nie przeucza się i dobrze generalizuje na nowe dzielnice.
+Bliskość przekątnej i porównanie metryk pomagają ocenić błędy. Podobne wyniki treningowe i testowe nie wykluczają przeuczenia ani obciążenia doboru próby. Losowy podział bloków spisowych nie weryfikuje uogólniania na odległe regiony; do tego potrzebna jest walidacja przestrzenna. Warto porównać model z prostym modelem bazowym i zbadać błędy w różnych zakresach cen.
 
 ## Przykład 2: klasyfikacja – diagnostyka raka piersi
 
@@ -519,12 +546,12 @@ W drugim przykładzie zbudujemy sieć neuronową do klasyfikacji binarnej – od
 ::: callout-important
 ### Cel klasyfikacyjny
 
-Przewidywanie, czy guz jest złośliwy (`1`) czy łagodny (`0`), na podstawie 30 cech opisujących właściwości geometryczne jąder komórkowych.
+Przewidywanie, czy guz jest złośliwy (`0`) czy łagodny (`1`), na podstawie 30 cech opisujących właściwości geometryczne jąder komórkowych.
 :::
 
 ### Opis danych
 
-Zbiór `breast_cancer` (Wisconsin Diagnostic Breast Cancer) zawiera 569 obserwacji. Każda opisuje jedno badanie cytologiczne za pomocą 30 cech liczbowych (m.in. promień, tekstura, obwód, pole powierzchni, gładkość jąder komórkowych). Zmienna docelowa jest binarna: `0` – guz łagodny, `1` – guz złośliwy.
+Zbiór `breast_cancer` (Wisconsin Diagnostic Breast Cancer) zawiera 569 obserwacji. Każda opisuje jedno badanie cytologiczne za pomocą 30 cech liczbowych (m.in. promień, tekstura, obwód, pole powierzchni, gładkość jąder komórkowych). Zmienna docelowa jest binarna: `0` – guz złośliwy, `1` – guz łagodny. Sigmoid w tym kodzie estymuje prawdopodobieństwo klasy **łagodnej**. Czułość wobec nowotworu złośliwego odczytujemy z wiersza `malignant` raportu, nie z metryki dla klasy 1. Zob. [dokumentacja zbioru](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_breast_cancer.html).
 
 ```{python}
 #| label: wyk6-klasyfikacja-dane
@@ -533,10 +560,10 @@ from sklearn.datasets import load_breast_cancer
 data_bc = load_breast_cancer()
 X_bc, y_bc = data_bc.data, data_bc.target
 
-print(f"Liczba obserwacji: {X_bc.shape[0]}")
-print(f"Liczba cech: {X_bc.shape[1]}")
-print(f"Rozkład klas: {dict(zip(data_bc.target_names, np.bincount(y_bc)))}")
-print(f"Nazwy cech (pierwsze 10): {list(data_bc.feature_names[:10])}")
+pokaz_tabele({
+    "Charakterystyka": ["Liczba obserwacji", "Liczba cech", "Guzy złośliwe (0)", "Guzy łagodne (1)", "Pierwsze 10 cech"],
+    "Wartość": [str(X_bc.shape[0]), str(X_bc.shape[1]), str(np.sum(y_bc == 0)), str(np.sum(y_bc == 1)), ", ".join(data_bc.feature_names[:10])],
+}, "Breast Cancer Wisconsin — opis danych")
 ```
 
 Podział 60/20/20 wykonujemy jak w przykładzie 1, tym razem z zachowaniem proporcji klas (*stratify*).
@@ -568,9 +595,10 @@ y_test_bc_t  = torch.tensor(y_test_bc, dtype=torch.float32)
 train_dataset_bc = TensorDataset(X_train_bc_t, y_train_bc_t)
 train_loader_bc  = DataLoader(train_dataset_bc, batch_size=32, shuffle=True)
 
-print(f"Trening:    {len(X_train_bc_t)} obserwacji")
-print(f"Walidacja:  {len(X_val_bc_t)} obserwacji")
-print(f"Test:       {len(X_test_bc_t)} obserwacji")
+pokaz_tabele({
+    "Zbiór": ["Treningowy", "Walidacyjny", "Testowy"],
+    "Liczba obserwacji": [len(X_train_bc_t), len(X_val_bc_t), len(X_test_bc_t)],
+}, "Podział danych")
 ```
 
 ### Architektura sieci
@@ -611,25 +639,30 @@ class BinaryMLP(nn.Module):
         )
 
     def forward(self, x):
-        return self.net(x).squeeze()
+        return self.net(x).squeeze(-1)
 
 torch.manual_seed(42)
 model_cls = BinaryMLP(input_dim=X_bc.shape[1])
 criterion_cls = nn.BCEWithLogitsLoss()
 optimizer_cls = optim.SGD(model_cls.parameters(), lr=0.01, momentum=0.9)
 
-print(model_cls)
+pokaz_tabele({
+    "Warstwa": list(range(1, len(model_cls.net) + 1)),
+    "Konfiguracja": [str(warstwa) for warstwa in model_cls.net],
+}, "Sieć klasyfikacyjna — architektura")
 ```
 
 ### Trening sieci
 
-Pętla treningowa jest analogiczna jak w przykładzie 1 (batch size = 32).
+Pętla treningowa jest analogiczna jak w przykładzie 1 (batch size = 32). Do końcowej oceny przywracamy epokę o najniższej stracie walidacyjnej; wybór epoki nie korzysta z testu.
 
 ```{python}
 #| label: wyk6-klasyfikacja-trening
 n_epochs_cls = 300
 train_losses_cls = []
 val_losses_cls = []
+best_val_cls = float("inf")
+best_state_cls = None
 
 for epoch in range(n_epochs_cls):
     # Trening – mini-batch SGD
@@ -650,9 +683,16 @@ for epoch in range(n_epochs_cls):
         logits_val = model_cls(X_val_bc_t)
         loss_val = criterion_cls(logits_val, y_val_bc_t)
         val_losses_cls.append(loss_val.item())
+    if val_losses_cls[-1] < best_val_cls:
+        best_val_cls = val_losses_cls[-1]
+        best_state_cls = copy.deepcopy(model_cls.state_dict())
 
-print(f"Końcowa strata treningowa:  {train_losses_cls[-1]:.4f}")
-print(f"Końcowa strata walidacyjna: {val_losses_cls[-1]:.4f}")
+model_cls.load_state_dict(best_state_cls)
+
+pokaz_tabele({
+    "Pomiar": ["Najlepsza walidacja", "Trening — ostatnia epoka", "Walidacja — ostatnia epoka"],
+    "BCE": [best_val_cls, train_losses_cls[-1], val_losses_cls[-1]],
+}, "Przebieg uczenia — klasyfikacja")
 ```
 
 ```{python}
@@ -670,7 +710,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-Strata na obu zbiorach systematycznie spada i nie rozbiega się – model generalizuje poprawnie. Dropout i BatchNorm pomagają utrzymać stabilny trening mimo głębszej architektury.
+Strata na obu zbiorach systematycznie spada i nie rozbiega się – to sygnał zgodności uczenia i walidacji, ale nie dowód poprawnego uogólniania. Dropout i BatchNorm pomagają utrzymać stabilny trening mimo głębszej architektury.
 
 ### Ocena modelu
 
@@ -695,12 +735,21 @@ acc_train = accuracy_score(y_train_bc, preds_train)
 acc_val   = accuracy_score(y_val_bc, preds_val)
 acc_test  = accuracy_score(y_test_bc, preds_test)
 
-print(f"Dokładność – trening:  {acc_train:.4f}")
-print(f"Dokładność – walidacja: {acc_val:.4f}")
-print(f"Dokładność – test:      {acc_test:.4f}")
-print()
-print("Raport klasyfikacji (zbiór testowy):")
-print(classification_report(y_test_bc, preds_test, target_names=data_bc.target_names))
+pokaz_tabele({
+    "Zbiór": ["Treningowy", "Walidacyjny", "Testowy"],
+    "Trafność": [acc_train, acc_val, acc_test],
+}, "Jakość klasyfikacji", {"Trafność": "{:.1%}"})
+
+raport = classification_report(
+    y_test_bc, preds_test, target_names=data_bc.target_names, output_dict=True
+)
+raport.pop("accuracy")  # Trafność podano w osobnej tabeli.
+raport_tabela = pd.DataFrame(raport).T.rename_axis("Klasa / agregacja").reset_index()
+raport_tabela = raport_tabela.rename(columns={
+    "precision": "Precyzja", "recall": "Czułość", "f1-score": "F1", "support": "Liczebność"
+})
+raport_tabela["Liczebność"] = raport_tabela["Liczebność"].astype(int)
+pokaz_tabele(raport_tabela, "Raport klasyfikacji — zbiór testowy")
 ```
 
 ```{python}
@@ -717,7 +766,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-Model osiąga wysoką dokładność (powyżej 95%) nawet przy głębszej architekturze. Zbliżone wartości metryk dla zbioru treningowego, walidacyjnego i testowego świadczą o braku przeuczenia. Macierz pomyłek pokazuje pojedyncze pomyłki – sieć skutecznie oddziela guzy złośliwe od łagodnych.
+Accuracy należy odczytać z wykonanego przykładu; zależy od losowania i treningu. Podobieństwo metryk nie dowodzi braku przeuczenia. Sprawdźmy szczególnie guzy złośliwe sklasyfikowane jako łagodne (wiersz `malignant`, kolumna `benign`): to fałszywe wyniki ujemne względem choroby. Raportujmy czułość dla choroby, swoistość i niepewność na małym teście. Ten przykład dydaktyczny nie waliduje zastosowania diagnostycznego w praktyce.
 
 ## Porównanie regresji i klasyfikacji w sieciach neuronowych
 

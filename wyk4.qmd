@@ -1,5 +1,11 @@
 # Wykład 4: Metody zespołowe — bagging, las losowy i XGBoost {.unnumbered}
 
+```{r}
+#| label: wyk4-utf8
+#| include: false
+source("R/setup.R")
+```
+
 ::: hidden
 $$
  \def\E{\mathrm{E}}
@@ -118,7 +124,7 @@ Ponieważ analizujemy problem regresyjny, jako główne miary jakości wykorzyst
 
 - **RMSE** - pierwiastek średniego błędu kwadratowego,
 - **MAE** - średni błąd bezwzględny,
-- **$R^2$** - odsetek zmienności zmiennej objaśnianej wyjaśniony przez model.
+- **`rsq`** z pakietu `yardstick` — kwadrat korelacji wartości rzeczywistych i prognoz. Nie jest to testowe $1-\mathrm{SSE}/\mathrm{SST}$; wysoka korelacja może współistnieć z systematycznym błędem poziomu prognoz. Do drugiej definicji służy `rsq_trad()` ([dokumentacja](https://yardstick.tidymodels.org/reference/rsq.html)).
 
 W analizie będziemy modelować logarytm ceny. Jest to częsty zabieg przy cenach nieruchomości, ponieważ rozkład cen jest zwykle prawostronnie skośny, a błędy względne są bardziej naturalne niż błędy wyrażone w bezwzględnych dolarach.
 
@@ -169,6 +175,7 @@ dane |>
          Gr_Liv_Area, Garage_Area, Year_Built) |>
   head() |>
   gt() |>
+  formatuj_tabele() |>
   tab_caption("Przykładowe obserwacje w zbiorze")
 ```
 
@@ -214,6 +221,7 @@ opis_zmiennych <- tibble(
 
 opis_zmiennych |>
   gt() |>
+  formatuj_tabele() |>
   tab_caption("Zmienne użyte w analizie")
 ```
 
@@ -445,7 +453,9 @@ wyniki_bagging <- tune_grid(
   metrics = metryki_regresji
 )
 
-show_best(wyniki_bagging, metric = "rmse", n = 8)
+show_best(wyniki_bagging, metric = "rmse", n = 8) |>
+  select(-any_of(c(".metric", ".estimator", ".config"))) |>
+  tabela_wynikow("Najlepsze ustawienia — bagging")
 ```
 
 ### Strojenie lasu losowego
@@ -459,7 +469,9 @@ wyniki_rf <- tune_grid(
   metrics = metryki_regresji
 )
 
-show_best(wyniki_rf, metric = "rmse", n = 8)
+show_best(wyniki_rf, metric = "rmse", n = 8) |>
+  select(-any_of(c(".metric", ".estimator", ".config"))) |>
+  tabela_wynikow("Najlepsze ustawienia — rf")
 ```
 
 ### Strojenie XGBoost
@@ -473,7 +485,9 @@ wyniki_xgb <- tune_grid(
   metrics = metryki_regresji
 )
 
-show_best(wyniki_xgb, metric = "rmse", n = 8)
+show_best(wyniki_xgb, metric = "rmse", n = 8) |>
+  select(-any_of(c(".metric", ".estimator", ".config"))) |>
+  tabela_wynikow("Najlepsze ustawienia — xgb")
 ```
 
 ### Porównanie wyników walidacyjnych
@@ -494,6 +508,7 @@ porownanie_walidacja <- bind_rows(
 porownanie_walidacja |>
   select(model, mean, std_err, n) |>
   gt() |>
+  formatuj_tabele() |>
   tab_caption("Najlepsze wyniki walidacyjne według RMSE")
 ```
 
@@ -509,9 +524,15 @@ najlepsze_bagging <- select_best(wyniki_bagging, metric = "rmse")
 najlepsze_rf <- select_best(wyniki_rf, metric = "rmse")
 najlepsze_xgb <- select_best(wyniki_xgb, metric = "rmse")
 
-najlepsze_bagging
-najlepsze_rf
-najlepsze_xgb
+bind_rows(
+  najlepsze_bagging |> mutate(Model = "Bagging"),
+  najlepsze_rf |> mutate(Model = "Las losowy"),
+  najlepsze_xgb |> mutate(Model = "XGBoost")
+) |>
+  select(-any_of(".config")) |>
+  relocate(Model) |>
+  tabela_wynikow("Wybrane hiperparametry modeli") |>
+  tab_source_note("Kreska oznacza parametr niedotyczący danej rodziny modeli.")
 ```
 
 ```{r}
@@ -541,7 +562,8 @@ metryki_test <- bind_rows(
 
 metryki_test |>
   gt() |>
-  fmt_number(columns = c(rmse, mae, rsq), decimals = 4) |>
+  formatuj_tabele() |>
+  fmt_number(columns = c(rmse, mae, rsq), decimals = 3) |>
   tab_caption("Ocena modeli na zbiorze testowym")
 ```
 
@@ -555,12 +577,12 @@ Jeżeli dwa modele różnią się minimalnie pod względem RMSE, nie należy aut
 
 ### Predykcje na skali ceny
 
-Ponieważ modele były uczone na logarytmie ceny, ich przewidywania można przekształcić z powrotem na skalę dolarów. Poniżej pokazano przykładowe predykcje dla najlepszego modelu według RMSE.
+Ponieważ modele były uczone na logarytmie ceny, ich przewidywania można przekształcić z powrotem na skalę dolarów. Poniżej pokazano predykcje modelu wybranego według RMSE w walidacji treningowej. Wybór algorytmu na podstawie testu uczyniłby test częścią strojenia i zawyżał ocenę zwycięzcy.
 
 ```{r}
 #| label: wyk4-wybor-najlepszego
-nazwa_najlepszego <- metryki_test |>
-  slice_min(rmse, n = 1, with_ties = FALSE) |>
+nazwa_najlepszego <- porownanie_walidacja |>
+  slice_min(mean, n = 1, with_ties = FALSE) |>
   pull(model)
 
 predykcje_najlepsze <- case_when(
@@ -586,11 +608,14 @@ predykcje_test |>
   select(cena_rzeczywista, cena_przewidywana, blad, blad_proc) |>
   slice_head(n = 10) |>
   gt() |>
+  formatuj_tabele() |>
   fmt_currency(columns = c(cena_rzeczywista, cena_przewidywana, blad),
-               currency = "USD", decimals = 0) |>
-  fmt_number(columns = blad_proc, decimals = 1) |>
+               currency = "USD", decimals = 3) |>
+  fmt_number(columns = blad_proc, decimals = 3) |>
   tab_caption("Przykładowe predykcje najlepszego modelu na skali ceny")
 ```
+
+Transformacja $10^{\hat y}$ nie daje automatycznie warunkowej średniej ceny: przy estymacji średniej logarytmu otrzymujemy średnią geometryczną, a przy symetrycznych resztach na skali log także medianę. Estymacja średniej arytmetycznej wymaga korekty retransformaty (np. smearing, oszacowanej wyłącznie na danych treningowych). Metryki na skali log i dolarowej oceniają różne cele.
 
 Ta tabela pozwala zobaczyć, co oznacza błąd predykcji w języku problemu badawczego. Nawet niewielki błąd na skali logarytmicznej może oznaczać różnicę kilku lub kilkunastu tysięcy dolarów. Dlatego w analizach cen nieruchomości warto łączyć ocenę na skali modelowania z interpretacją na skali oryginalnej.
 
@@ -616,7 +641,7 @@ Punkty leżące blisko przekątnej oznaczają trafne predykcje. Punkty powyżej 
 
 ### Ważność zmiennych w lesie losowym
 
-Las losowy pozwala ocenić, które zmienne najczęściej i najskuteczniej uczestniczą w podziałach drzew. Taka informacja nie jest tym samym co współczynnik regresji liniowej, ale pomaga zrozumieć, które cechy są szczególnie ważne dla predykcji.
+Las losowy pozwala ocenić, które zmienne najczęściej i najskuteczniej uczestniczą w podziałach drzew. Tutaj silnik `ranger` używa ważności opartej na spadku nieczystości (`importance = "impurity"`), czyli łącznej redukcji błędu w podziałach. Może ona faworyzować cechy z wieloma możliwymi progami; skorelowane cechy mogą dzielić lub maskować ważność. Taka informacja nie jest tym samym co współczynnik regresji liniowej, ale pomaga zrozumieć, które cechy są szczególnie ważne dla predykcji.
 
 ```{r}
 #| label: wyk4-vip-rf
@@ -680,17 +705,6 @@ W zastosowaniach praktycznych XGBoost warto traktować jako model wymagający st
 
 Przeprowadzona analiza pokazuje, jak rozwiązać problem predykcji cen domów za pomocą trzech metod zespołowych opartych na drzewach. Wszystkie trzy modele korzystają z tej samej podstawowej idei: pojedyncze drzewa są łączone w model zbiorczy. Różnią się jednak sposobem tworzenia i łączenia drzew.
 
-Z punktu widzenia problemu badawczego najważniejszy jest wynik na zbiorze testowym. Model o najniższym RMSE najlepiej przewiduje logarytm ceny sprzedaży, choć — jak zaznaczono wcześniej — przy niewielkich różnicach decydują też stabilność, koszt obliczeniowy i interpretowalność.
+Z punktu widzenia problemu badawczego najważniejszy jest wynik na zbiorze testowym. Model wybieramy na podstawie walidacji treningowej, a test opisuje jego błąd dla tego podziału, choć — jak zaznaczono wcześniej — przy niewielkich różnicach decydują też stabilność, koszt obliczeniowy i interpretowalność.
 
 Najważniejsza lekcja metodologiczna jest następująca: w problemach predykcyjnych nie wystarczy dopasować zaawansowany algorytm. Trzeba jeszcze jasno zdefiniować cel, oddzielić dane treningowe od testowych, stroić parametry wyłącznie na danych treningowych, porównać modele tą samą metryką i interpretować wyniki w języku problemu badawczego.
-
-### Podsumowanie dydaktyczne
-
-Po tym wykładzie należy umieć:
-
-1.  wyjaśnić różnicę między baggingiem, lasem losowym i XGBoost,
-2.  przygotować dane tabularyczne do modelowania metodami drzewiastymi,
-3.  zastosować walidację krzyżową do strojenia parametrów,
-4.  porównać modele regresyjne za pomocą RMSE, MAE i $R^2$,
-5.  przekształcić predykcje z logarytmu ceny na skalę oryginalną,
-6.  odróżnić ważność predykcyjną zmiennej od interpretacji przyczynowej.

@@ -1,5 +1,11 @@
 # Wykład 5: Maszyny wektorów nośnych (SVM i SVR) {.unnumbered}
 
+```{r}
+#| label: wyk5-utf8
+#| include: false
+source("R/setup.R")
+```
+
 ::: hidden
 $$
  \def\E{\mathrm{E}}
@@ -156,7 +162,7 @@ ggplot() +
 
 ### Parametr `epsilon`
 
-Parametr `epsilon` określa szerokość rurki tolerancji:
+Parametr `epsilon` określa połowę szerokości rurki tolerancji (pełna szerokość to $2\epsilon$):
 
 - małe `epsilon` oznacza, że model reaguje nawet na małe błędy,
 - duże `epsilon` oznacza, że model ignoruje większe odchylenia.
@@ -196,6 +202,7 @@ dane_klasyfikacja <- penguins |>
 dane_klasyfikacja |>
   head() |>
   gt() |>
+  formatuj_tabele() |>
   tab_caption("Przykładowe obserwacje w zbiorze penguins")
 ```
 
@@ -277,7 +284,9 @@ wyniki_klasyfikacja <- tune_grid(
   metrics = metryki_klasyfikacja
 )
 
-show_best(wyniki_klasyfikacja, metric = "accuracy", n = 8)
+show_best(wyniki_klasyfikacja, metric = "accuracy", n = 8) |>
+  select(-any_of(c(".metric", ".estimator", ".config"))) |>
+  tabela_wynikow("Najlepsze ustawienia — klasyfikacja")
 ```
 
 ### Ocena modelu na zbiorze testowym
@@ -300,16 +309,23 @@ fit_klasyfikacja <- last_fit(
   metrics = metryki_klasyfikacja
 )
 
-collect_metrics(fit_klasyfikacja)
+collect_metrics(fit_klasyfikacja) |>
+  select(.metric, .estimate) |>
+  rename(Metryka = .metric, Wartosc = .estimate) |>
+  tabela_wynikow("Wyniki na zbiorze testowym") |>
+  cols_label(Wartosc = "Wartość")
 ```
 
 ```{r}
 #| label: wyk5-klasyfikacja-macierz
 predykcje_klasyfikacja <- collect_predictions(fit_klasyfikacja)
 
-predykcje_klasyfikacja |>
+macierz <- predykcje_klasyfikacja |>
   conf_mat(truth = species, estimate = .pred_class)
+tabela_pomylek_gt(t(macierz$table), "Macierz pomyłek — gatunki pingwinów")
 ```
+
+Wynik testowy dotyczy tego podziału, nie gwarantuje trafności w innych koloniach. Do oceny przenoszenia modelu na inne kolonie lub lata potrzebna jest walidacja według miejsca lub czasu.
 
 Macierz pomyłek pokazuje, które gatunki są mylone najczęściej. Jeżeli większość wartości leży na przekątnej, oznacza to, że model dobrze rozpoznaje gatunki. Pomyłki poza przekątną warto interpretować biologicznie: gatunki o podobnych cechach morfologicznych mogą być trudniejsze do rozróżnienia.
 
@@ -341,6 +357,7 @@ dane_regresja |>
          Garage_Area, Year_Built) |>
   head() |>
   gt() |>
+  formatuj_tabele() |>
   tab_caption("Przykładowe obserwacje w zbiorze ames")
 ```
 
@@ -437,7 +454,9 @@ wyniki_regresja <- tune_grid(
   metrics = metryki_regresja
 )
 
-show_best(wyniki_regresja, metric = "rmse", n = 8)
+show_best(wyniki_regresja, metric = "rmse", n = 8) |>
+  select(-any_of(c(".metric", ".estimator", ".config"))) |>
+  tabela_wynikow("Najlepsze ustawienia — regresja")
 ```
 
 ### Ocena modelu na zbiorze testowym
@@ -460,8 +479,14 @@ fit_regresja <- last_fit(
   metrics = metryki_regresja
 )
 
-collect_metrics(fit_regresja)
+collect_metrics(fit_regresja) |>
+  select(.metric, .estimate) |>
+  rename(Metryka = .metric, Wartosc = .estimate) |>
+  tabela_wynikow("Wyniki na zbiorze testowym") |>
+  cols_label(Wartosc = "Wartość")
 ```
+
+Eksponentowanie prognozy logarytmu nie daje automatycznie średniej ceny w dolarach (nierówność Jensena). Jest to prognoza na przekształconej skali, a pas $\epsilon$ nie jest przedziałem predykcyjnym o zadanym pokryciu. Używane `yardstick::rsq()` jest kwadratem korelacji, nie $1-\mathrm{SSE}/\mathrm{SST}$; porównujmy też RMSE i MAE.
 
 ```{r}
 #| label: wyk5-regresja-predykcje
@@ -477,9 +502,10 @@ predykcje_regresja |>
   select(cena_rzeczywista, cena_przewidywana, blad, blad_proc) |>
   slice_head(n = 10) |>
   gt() |>
+  formatuj_tabele() |>
   fmt_currency(columns = c(cena_rzeczywista, cena_przewidywana, blad),
-               currency = "USD", decimals = 0) |>
-  fmt_number(columns = blad_proc, decimals = 1) |>
+               currency = "USD", decimals = 3) |>
+  fmt_number(columns = blad_proc, decimals = 3) |>
   tab_caption("Przykładowe predykcje SVR dla cen domów")
 ```
 
@@ -526,15 +552,3 @@ Nie należy dopasowywać SVM do nieskalowanych danych liczbowych i od razu inter
 SVM jest modelem opartym na geometrii danych. W klasyfikacji szuka granicy, która oddziela klasy z możliwie szerokim marginesem. Najważniejsze dla położenia tej granicy są wektory nośne, czyli obserwacje położone najbliżej granicy lub naruszające margines.
 
 W praktyce najważniejsze są trzy decyzje: skalowanie zmiennych, wybór jądra oraz dobór parametrów przez walidację krzyżową. W przykładach zastosowaliśmy jądro RBF, ponieważ jest elastyczne i dobrze nadaje się do pokazania nieliniowych zależności.
-
-### Podsumowanie dydaktyczne
-
-Po tym wykładzie należy umieć:
-
-1.  wyjaśnić pojęcia marginesu i wektorów nośnych,
-2.  opisać rolę parametru `C`,
-3.  wyjaśnić, po co stosuje się jądra i czym intuicyjnie jest jądro RBF,
-4.  wskazać różnicę między SVM do klasyfikacji i SVR do regresji,
-5.  przygotować dane do SVM przez standaryzację,
-6.  zbudować w R prosty model SVM do klasyfikacji i regresji,
-7.  ocenić jakość modelu na zbiorze testowym.
