@@ -85,9 +85,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-502dd8818b56a2c66749ffbc31bcd64e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-e7c7cb72a47119ae0b6917a2100602d9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-502dd8818b56a2c66749ffbc31bcd64e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-3d0ad9eed4cf45e77d2f560b75de2460.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-e86ad0456e038ac436cb87d190a1adee.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-3d0ad9eed4cf45e77d2f560b75de2460.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -334,8 +334,8 @@ window.Quarto = {
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
       <a href="./index.html" class="sidebar-logo-link">
-      <img src="./logo.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
-      <img src="./logo.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      <img src="./logo.png?v=bd444c0a4783" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="./logo.png?v=bd444c0a4783" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
       </a>
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Statystyka stosowana</a> 
@@ -575,7 +575,7 @@ window.Quarto = {
 <p>Jedną z najczęściej stosowanych miar niejednorodności jest indeks Giniego:</p>
 <p><span class="math display">\[G = 1 - \sum_{k=1}^{K} p_k^2,\]</span></p>
 <p>gdzie <span class="math inline">\(p_k\)</span> oznacza udział klasy <span class="math inline">\(k\)</span> w danym węźle. Wartość tej miary jest mała wtedy, gdy węzeł jest prawie jednorodny, a większa wtedy, gdy klasy są silnie wymieszane.</p>
-<p>Algorytm budowy drzewa wybiera taki podział, który możliwie najbardziej zmniejsza niejednorodność. W konsekwencji kolejne poziomy drzewa prowadzą do coraz lepszego rozdzielenia klas.</p>
+<p>Algorytm porównuje niejednorodność rodzica z ważoną średnią niejednorodności potomków; wagami są ich udziały liczebności. Wybiera podział o największej redukcji tej miary. W konsekwencji kolejne poziomy drzewa prowadzą do coraz lepszego rozdzielenia klas.</p>
 </section>
 <section id="uczenie-drzewa-jako-proces-sekwencyjnego-podziału" class="level3">
 <h3 class="anchored" data-anchor-id="uczenie-drzewa-jako-proces-sekwencyjnego-podziału">Uczenie drzewa jako proces sekwencyjnego podziału</h3>
@@ -1182,7 +1182,7 @@ window.Quarto = {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk3_files/figure-html/wyk3-liczebnosci-klas-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk3_files/figure-html/wyk3-liczebnosci-klas-1.png?v=14f3ada3c299" class="img-fluid figure-img" width="672"></p>
 <figcaption>Liczebności gatunków w zbiorze danych</figcaption>
 </figure>
 </div>
@@ -1749,7 +1749,7 @@ window.Quarto = {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk3_files/figure-html/wyk3-wykres-cechy-1-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk3_files/figure-html/wyk3-wykres-cechy-1-1.png?v=95d074c818bd" class="img-fluid figure-img" width="672"></p>
 <figcaption>Długość i głębokość dzioba a gatunek pingwina</figcaption>
 </figure>
 </div>
@@ -1770,13 +1770,13 @@ window.Quarto = {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk3_files/figure-html/wyk3-wykres-cechy-2-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk3_files/figure-html/wyk3-wykres-cechy-2-1.png?v=58c9d0e1be2e" class="img-fluid figure-img" width="672"></p>
 <figcaption>Długość płetwy i masa ciała a gatunek pingwina</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Na wykresach widać, że gatunki różnią się morfologicznie. Oznacza to, że istnieją przesłanki do zbudowania skutecznego modelu klasyfikacyjnego. Jeżeli klasy tworzą względnie odrębne skupienia w przestrzeni cech, drzewo decyzyjne może konstruować reguły podziału o wyraźnym sensie biologicznym.</p>
+<p>Na wykresach pomijane są jedynie punkty bez jednej z dwóch pokazywanych współrzędnych; te obserwacje pozostają w danych do modelowania. Widać, że gatunki różnią się morfologicznie. Oznacza to, że istnieją przesłanki do zbudowania skutecznego modelu klasyfikacyjnego. Jeżeli klasy tworzą względnie odrębne skupienia w przestrzeni cech, drzewo decyzyjne może konstruować reguły podziału o wyraźnym sensie biologicznym.</p>
 </section>
 </section>
 <section id="przygotowanie-danych-do-modelowania" class="level2">
@@ -2429,7 +2429,7 @@ window.Quarto = {
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>final_fit <span class="ot">&lt;-</span> <span class="fu">last_fit</span>(</span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  finalny_workflow, split,</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">metrics =</span> <span class="fu">metric_set</span>(accuracy, roc_auc)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">metrics =</span> <span class="fu">metric_set</span>(accuracy, kap, roc_auc)</span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">collect_metrics</span>(final_fit) <span class="sc">|&gt;</span></span>
@@ -2905,8 +2905,12 @@ window.Quarto = {
 <td class="gt_row gt_right" headers="Wartosc">0,957</td>
 </tr>
 <tr class="even">
-<td class="gt_row gt_left gt_striped" headers="Metryka">roc_auc</td>
-<td class="gt_row gt_right gt_striped" headers="Wartosc">0,966</td>
+<td class="gt_row gt_left gt_striped" headers="Metryka">kap</td>
+<td class="gt_row gt_right gt_striped" headers="Wartosc">0,933</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="Metryka">roc_auc</td>
+<td class="gt_row gt_right" headers="Wartosc">0,966</td>
 </tr>
 </tbody>
 </table>
@@ -3444,18 +3448,19 @@ Przewidywana klasa
 <div class="cell">
 <details class="code-fold">
 <summary>Kod</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>model_treningowy <span class="ot">&lt;-</span> <span class="fu">fit</span>(finalny_workflow, <span class="at">data =</span> train)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>model_treningowy <span class="ot">&lt;-</span> <span class="fu">extract_workflow</span>(final_fit)</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>obiekt_drzewa <span class="ot">&lt;-</span> <span class="fu">extract_fit_engine</span>(model_treningowy)</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rpart.plot</span>(</span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  obiekt_drzewa,</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Drzewo decyzyjne — model końcowy"</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Drzewo decyzyjne — model końcowy"</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">roundint =</span> <span class="cn">FALSE</span>, <span class="at">digits =</span> <span class="dv">4</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="wyk3_files/figure-html/wyk3-wizualizacja-dopasowania-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk3_files/figure-html/wyk3-wizualizacja-dopasowania-1.png?v=b54acd07c3bb" class="img-fluid figure-img" width="1152"></p>
 </figure>
 </div>
 </div>
@@ -3478,12 +3483,12 @@ rpart::rpart(formula = ..y ~ ., data = data, cp = ~1e-04, maxdepth = ~5,
 
           CP nsplit  rel error    xerror      xstd
 1 0.64052288      0 1.00000000 1.0000000 0.0537244
-2 0.28104575      1 0.35947712 0.3594771 0.0433348
-3 0.02614379      2 0.07843137 0.1111111 0.0260990
-4 0.01307190      3 0.05228758 0.0718954 0.0212377
-5 0.00653595      6 0.01307190 0.0588235 0.0192831
-6 0.00326797      7 0.00653595 0.0392157 0.0158335
-7 0.00010000      9 0.00000000 0.0392157 0.0158335
+2 0.28104575      1 0.35947712 0.3856209 0.0444712
+3 0.02614379      2 0.07843137 0.1176471 0.0268034
+4 0.01307190      3 0.05228758 0.0849673 0.0229999
+5 0.00653595      6 0.01307190 0.0653595 0.0202878
+6 0.00326797      7 0.00653595 0.0457516 0.0170702
+7 0.00010000      9 0.00000000 0.0457516 0.0170702
 
 Variable importance
    bill_length_mm flipper_length_mm     bill_depth_mm       body_mass_g 
@@ -3703,23 +3708,23 @@ Node number 45: 1 observations
 <span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tabela_wynikow</span>(<span class="st">"Predykcje CART dla obserwacji z oryginalnymi brakami"</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="nwjhssvbeq" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#nwjhssvbeq table {
+<div id="omihkpctcb" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#omihkpctcb table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#nwjhssvbeq thead, #nwjhssvbeq tbody, #nwjhssvbeq tfoot, #nwjhssvbeq tr, #nwjhssvbeq td, #nwjhssvbeq th {
+#omihkpctcb thead, #omihkpctcb tbody, #omihkpctcb tfoot, #omihkpctcb tr, #omihkpctcb td, #omihkpctcb th {
   border-style: none;
 }
 
-#nwjhssvbeq p {
+#omihkpctcb p {
   margin: 0;
   padding: 0;
 }
 
-#nwjhssvbeq .gt_table {
+#omihkpctcb .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -3745,12 +3750,12 @@ Node number 45: 1 observations
   border-left-color: #D3D3D3;
 }
 
-#nwjhssvbeq .gt_caption {
+#omihkpctcb .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#nwjhssvbeq .gt_title {
+#omihkpctcb .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -3762,7 +3767,7 @@ Node number 45: 1 observations
   border-bottom-width: 0;
 }
 
-#nwjhssvbeq .gt_subtitle {
+#omihkpctcb .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -3774,7 +3779,7 @@ Node number 45: 1 observations
   border-top-width: 0;
 }
 
-#nwjhssvbeq .gt_heading {
+#omihkpctcb .gt_heading {
   background-color: #FFFFFF;
   text-align: left;
   border-bottom-color: #FFFFFF;
@@ -3786,13 +3791,13 @@ Node number 45: 1 observations
   border-right-color: #D3D3D3;
 }
 
-#nwjhssvbeq .gt_bottom_border {
+#omihkpctcb .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#nwjhssvbeq .gt_col_headings {
+#omihkpctcb .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -3807,7 +3812,7 @@ Node number 45: 1 observations
   border-right-color: #D3D3D3;
 }
 
-#nwjhssvbeq .gt_col_heading {
+#omihkpctcb .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -3827,7 +3832,7 @@ Node number 45: 1 observations
   overflow-x: hidden;
 }
 
-#nwjhssvbeq .gt_column_spanner_outer {
+#omihkpctcb .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -3839,15 +3844,15 @@ Node number 45: 1 observations
   padding-right: 4px;
 }
 
-#nwjhssvbeq .gt_column_spanner_outer:first-child {
+#omihkpctcb .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#nwjhssvbeq .gt_column_spanner_outer:last-child {
+#omihkpctcb .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#nwjhssvbeq .gt_column_spanner {
+#omihkpctcb .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -3859,11 +3864,11 @@ Node number 45: 1 observations
   width: 100%;
 }
 
-#nwjhssvbeq .gt_spanner_row {
+#omihkpctcb .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#nwjhssvbeq .gt_group_heading {
+#omihkpctcb .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -3889,7 +3894,7 @@ Node number 45: 1 observations
   text-align: left;
 }
 
-#nwjhssvbeq .gt_empty_group_heading {
+#omihkpctcb .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -3904,15 +3909,15 @@ Node number 45: 1 observations
   vertical-align: middle;
 }
 
-#nwjhssvbeq .gt_from_md > :first-child {
+#omihkpctcb .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#nwjhssvbeq .gt_from_md > :last-child {
+#omihkpctcb .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#nwjhssvbeq .gt_row {
+#omihkpctcb .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -3931,7 +3936,7 @@ Node number 45: 1 observations
   overflow-x: hidden;
 }
 
-#nwjhssvbeq .gt_stub {
+#omihkpctcb .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -3944,7 +3949,7 @@ Node number 45: 1 observations
   padding-right: 5px;
 }
 
-#nwjhssvbeq .gt_stub_row_group {
+#omihkpctcb .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -3958,15 +3963,15 @@ Node number 45: 1 observations
   vertical-align: top;
 }
 
-#nwjhssvbeq .gt_row_group_first td {
+#omihkpctcb .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#nwjhssvbeq .gt_row_group_first th {
+#omihkpctcb .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#nwjhssvbeq .gt_summary_row {
+#omihkpctcb .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -3976,16 +3981,16 @@ Node number 45: 1 observations
   padding-right: 5px;
 }
 
-#nwjhssvbeq .gt_first_summary_row {
+#omihkpctcb .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#nwjhssvbeq .gt_first_summary_row.thick {
+#omihkpctcb .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#nwjhssvbeq .gt_last_summary_row {
+#omihkpctcb .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -3995,7 +4000,7 @@ Node number 45: 1 observations
   border-bottom-color: #D3D3D3;
 }
 
-#nwjhssvbeq .gt_grand_summary_row {
+#omihkpctcb .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -4005,7 +4010,7 @@ Node number 45: 1 observations
   padding-right: 5px;
 }
 
-#nwjhssvbeq .gt_first_grand_summary_row {
+#omihkpctcb .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -4015,7 +4020,7 @@ Node number 45: 1 observations
   border-top-color: #D3D3D3;
 }
 
-#nwjhssvbeq .gt_last_grand_summary_row_top {
+#omihkpctcb .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -4025,11 +4030,11 @@ Node number 45: 1 observations
   border-bottom-color: #D3D3D3;
 }
 
-#nwjhssvbeq .gt_striped {
+#omihkpctcb .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#nwjhssvbeq .gt_table_body {
+#omihkpctcb .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -4038,7 +4043,7 @@ Node number 45: 1 observations
   border-bottom-color: #D3D3D3;
 }
 
-#nwjhssvbeq .gt_footnotes {
+#omihkpctcb .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -4052,7 +4057,7 @@ Node number 45: 1 observations
   border-right-color: #D3D3D3;
 }
 
-#nwjhssvbeq .gt_footnote {
+#omihkpctcb .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -4061,7 +4066,7 @@ Node number 45: 1 observations
   padding-right: 5px;
 }
 
-#nwjhssvbeq .gt_sourcenotes {
+#omihkpctcb .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -4075,7 +4080,7 @@ Node number 45: 1 observations
   border-right-color: #D3D3D3;
 }
 
-#nwjhssvbeq .gt_sourcenote {
+#omihkpctcb .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -4083,72 +4088,72 @@ Node number 45: 1 observations
   padding-right: 5px;
 }
 
-#nwjhssvbeq .gt_left {
+#omihkpctcb .gt_left {
   text-align: left;
 }
 
-#nwjhssvbeq .gt_center {
+#omihkpctcb .gt_center {
   text-align: center;
 }
 
-#nwjhssvbeq .gt_right {
+#omihkpctcb .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#nwjhssvbeq .gt_font_normal {
+#omihkpctcb .gt_font_normal {
   font-weight: normal;
 }
 
-#nwjhssvbeq .gt_font_bold {
+#omihkpctcb .gt_font_bold {
   font-weight: bold;
 }
 
-#nwjhssvbeq .gt_font_italic {
+#omihkpctcb .gt_font_italic {
   font-style: italic;
 }
 
-#nwjhssvbeq .gt_super {
+#omihkpctcb .gt_super {
   font-size: 65%;
 }
 
-#nwjhssvbeq .gt_footnote_marks {
+#omihkpctcb .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#nwjhssvbeq .gt_asterisk {
+#omihkpctcb .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#nwjhssvbeq .gt_indent_1 {
+#omihkpctcb .gt_indent_1 {
   text-indent: 5px;
 }
 
-#nwjhssvbeq .gt_indent_2 {
+#omihkpctcb .gt_indent_2 {
   text-indent: 10px;
 }
 
-#nwjhssvbeq .gt_indent_3 {
+#omihkpctcb .gt_indent_3 {
   text-indent: 15px;
 }
 
-#nwjhssvbeq .gt_indent_4 {
+#omihkpctcb .gt_indent_4 {
   text-indent: 20px;
 }
 
-#nwjhssvbeq .gt_indent_5 {
+#omihkpctcb .gt_indent_5 {
   text-indent: 25px;
 }
 
-#nwjhssvbeq .katex-display {
+#omihkpctcb .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#nwjhssvbeq div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#omihkpctcb div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>

@@ -67,7 +67,7 @@ Pojedynczą obserwacją jest tutaj **jedna transakcja sprzedaży domu**. Każdy 
 
 Pojedyncze drzewo decyzyjne jest łatwe do interpretacji, ale często bywa niestabilne. Niewielka zmiana danych treningowych może prowadzić do innego pierwszego podziału, a później do zupełnie innej struktury drzewa. To oznacza dużą wariancję modelu.
 
-Metody zespołowe zmniejszają ten problem przez łączenie wielu modeli. Zamiast opierać predykcję na jednym drzewie, budujemy wiele drzew i agregujemy ich wyniki. W regresji najczęściej oznacza to uśrednianie predykcji:
+Metody zespołowe zmniejszają ten problem przez łączenie wielu modeli. Zamiast opierać predykcję na jednym drzewie, budujemy wiele drzew i agregujemy ich wyniki. W regresji bagging i las losowy uśredniają predykcje; poniższy wzór dotyczy tych dwóch metod, a nie addytywnego XGBoost:
 
 $$
 \hat{y}(x) = \frac{1}{B}\sum_{b=1}^{B} \hat{f}_b(x),
@@ -233,6 +233,7 @@ Zanim zbudujemy modele, warto sprawdzić rozkład ceny oraz relacje między cen�
 
 ```{r}
 #| label: wyk4-rozklad-ceny
+#| fig-width: 9
 #| fig-cap: "Rozkład ceny sprzedaży domów"
 dane |>
   ggplot(aes(x = Sale_Price)) +
@@ -242,7 +243,7 @@ dane |>
   theme_minimal(base_size = 13)
 ```
 
-Rozkład ceny jest prawostronnie skośny: większość domów znajduje się w niższym i średnim zakresie cenowym, natomiast niewielka liczba nieruchomości jest wyraźnie droższa. To uzasadnia modelowanie logarytmu ceny, ponieważ na tej skali rozkład jest zwykle bardziej symetryczny.
+Rozkład ceny jest prawostronnie skośny: większość domów znajduje się w niższym i średnim zakresie cenowym, natomiast niewielka liczba nieruchomości jest wyraźnie droższa. Modelowanie logarytmu ceny przesuwa nacisk na błędy względne. Większa symetria rozkładu może ułatwiać analizę, ale drzewa nie wymagają normalności zmiennej objaśnianej.
 
 ```{r}
 #| label: wyk4-rozklad-log-ceny
@@ -267,7 +268,8 @@ dane |>
     x = "Ogólny stan techniczny",
     y = "Cena sprzedaży [tys. dolarów]"
   ) +
-  theme_minimal(base_size = 13)
+  theme_minimal(base_size = 13) +
+  theme(axis.text.x = element_text(angle = 35, hjust = 1))
 ```
 
 Wykres pokazuje związek między ogólnym stanem technicznym a ceną. Zależność nie musi być idealnie liniowa: przejście ze stanu przeciętnego do dobrego może mieć inny efekt cenowy niż przejście ze stanu dobrego do bardzo dobrego. Właśnie tego typu nieliniowości dobrze uzasadniają zastosowanie modeli drzewiastych.
@@ -282,7 +284,7 @@ dane |>
   geom_point(alpha = 0.45, color = "steelblue") +
   geom_smooth(method = "loess", se = FALSE, color = "darkorange") +
   labs(
-    x = "Powierzchnia mieszkalna nad poziomem gruntu",
+    x = "Powierzchnia mieszkalna nad poziomem gruntu\n[stopy kwadratowe]",
     y = "Cena sprzedaży [tys. dolarów]"
   ) +
   theme_minimal(base_size = 13)
@@ -401,7 +403,7 @@ Duża liczba drzew stabilizuje predykcje, ale wydłuża obliczenia. W praktyce p
 
 ### Model 3: XGBoost
 
-XGBoost wymaga dobrania większej liczby parametrów. W przykładzie stroimy liczbę drzew, głębokość drzew, tempo uczenia, minimalną liczbę obserwacji w liściu, redukcję straty wymaganą do podziału oraz odsetek obserwacji używany w kolejnych iteracjach.
+XGBoost wymaga dobrania większej liczby parametrów. W przykładzie stroimy liczbę drzew, głębokość drzew, tempo uczenia, parametr `min_n`, redukcję straty wymaganą do podziału oraz odsetek obserwacji używany w kolejnych iteracjach.
 
 ```{r}
 #| label: wyk4-model-xgboost
@@ -430,6 +432,8 @@ siatka_xgb <- grid_latin_hypercube(
   size = 18
 )
 ```
+
+W silniku XGBoost `min_n` jest przekazywany jako `min_child_weight`: ogranicza sumę wag wynikających z drugich pochodnych funkcji straty w potomku. Dla nieważonej regresji z błędem kwadratowym odpowiada liczebności, ale nie jest to ogólna definicja liczby obserwacji dla każdej funkcji straty. Zob. [mapowanie parametrów silnika](https://parsnip.tidymodels.org/reference/details_boost_tree_xgboost.html).
 
 Siatka dla XGBoost jest losowa, ponieważ pełne przeszukanie wszystkich kombinacji parametrów byłoby zbyt kosztowne. W praktyce często zaczyna się od niezbyt dużej siatki, a potem zawęża zakresy parametrów wokół najlepszego rozwiązania.
 
@@ -646,7 +650,7 @@ Las losowy pozwala ocenić, które zmienne najczęściej i najskuteczniej uczest
 ```{r}
 #| label: wyk4-vip-rf
 #| fig-cap: "Ważność zmiennych w modelu lasu losowego"
-model_rf_trening <- fit(finalny_rf, data = train)
+model_rf_trening <- extract_workflow(fit_rf)
 
 extract_fit_engine(model_rf_trening)$variable.importance |>
   enframe(name = "zmienna", value = "waznosc") |>
@@ -666,7 +670,7 @@ W modelach cen nieruchomości zwykle wysoko pojawiają się zmienne opisujące p
 ```{r}
 #| label: wyk4-vip-xgb
 #| fig-cap: "Ważność zmiennych w modelu XGBoost"
-model_xgb_trening <- fit(finalny_xgb, data = train)
+model_xgb_trening <- extract_workflow(fit_xgb)
 
 xgb.importance(model = extract_fit_engine(model_xgb_trening)) |>
   as_tibble() |>
@@ -679,7 +683,7 @@ xgb.importance(model = extract_fit_engine(model_xgb_trening)) |>
   theme_minimal(base_size = 13)
 ```
 
-Ważność zmiennych w XGBoost należy interpretować jako wskazówkę, które predyktory najczęściej poprawiały funkcję straty w kolejnych drzewach. Nie jest to bezpośrednia miara przyczynowego wpływu zmiennej na cenę.
+Ważność zmiennych w XGBoost należy interpretować jako wskazówkę, które predyktory odpowiadały za największy łączny zysk przy podziałach (Gain), a nie jedynie najczęściej pojawiały się w drzewach. Gain opisuje poprawę funkcji celu w kolejnych drzewach. Nie jest to bezpośrednia miara przyczynowego wpływu zmiennej na cenę.
 
 ::: callout-note
 ### Predykcja a wyjaśnianie przyczynowe

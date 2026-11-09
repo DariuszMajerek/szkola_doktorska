@@ -106,10 +106,11 @@ ReLU jest domyślnym wyborem dla warstw ukrytych, ponieważ dla dodatnich wejś�
 
 ```{python}
 #| label: wyk6-funkcje-aktywacji
+#| fig-cap: "Kształty najczęściej stosowanych funkcji aktywacji"
 import pandas as pd
 from IPython.display import display
 
-def pokaz_tabele(dane, tytul, formaty=None):
+def pokaz_tabele(dane, tytul: str, formaty: dict[str, str] | None = None) -> None:
     tabela = pd.DataFrame(dane)
     formatowanie = {kolumna: "{:.3f}" for kolumna in tabela.select_dtypes("floating").columns}
     formatowanie.update(formaty or {})
@@ -126,7 +127,6 @@ def pokaz_tabele(dane, tytul, formaty=None):
         ])
     )
 
-#| fig-cap: "Kształty najczęściej stosowanych funkcji aktywacji"
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -208,7 +208,7 @@ Intuicja działania algorytmu:
     $$
 4.  Zaktualizuj parametry, przesuwając je w kierunku przeciwnym do gradientu.
 
-W PyTorch cały ten proces jest zautomatyzowany przez moduł `autograd`. Wywołanie `.backward()` na wartości straty uruchamia obliczenie gradientów dla wszystkich parametrów, które mają atrybut `requires_grad=True`.
+Samą aktualizację w kroku 4 wykonuje optymalizator, a nie wsteczna propagacja. Obliczanie gradientów jest w PyTorch zautomatyzowane przez moduł `autograd`. Wywołanie `.backward()` na wartości straty uruchamia obliczenie gradientów dla wszystkich parametrów, które mają atrybut `requires_grad=True`.
 
 ### Stochastic Gradient Descent (SGD)
 
@@ -305,7 +305,7 @@ Zbiór `California Housing` zawiera **20 640 obserwacji**, co umożliwia przepro
 - `AveOccup` – średnia liczba mieszkańców na dom,
 - `Latitude`, `Longitude` – współrzędne geograficzne.
 
-Zmienna docelowa to mediana wartości domu wyrażona w setkach tysięcy dolarów (np. 2.5 oznacza 250 000 USD).
+Zmienna docelowa to mediana wartości domu wyrażona w setkach tysięcy dolarów (np. 2.5 oznacza 250 000 USD). Dane pochodzą ze spisu z 1990 r., więc nie opisują dzisiejszych cen. Wartości celu są ograniczone od góry do około 5 (500 000 USD); nagromadzenie obserwacji przy tej granicy na wykresie nie oznacza, że rzeczywiste wartości wszystkich tych nieruchomości były identyczne. Ten limit ogranicza interpretację błędów dla najdroższych obszarów.
 
 ```{python}
 #| label: wyk6-regresja-dane
@@ -384,7 +384,7 @@ Dzięki dużej liczbie obserwacji możemy pozwolić sobie na sieć MLP o trzech 
 -   **Warstwa ukryta 2**: 32 neurony, aktywacja **ReLU**
 -   **Warstwa wyjściowa**: 1 neuron, **bez aktywacji**
 
-Dla danych tabularycznych celowo rezygnujemy z `BatchNorm` i `Dropout` – przy stabilnym optymalizatorze (Adam) prosta architektura `Linear → ReLU` często daje najlepszy stosunek jakości do stabilności treningu.
+W tym przykładzie używamy prostej architektury `Linear → ReLU`, bez `BatchNorm` i `Dropout`. Jest to wybór dydaktyczny; jego przewaga nad innymi architekturami wymagałaby osobnego porównania walidacyjnego.
 
 Funkcja celu: **MSELoss**.
 Optymalizator: **Adam** z learning rate = 0.001 oraz `weight_decay` = 1e-4 (regularyzacja L2).
@@ -431,7 +431,7 @@ best_val_loss = float("inf")
 best_state = None
 
 for epoch in range(n_epochs):
-    # Trening – mini-batch SGD
+    # Trening – Adam na mini-batchach
     model_reg.train()
     epoch_train_loss = 0.0
     for X_batch, y_batch in train_loader:
@@ -527,7 +527,7 @@ plt.plot(
     "r--", linewidth=1.5, label="Idealna predykcja"
 )
 plt.xlabel("Wartości rzeczywiste (×100k USD)")
-plt.ylabel("Wartości przewidywane")
+plt.ylabel("Wartości przewidywane (×100k USD)")
 plt.title(f"Regresja MLP – zbiór testowy (R² = {r2_test:.3f})")
 plt.legend()
 plt.grid(alpha=0.3)
@@ -710,7 +710,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-Strata na obu zbiorach systematycznie spada i nie rozbiega się – to sygnał zgodności uczenia i walidacji, ale nie dowód poprawnego uogólniania. Dropout i BatchNorm pomagają utrzymać stabilny trening mimo głębszej architektury.
+Krzywe nie muszą maleć monotonicznie: mini-batche i dropout wprowadzają zmienność, a strata walidacyjna może wzrastać po osiągnięciu minimum. Przywracamy stan z najlepszej epoki walidacyjnej. Strata treningowa jest liczona z aktywnym dropoutem i aktualizacją BatchNorm, a walidacyjna w trybie `eval()`, dlatego ich poziomów nie porównujemy tak, jakby pochodziły z identycznych warunków.
 
 ### Ocena modelu
 
@@ -738,7 +738,7 @@ acc_test  = accuracy_score(y_test_bc, preds_test)
 pokaz_tabele({
     "Zbiór": ["Treningowy", "Walidacyjny", "Testowy"],
     "Trafność": [acc_train, acc_val, acc_test],
-}, "Jakość klasyfikacji", {"Trafność": "{:.1%}"})
+}, "Jakość klasyfikacji", {"Trafność": "{:.3%}"})
 
 raport = classification_report(
     y_test_bc, preds_test, target_names=data_bc.target_names, output_dict=True
@@ -775,7 +775,7 @@ Accuracy należy odczytać z wykonanego przykładu; zależy od losowania i treni
 | **Warstwa wyjściowa** | 1 neuron, bez aktywacji | 1 neuron, bez aktywacji (logit) |
 | **Funkcja straty** | `MSELoss` | `BCEWithLogitsLoss` |
 | **Metryka** | RMSE, $R^2$, MAE | Accuracy, precyzja, czułość, F1 |
-| **Interpretacja wyniku** | Wartość liczbowa | Prawdopodobieństwo klasy pozytywnej |
+| **Interpretacja wyniku** | Wartość liczbowa | Logit; po sigmoidzie prawdopodobieństwo klasy 1 (tutaj: łagodnej) |
 | **Próg decyzyjny** | Nie dotyczy | Domyślnie 0.5 |
 
 ::: callout-note
@@ -792,7 +792,7 @@ Sieci neuronowe potrafią modelować bardzo złożone, nieliniowe zależności b
 
 ### Ograniczenia
 
-Sieci neuronowe wymagają starannego przygotowania danych (standaryzacja, usuwanie braków). Są podatne na przeuczenie, szczególnie gdy danych jest mało, a parametrów dużo. Wyniki zależą od wielu hiperparametrów: liczby warstw, liczby neuronów, learning rate, batch size, liczby epok. W przeciwieństwie do regresji liniowej czy drzewa decyzyjnego, wagi sieci nie mają prostej interpretacji.
+Sieci neuronowe wymagają starannego przygotowania danych (standaryzacja, świadomie dobrana obsługa braków). Są podatne na przeuczenie, szczególnie gdy danych jest mało, a parametrów dużo. Wyniki zależą od wielu hiperparametrów: liczby warstw, liczby neuronów, learning rate, batch size, liczby epok. W przeciwieństwie do regresji liniowej czy drzewa decyzyjnego, wagi sieci nie mają prostej interpretacji.
 
 ::: callout-warning
 ### Typowe błędy praktyczne
@@ -800,7 +800,7 @@ Sieci neuronowe wymagają starannego przygotowania danych (standaryzacja, usuwan
 1.  **Brak skalowania danych** – sieć będzie się uczyć wolno lub wcale.
 2.  **Zbyt duży learning rate** – strata oscyluje i nie spada.
 3.  **Zbyt mało danych, zbyt dużo parametrów** – model zapamiętuje zbiór treningowy, ale nie generalizuje.
-4.  **Niewłaściwa funkcja straty** – `MSELoss` do klasyfikacji nie działa poprawnie; użyj `BCEWithLogitsLoss` lub `CrossEntropyLoss`.
+4.  **Niedopasowanie funkcji straty do wyjścia sieci** – w pokazanych przykładach używamy `BCEWithLogitsLoss` lub `CrossEntropyLoss` dla surowych logitów; nie stosujemy przed nimi sigmoida ani softmaxa.
 :::
 
 ## Wnioski

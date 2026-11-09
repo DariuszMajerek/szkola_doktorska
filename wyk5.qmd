@@ -160,6 +160,8 @@ ggplot() +
   theme_minimal(base_size = 13)
 ```
 
+Ilustracja przedstawia ideę pasa tolerancji wokół zadanej funkcji; nie jest wynikiem dopasowania modelu SVR do tych punktów.
+
 ### Parametr `epsilon`
 
 Parametr `epsilon` określa połowę szerokości rurki tolerancji (pełna szerokość to $2\epsilon$):
@@ -206,7 +208,7 @@ dane_klasyfikacja |>
   tab_caption("Przykładowe obserwacje w zbiorze penguins")
 ```
 
-Wykorzystujemy cztery cechy liczbowe opisujące budowę ciała pingwina, mierzone w różnych jednostkach (stąd standaryzacja w recepcie).
+Wykorzystujemy cztery cechy liczbowe opisujące budowę ciała pingwina, mierzone w różnych jednostkach (stąd standaryzacja w recepcie). Ustawienie `scaled = FALSE` wyłącza dodatkowe skalowanie przez `kernlab`, ponieważ przetwarzanie predyktorów wykonuje recepta.
 
 ```{r}
 #| label: wyk5-klasyfikacja-eda
@@ -258,7 +260,7 @@ model_svm_klasyfikacja <- svm_rbf(
   cost = tune(),
   rbf_sigma = tune()
 ) |>
-  set_engine("kernlab") |>
+  set_engine("kernlab", scaled = FALSE) |>
   set_mode("classification")
 
 workflow_klasyfikacja <- workflow() |>
@@ -370,7 +372,7 @@ ggplot(dane_regresja, aes(x = Gr_Liv_Area, y = cena_tys)) +
   geom_point(size = 2, alpha = 0.8) +
   geom_smooth(method = "loess", se = FALSE, color = "darkorange") +
   labs(
-    x = "Powierzchnia mieszkalna nad poziomem gruntu",
+    x = "Powierzchnia mieszkalna nad poziomem gruntu\n[stopy kwadratowe]",
     y = "Cena sprzedaży [tys. dolarów]"
   ) +
   theme_minimal(base_size = 13)
@@ -423,7 +425,7 @@ model_svr <- svm_rbf(
   rbf_sigma = tune(),
   margin = tune()
 ) |>
-  set_engine("kernlab") |>
+  set_engine("kernlab", scaled = FALSE) |>
   set_mode("regression")
 
 workflow_regresja <- workflow() |>
@@ -441,7 +443,9 @@ W regresji stroimy trzy parametry:
 
 - `cost`, czyli siłę kary za obserwacje źle dopasowane,
 - `rbf_sigma`, czyli lokalność jądra RBF,
-- `margin`, czyli odpowiednik szerokości tolerancji `epsilon`.
+- `margin`, czyli `epsilon` — połowę szerokości pasa tolerancji.
+
+W silniku jawnie ustawiamy `scaled = FALSE`: predyktory standaryzuje recepta, a cel pozostaje na skali `log10(ceny)`. Dzięki temu `margin` ma jednostki logarytmu ceny. Domyślne skalowanie w `kernlab` obejmowałoby również zmienną docelową, zmieniając interpretację tej wartości.
 
 ```{r}
 #| label: wyk5-regresja-strojenie

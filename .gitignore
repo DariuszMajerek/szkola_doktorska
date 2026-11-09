@@ -10,3 +10,6 @@
 /*_files/
 /_freeze/
 /wyk*.html
+
+__pycache__/
+/.playwright-mcp/

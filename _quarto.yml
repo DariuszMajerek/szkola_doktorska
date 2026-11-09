@@ -1,6 +1,8 @@
 project:
   type: book
   output-dir: docs
+  post-render:
+    - python3 scripts/finalize_book.py
 
 book:
   title: "Statystyka stosowana"

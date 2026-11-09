@@ -84,9 +84,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-502dd8818b56a2c66749ffbc31bcd64e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-e7c7cb72a47119ae0b6917a2100602d9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-502dd8818b56a2c66749ffbc31bcd64e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-3d0ad9eed4cf45e77d2f560b75de2460.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-e86ad0456e038ac436cb87d190a1adee.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-3d0ad9eed4cf45e77d2f560b75de2460.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -336,8 +336,8 @@ window.Quarto = {
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
       <a href="./index.html" class="sidebar-logo-link">
-      <img src="./logo.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
-      <img src="./logo.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      <img src="./logo.png?v=bd444c0a4783" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="./logo.png?v=bd444c0a4783" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
       </a>
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Statystyka stosowana</a> 
@@ -633,7 +633,7 @@ a = f(z).
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> display</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pokaz_tabele(dane, tytul, formaty<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pokaz_tabele(dane, tytul: <span class="bu">str</span>, formaty: <span class="bu">dict</span>[<span class="bu">str</span>, <span class="bu">str</span>] <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    tabela <span class="op">=</span> pd.DataFrame(dane)</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    formatowanie <span class="op">=</span> {kolumna: <span class="st">"</span><span class="sc">{:.3f}</span><span class="st">"</span> <span class="cf">for</span> kolumna <span class="kw">in</span> tabela.select_dtypes(<span class="st">"floating"</span>).columns}</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    formatowanie.update(formaty <span class="kw">or</span> {})</span>
@@ -650,37 +650,37 @@ a = f(z).
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        ])</span>
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Kształty najczęściej stosowanych funkcji aktywacji"</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> torch.linspace(<span class="op">-</span><span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">200</span>)</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">4</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="fl">3.2</span>))</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, f, name <span class="kw">in</span> <span class="bu">zip</span>(</span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    axes,</span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    [torch.relu(z), torch.sigmoid(z), torch.tanh(z), torch.softmax(torch.stack([z, z<span class="op">/</span><span class="dv">2</span>]), dim<span class="op">=</span><span class="dv">0</span>)],</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"ReLU"</span>, <span class="st">"Sigmoid"</span>, <span class="st">"Tanh"</span>, <span class="st">"Softmax (dwa wyjścia)"</span>]</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>):</span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> name <span class="op">==</span> <span class="st">"Softmax (dwa wyjścia)"</span>:</span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>        ax.plot(z, f[<span class="dv">0</span>].numpy(), label<span class="op">=</span><span class="st">"wyjście 1"</span>)</span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>        ax.plot(z, f[<span class="dv">1</span>].numpy(), label<span class="op">=</span><span class="st">"wyjście 2"</span>)</span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>        ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>)</span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>        ax.plot(z, f)</span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    ax.set_title(name, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    ax.grid(alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"z"</span>)</span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> torch.linspace(<span class="op">-</span><span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">200</span>)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">4</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="fl">3.2</span>))</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, f, name <span class="kw">in</span> <span class="bu">zip</span>(</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    axes,</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    [torch.relu(z), torch.sigmoid(z), torch.tanh(z), torch.softmax(torch.stack([z, z<span class="op">/</span><span class="dv">2</span>]), dim<span class="op">=</span><span class="dv">0</span>)],</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"ReLU"</span>, <span class="st">"Sigmoid"</span>, <span class="st">"Tanh"</span>, <span class="st">"Softmax (dwa wyjścia)"</span>]</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> name <span class="op">==</span> <span class="st">"Softmax (dwa wyjścia)"</span>:</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>        ax.plot(z, f[<span class="dv">0</span>].numpy(), label<span class="op">=</span><span class="st">"wyjście 1"</span>)</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>        ax.plot(z, f[<span class="dv">1</span>].numpy(), label<span class="op">=</span><span class="st">"wyjście 2"</span>)</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>        ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>        ax.plot(z, f)</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    ax.set_title(name, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    ax.grid(alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"z"</span>)</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
-<div>
+<div id="wyk6-funkcje-aktywacji" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="wyk6_files/figure-html/wyk6-funkcje-aktywacji-output-1.png" id="wyk6-funkcje-aktywacji" width="1334" height="296" class="figure-img"></p>
+<p><img src="wyk6_files/figure-html/wyk6-funkcje-aktywacji-output-1.png?v=454079c112c9" width="1334" height="296" class="figure-img"></p>
+<figcaption>Kształty najczęściej stosowanych funkcji aktywacji</figcaption>
 </figure>
 </div>
 </div>
@@ -765,7 +765,7 @@ a = f(z).
 \]</span></li>
 <li>Zaktualizuj parametry, przesuwając je w kierunku przeciwnym do gradientu.</li>
 </ol>
-<p>W PyTorch cały ten proces jest zautomatyzowany przez moduł <code>autograd</code>. Wywołanie <code>.backward()</code> na wartości straty uruchamia obliczenie gradientów dla wszystkich parametrów, które mają atrybut <code>requires_grad=True</code>.</p>
+<p>Samą aktualizację w kroku 4 wykonuje optymalizator, a nie wsteczna propagacja. Obliczanie gradientów jest w PyTorch zautomatyzowane przez moduł <code>autograd</code>. Wywołanie <code>.backward()</code> na wartości straty uruchamia obliczenie gradientów dla wszystkich parametrów, które mają atrybut <code>requires_grad=True</code>.</p>
 </section>
 <section id="stochastic-gradient-descent-sgd" class="level3">
 <h3 class="anchored" data-anchor-id="stochastic-gradient-descent-sgd">Stochastic Gradient Descent (SGD)</h3>
@@ -829,7 +829,7 @@ a = f(z).
 <div class="cell-output cell-output-display">
 <div id="wyk6-sgd-ilustracja" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="wyk6_files/figure-html/wyk6-sgd-ilustracja-output-1.png" width="725" height="470" class="figure-img"></p>
+<p><img src="wyk6_files/figure-html/wyk6-sgd-ilustracja-output-1.png?v=144aeb9a65a0" width="725" height="470" class="figure-img"></p>
 <figcaption>Ilustracja spadku gradientowego: optymalizacja funkcji dwóch zmiennych</figcaption>
 </figure>
 </div>
@@ -886,7 +886,7 @@ a = f(z).
 <li><code>AveOccup</code> – średnia liczba mieszkańców na dom,</li>
 <li><code>Latitude</code>, <code>Longitude</code> – współrzędne geograficzne.</li>
 </ul>
-<p>Zmienna docelowa to mediana wartości domu wyrażona w setkach tysięcy dolarów (np. 2.5 oznacza 250 000 USD).</p>
+<p>Zmienna docelowa to mediana wartości domu wyrażona w setkach tysięcy dolarów (np. 2.5 oznacza 250 000 USD). Dane pochodzą ze spisu z 1990 r., więc nie opisują dzisiejszych cen. Wartości celu są ograniczone od góry do około 5 (500 000 USD); nagromadzenie obserwacji przy tej granicy na wykresie nie oznacza, że rzeczywiste wartości wszystkich tych nieruchomości były identyczne. Ten limit ogranicza interpretację błędów dla najdroższych obszarów.</p>
 <div id="cell-wyk6-regresja-dane" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Kod</summary>
@@ -901,64 +901,64 @@ a = f(z).
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>pokaz_tabele({</span>
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Charakterystyka"</span>: [<span class="st">"Liczba obserwacji"</span>, <span class="st">"Liczba cech"</span>, <span class="st">"Zakres celu (×100k USD)"</span>, <span class="st">"Predyktory"</span>],</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Wartość"</span>: [<span class="bu">str</span>(X.shape[<span class="dv">0</span>]), <span class="bu">str</span>(X.shape[<span class="dv">1</span>]), <span class="ss">f"</span><span class="sc">{</span>y<span class="sc">.</span><span class="bu">min</span>()<span class="sc">:.2f}</span><span class="ss">–</span><span class="sc">{</span>y<span class="sc">.</span><span class="bu">max</span>()<span class="sc">:.2f}</span><span class="ss">"</span>, <span class="st">", "</span>.join(data.feature_names)],</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Wartość"</span>: [<span class="bu">str</span>(X.shape[<span class="dv">0</span>]), <span class="bu">str</span>(X.shape[<span class="dv">1</span>]), <span class="ss">f"</span><span class="sc">{</span>y<span class="sc">.</span><span class="bu">min</span>()<span class="sc">:.3f}</span><span class="ss">–</span><span class="sc">{</span>y<span class="sc">.</span><span class="bu">max</span>()<span class="sc">:.3f}</span><span class="ss">"</span>, <span class="st">", "</span>.join(data.feature_names)],</span>
 <span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>}, <span class="st">"California Housing — opis danych"</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div id="wyk6-regresja-dane" class="cell-output cell-output-display">
 <style type="text/css">
-#T_4cb5e caption {
+#T_2cfa9 caption {
   text-align: left;
   font-weight: 600;
   font-size: 1.1em;
   padding: 12px 0;
 }
-#T_4cb5e th {
+#T_2cfa9 th {
   text-align: left;
   border-bottom: 2px solid #718096;
   padding: 10px 14px;
 }
-#T_4cb5e td {
+#T_2cfa9 td {
   padding: 9px 14px;
   border-bottom: 1px solid #cbd5e1;
 }
-#T_4cb5e tbody tr:nth-child(even) {
+#T_2cfa9 tbody tr:nth-child(even) {
   background-color: rgba(127,127,127,0.08);
 }
-#T_4cb5e  {
+#T_2cfa9  {
   width: 100%;
   font-size: 0.95em;
 }
 </style>
 
-<div id="T_4cb5e" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
+<div id="T_2cfa9" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_4cb5e-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_2cfa9-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Tabela&nbsp;1: California Housing — opis danych
 </figcaption>
-<div aria-describedby="T_4cb5e-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table id="T_4cb5e" class="caption-top table table-sm table-striped small">
+<div aria-describedby="T_2cfa9-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table id="T_2cfa9" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th id="T_4cb5e_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Charakterystyka</th>
-<th id="T_4cb5e_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Wartość</th>
+<th id="T_2cfa9_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Charakterystyka</th>
+<th id="T_2cfa9_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Wartość</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_4cb5e_row0_col0" class="data row0 col0">Liczba obserwacji</td>
-<td id="T_4cb5e_row0_col1" class="data row0 col1">20640</td>
+<td id="T_2cfa9_row0_col0" class="data row0 col0">Liczba obserwacji</td>
+<td id="T_2cfa9_row0_col1" class="data row0 col1">20640</td>
 </tr>
 <tr class="even">
-<td id="T_4cb5e_row1_col0" class="data row1 col0">Liczba cech</td>
-<td id="T_4cb5e_row1_col1" class="data row1 col1">8</td>
+<td id="T_2cfa9_row1_col0" class="data row1 col0">Liczba cech</td>
+<td id="T_2cfa9_row1_col1" class="data row1 col1">8</td>
 </tr>
 <tr class="odd">
-<td id="T_4cb5e_row2_col0" class="data row2 col0">Zakres celu (×100k USD)</td>
-<td id="T_4cb5e_row2_col1" class="data row2 col1">0.15–5.00</td>
+<td id="T_2cfa9_row2_col0" class="data row2 col0">Zakres celu (×100k USD)</td>
+<td id="T_2cfa9_row2_col1" class="data row2 col1">0.150–5.000</td>
 </tr>
 <tr class="even">
-<td id="T_4cb5e_row3_col0" class="data row3 col0">Predyktory</td>
-<td id="T_4cb5e_row3_col1" class="data row3 col1">MedInc, HouseAge, AveRooms, AveBedrms, Population, AveOccup, Latitude, Longitude</td>
+<td id="T_2cfa9_row3_col0" class="data row3 col0">Predyktory</td>
+<td id="T_2cfa9_row3_col1" class="data row3 col1">MedInc, HouseAge, AveRooms, AveBedrms, Population, AveOccup, Latitude, Longitude</td>
 </tr>
 </tbody>
 </table>
@@ -1020,55 +1020,55 @@ Tabela&nbsp;1: California Housing — opis danych
 </details>
 <div id="wyk6-regresja-przygotowanie" class="cell-output cell-output-display">
 <style type="text/css">
-#T_58ac4 caption {
+#T_b8e8a caption {
   text-align: left;
   font-weight: 600;
   font-size: 1.1em;
   padding: 12px 0;
 }
-#T_58ac4 th {
+#T_b8e8a th {
   text-align: left;
   border-bottom: 2px solid #718096;
   padding: 10px 14px;
 }
-#T_58ac4 td {
+#T_b8e8a td {
   padding: 9px 14px;
   border-bottom: 1px solid #cbd5e1;
 }
-#T_58ac4 tbody tr:nth-child(even) {
+#T_b8e8a tbody tr:nth-child(even) {
   background-color: rgba(127,127,127,0.08);
 }
-#T_58ac4  {
+#T_b8e8a  {
   width: 100%;
   font-size: 0.95em;
 }
 </style>
 
-<div id="T_58ac4" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
+<div id="T_b8e8a" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_58ac4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_b8e8a-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Tabela&nbsp;2: Podział danych
 </figcaption>
-<div aria-describedby="T_58ac4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table id="T_58ac4" class="caption-top table table-sm table-striped small">
+<div aria-describedby="T_b8e8a-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table id="T_b8e8a" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th id="T_58ac4_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Zbiór</th>
-<th id="T_58ac4_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Liczba obserwacji</th>
+<th id="T_b8e8a_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Zbiór</th>
+<th id="T_b8e8a_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Liczba obserwacji</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_58ac4_row0_col0" class="data row0 col0">Treningowy</td>
-<td id="T_58ac4_row0_col1" class="data row0 col1">12 384</td>
+<td id="T_b8e8a_row0_col0" class="data row0 col0">Treningowy</td>
+<td id="T_b8e8a_row0_col1" class="data row0 col1">12 384</td>
 </tr>
 <tr class="even">
-<td id="T_58ac4_row1_col0" class="data row1 col0">Walidacyjny</td>
-<td id="T_58ac4_row1_col1" class="data row1 col1">4 128</td>
+<td id="T_b8e8a_row1_col0" class="data row1 col0">Walidacyjny</td>
+<td id="T_b8e8a_row1_col1" class="data row1 col1">4 128</td>
 </tr>
 <tr class="odd">
-<td id="T_58ac4_row2_col0" class="data row2 col0">Testowy</td>
-<td id="T_58ac4_row2_col1" class="data row2 col1">4 128</td>
+<td id="T_b8e8a_row2_col0" class="data row2 col0">Testowy</td>
+<td id="T_b8e8a_row2_col1" class="data row2 col1">4 128</td>
 </tr>
 </tbody>
 </table>
@@ -1087,7 +1087,7 @@ Tabela&nbsp;2: Podział danych
 <li><strong>Warstwa ukryta 2</strong>: 32 neurony, aktywacja <strong>ReLU</strong></li>
 <li><strong>Warstwa wyjściowa</strong>: 1 neuron, <strong>bez aktywacji</strong></li>
 </ul>
-<p>Dla danych tabularycznych celowo rezygnujemy z <code>BatchNorm</code> i <code>Dropout</code> – przy stabilnym optymalizatorze (Adam) prosta architektura <code>Linear → ReLU</code> często daje najlepszy stosunek jakości do stabilności treningu.</p>
+<p>W tym przykładzie używamy prostej architektury <code>Linear → ReLU</code>, bez <code>BatchNorm</code> i <code>Dropout</code>. Jest to wybór dydaktyczny; jego przewaga nad innymi architekturami wymagałaby osobnego porównania walidacyjnego.</p>
 <p>Funkcja celu: <strong>MSELoss</strong>. Optymalizator: <strong>Adam</strong> z learning rate = 0.001 oraz <code>weight_decay</code> = 1e-4 (regularyzacja L2).</p>
 <div id="cell-wyk6-regresja-model" class="cell" data-execution_count="5">
 <details class="code-fold">
@@ -1118,63 +1118,63 @@ Tabela&nbsp;2: Podział danych
 </details>
 <div id="wyk6-regresja-model" class="cell-output cell-output-display">
 <style type="text/css">
-#T_59aa0 caption {
+#T_b7af5 caption {
   text-align: left;
   font-weight: 600;
   font-size: 1.1em;
   padding: 12px 0;
 }
-#T_59aa0 th {
+#T_b7af5 th {
   text-align: left;
   border-bottom: 2px solid #718096;
   padding: 10px 14px;
 }
-#T_59aa0 td {
+#T_b7af5 td {
   padding: 9px 14px;
   border-bottom: 1px solid #cbd5e1;
 }
-#T_59aa0 tbody tr:nth-child(even) {
+#T_b7af5 tbody tr:nth-child(even) {
   background-color: rgba(127,127,127,0.08);
 }
-#T_59aa0  {
+#T_b7af5  {
   width: 100%;
   font-size: 0.95em;
 }
 </style>
 
-<div id="T_59aa0" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
+<div id="T_b7af5" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_59aa0-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_b7af5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Tabela&nbsp;3: Sieć regresyjna — architektura
 </figcaption>
-<div aria-describedby="T_59aa0-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table id="T_59aa0" class="caption-top table table-sm table-striped small">
+<div aria-describedby="T_b7af5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table id="T_b7af5" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th id="T_59aa0_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Warstwa</th>
-<th id="T_59aa0_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Konfiguracja</th>
+<th id="T_b7af5_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Warstwa</th>
+<th id="T_b7af5_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Konfiguracja</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_59aa0_row0_col0" class="data row0 col0">1</td>
-<td id="T_59aa0_row0_col1" class="data row0 col1">Linear(in_features=8, out_features=64, bias=True)</td>
+<td id="T_b7af5_row0_col0" class="data row0 col0">1</td>
+<td id="T_b7af5_row0_col1" class="data row0 col1">Linear(in_features=8, out_features=64, bias=True)</td>
 </tr>
 <tr class="even">
-<td id="T_59aa0_row1_col0" class="data row1 col0">2</td>
-<td id="T_59aa0_row1_col1" class="data row1 col1">ReLU()</td>
+<td id="T_b7af5_row1_col0" class="data row1 col0">2</td>
+<td id="T_b7af5_row1_col1" class="data row1 col1">ReLU()</td>
 </tr>
 <tr class="odd">
-<td id="T_59aa0_row2_col0" class="data row2 col0">3</td>
-<td id="T_59aa0_row2_col1" class="data row2 col1">Linear(in_features=64, out_features=32, bias=True)</td>
+<td id="T_b7af5_row2_col0" class="data row2 col0">3</td>
+<td id="T_b7af5_row2_col1" class="data row2 col1">Linear(in_features=64, out_features=32, bias=True)</td>
 </tr>
 <tr class="even">
-<td id="T_59aa0_row3_col0" class="data row3 col0">4</td>
-<td id="T_59aa0_row3_col1" class="data row3 col1">ReLU()</td>
+<td id="T_b7af5_row3_col0" class="data row3 col0">4</td>
+<td id="T_b7af5_row3_col1" class="data row3 col1">ReLU()</td>
 </tr>
 <tr class="odd">
-<td id="T_59aa0_row4_col0" class="data row4 col0">5</td>
-<td id="T_59aa0_row4_col1" class="data row4 col1">Linear(in_features=32, out_features=1, bias=True)</td>
+<td id="T_b7af5_row4_col0" class="data row4 col0">5</td>
+<td id="T_b7af5_row4_col1" class="data row4 col1">Linear(in_features=32, out_features=1, bias=True)</td>
 </tr>
 </tbody>
 </table>
@@ -1199,7 +1199,7 @@ Tabela&nbsp;3: Sieć regresyjna — architektura
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>best_state <span class="op">=</span> <span class="va">None</span></span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(n_epochs):</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Trening – mini-batch SGD</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Trening – Adam na mini-batchach</span></span>
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    model_reg.train()</span>
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    epoch_train_loss <span class="op">=</span> <span class="fl">0.0</span></span>
 <span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> X_batch, y_batch <span class="kw">in</span> train_loader:</span>
@@ -1233,55 +1233,55 @@ Tabela&nbsp;3: Sieć regresyjna — architektura
 </details>
 <div id="wyk6-regresja-trening" class="cell-output cell-output-display">
 <style type="text/css">
-#T_a7e5a caption {
+#T_170fe caption {
   text-align: left;
   font-weight: 600;
   font-size: 1.1em;
   padding: 12px 0;
 }
-#T_a7e5a th {
+#T_170fe th {
   text-align: left;
   border-bottom: 2px solid #718096;
   padding: 10px 14px;
 }
-#T_a7e5a td {
+#T_170fe td {
   padding: 9px 14px;
   border-bottom: 1px solid #cbd5e1;
 }
-#T_a7e5a tbody tr:nth-child(even) {
+#T_170fe tbody tr:nth-child(even) {
   background-color: rgba(127,127,127,0.08);
 }
-#T_a7e5a  {
+#T_170fe  {
   width: 100%;
   font-size: 0.95em;
 }
 </style>
 
-<div id="T_a7e5a" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
+<div id="T_170fe" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_a7e5a-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_170fe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Tabela&nbsp;4: Przebieg uczenia — regresja
 </figcaption>
-<div aria-describedby="T_a7e5a-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table id="T_a7e5a" class="caption-top table table-sm table-striped small">
+<div aria-describedby="T_170fe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table id="T_170fe" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th id="T_a7e5a_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Pomiar</th>
-<th id="T_a7e5a_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">MSE</th>
+<th id="T_170fe_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Pomiar</th>
+<th id="T_170fe_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">MSE</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_a7e5a_row0_col0" class="data row0 col0">Najlepsza walidacja</td>
-<td id="T_a7e5a_row0_col1" class="data row0 col1">0,205</td>
+<td id="T_170fe_row0_col0" class="data row0 col0">Najlepsza walidacja</td>
+<td id="T_170fe_row0_col1" class="data row0 col1">0,205</td>
 </tr>
 <tr class="even">
-<td id="T_a7e5a_row1_col0" class="data row1 col0">Trening — ostatnia epoka</td>
-<td id="T_a7e5a_row1_col1" class="data row1 col1">0,178</td>
+<td id="T_170fe_row1_col0" class="data row1 col0">Trening — ostatnia epoka</td>
+<td id="T_170fe_row1_col1" class="data row1 col1">0,178</td>
 </tr>
 <tr class="odd">
-<td id="T_a7e5a_row2_col0" class="data row2 col0">Walidacja — ostatnia epoka</td>
-<td id="T_a7e5a_row2_col1" class="data row2 col1">0,209</td>
+<td id="T_170fe_row2_col0" class="data row2 col0">Walidacja — ostatnia epoka</td>
+<td id="T_170fe_row2_col1" class="data row2 col1">0,209</td>
 </tr>
 </tbody>
 </table>
@@ -1307,7 +1307,7 @@ Tabela&nbsp;4: Przebieg uczenia — regresja
 <div class="cell-output cell-output-display">
 <div id="wyk6-regresja-krzywa-straty" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="wyk6_files/figure-html/wyk6-regresja-krzywa-straty-output-1.png" width="758" height="422" class="figure-img"></p>
+<p><img src="wyk6_files/figure-html/wyk6-regresja-krzywa-straty-output-1.png?v=1345ee19a8a4" width="758" height="422" class="figure-img"></p>
 <figcaption>Krzywa straty MSE podczas treningu sieci regresyjnej</figcaption>
 </figure>
 </div>
@@ -1351,59 +1351,59 @@ Tabela&nbsp;4: Przebieg uczenia — regresja
 </details>
 <div id="wyk6-regresja-ocena" class="cell-output cell-output-display">
 <style type="text/css">
-#T_105bb caption {
+#T_e66f0 caption {
   text-align: left;
   font-weight: 600;
   font-size: 1.1em;
   padding: 12px 0;
 }
-#T_105bb th {
+#T_e66f0 th {
   text-align: left;
   border-bottom: 2px solid #718096;
   padding: 10px 14px;
 }
-#T_105bb td {
+#T_e66f0 td {
   padding: 9px 14px;
   border-bottom: 1px solid #cbd5e1;
 }
-#T_105bb tbody tr:nth-child(even) {
+#T_e66f0 tbody tr:nth-child(even) {
   background-color: rgba(127,127,127,0.08);
 }
-#T_105bb  {
+#T_e66f0  {
   width: 100%;
   font-size: 0.95em;
 }
 </style>
 
-<div id="T_105bb" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
+<div id="T_e66f0" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_105bb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_e66f0-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Tabela&nbsp;5: Jakość predykcji — regresja
 </figcaption>
-<div aria-describedby="T_105bb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table id="T_105bb" class="caption-top table table-sm table-striped small">
+<div aria-describedby="T_e66f0-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table id="T_e66f0" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th id="T_105bb_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Zbiór</th>
-<th id="T_105bb_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">RMSE (×100k USD)</th>
-<th id="T_105bb_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">R²</th>
+<th id="T_e66f0_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Zbiór</th>
+<th id="T_e66f0_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">RMSE (×100k USD)</th>
+<th id="T_e66f0_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">R²</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_105bb_row0_col0" class="data row0 col0">Treningowy</td>
-<td id="T_105bb_row0_col1" class="data row0 col1">0,478</td>
-<td id="T_105bb_row0_col2" class="data row0 col2">0,827</td>
+<td id="T_e66f0_row0_col0" class="data row0 col0">Treningowy</td>
+<td id="T_e66f0_row0_col1" class="data row0 col1">0,478</td>
+<td id="T_e66f0_row0_col2" class="data row0 col2">0,827</td>
 </tr>
 <tr class="even">
-<td id="T_105bb_row1_col0" class="data row1 col0">Walidacyjny</td>
-<td id="T_105bb_row1_col1" class="data row1 col1">0,521</td>
-<td id="T_105bb_row1_col2" class="data row1 col2">0,802</td>
+<td id="T_e66f0_row1_col0" class="data row1 col0">Walidacyjny</td>
+<td id="T_e66f0_row1_col1" class="data row1 col1">0,521</td>
+<td id="T_e66f0_row1_col2" class="data row1 col2">0,802</td>
 </tr>
 <tr class="odd">
-<td id="T_105bb_row2_col0" class="data row2 col0">Testowy</td>
-<td id="T_105bb_row2_col1" class="data row2 col1">0,525</td>
-<td id="T_105bb_row2_col2" class="data row2 col2">0,790</td>
+<td id="T_e66f0_row2_col0" class="data row2 col0">Testowy</td>
+<td id="T_e66f0_row2_col1" class="data row2 col1">0,525</td>
+<td id="T_e66f0_row2_col2" class="data row2 col2">0,790</td>
 </tr>
 </tbody>
 </table>
@@ -1423,7 +1423,7 @@ Tabela&nbsp;5: Jakość predykcji — regresja
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"r--"</span>, linewidth<span class="op">=</span><span class="fl">1.5</span>, label<span class="op">=</span><span class="st">"Idealna predykcja"</span></span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Wartości rzeczywiste (×100k USD)"</span>)</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Wartości przewidywane"</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Wartości przewidywane (×100k USD)"</span>)</span>
 <span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="ss">f"Regresja MLP – zbiór testowy (R² = </span><span class="sc">{</span>r2_test<span class="sc">:.3f}</span><span class="ss">)"</span>)</span>
 <span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
 <span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>plt.grid(alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
@@ -1433,7 +1433,7 @@ Tabela&nbsp;5: Jakość predykcji — regresja
 <div class="cell-output cell-output-display">
 <div id="wyk6-regresja-wykres" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="wyk6_files/figure-html/wyk6-regresja-wykres-output-1.png" width="567" height="519" class="figure-img"></p>
+<p><img src="wyk6_files/figure-html/wyk6-regresja-wykres-output-1.png?v=dbb210559615" width="567" height="519" class="figure-img"></p>
 <figcaption>Wartości rzeczywiste vs przewidywane – zbiór testowy</figcaption>
 </figure>
 </div>
@@ -1479,63 +1479,63 @@ Tabela&nbsp;5: Jakość predykcji — regresja
 </details>
 <div id="wyk6-klasyfikacja-dane" class="cell-output cell-output-display">
 <style type="text/css">
-#T_2e063 caption {
+#T_e0eb0 caption {
   text-align: left;
   font-weight: 600;
   font-size: 1.1em;
   padding: 12px 0;
 }
-#T_2e063 th {
+#T_e0eb0 th {
   text-align: left;
   border-bottom: 2px solid #718096;
   padding: 10px 14px;
 }
-#T_2e063 td {
+#T_e0eb0 td {
   padding: 9px 14px;
   border-bottom: 1px solid #cbd5e1;
 }
-#T_2e063 tbody tr:nth-child(even) {
+#T_e0eb0 tbody tr:nth-child(even) {
   background-color: rgba(127,127,127,0.08);
 }
-#T_2e063  {
+#T_e0eb0  {
   width: 100%;
   font-size: 0.95em;
 }
 </style>
 
-<div id="T_2e063" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
+<div id="T_e0eb0" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_2e063-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_e0eb0-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Tabela&nbsp;6: Breast Cancer Wisconsin — opis danych
 </figcaption>
-<div aria-describedby="T_2e063-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table id="T_2e063" class="caption-top table table-sm table-striped small">
+<div aria-describedby="T_e0eb0-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table id="T_e0eb0" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th id="T_2e063_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Charakterystyka</th>
-<th id="T_2e063_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Wartość</th>
+<th id="T_e0eb0_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Charakterystyka</th>
+<th id="T_e0eb0_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Wartość</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_2e063_row0_col0" class="data row0 col0">Liczba obserwacji</td>
-<td id="T_2e063_row0_col1" class="data row0 col1">569</td>
+<td id="T_e0eb0_row0_col0" class="data row0 col0">Liczba obserwacji</td>
+<td id="T_e0eb0_row0_col1" class="data row0 col1">569</td>
 </tr>
 <tr class="even">
-<td id="T_2e063_row1_col0" class="data row1 col0">Liczba cech</td>
-<td id="T_2e063_row1_col1" class="data row1 col1">30</td>
+<td id="T_e0eb0_row1_col0" class="data row1 col0">Liczba cech</td>
+<td id="T_e0eb0_row1_col1" class="data row1 col1">30</td>
 </tr>
 <tr class="odd">
-<td id="T_2e063_row2_col0" class="data row2 col0">Guzy złośliwe (0)</td>
-<td id="T_2e063_row2_col1" class="data row2 col1">212</td>
+<td id="T_e0eb0_row2_col0" class="data row2 col0">Guzy złośliwe (0)</td>
+<td id="T_e0eb0_row2_col1" class="data row2 col1">212</td>
 </tr>
 <tr class="even">
-<td id="T_2e063_row3_col0" class="data row3 col0">Guzy łagodne (1)</td>
-<td id="T_2e063_row3_col1" class="data row3 col1">357</td>
+<td id="T_e0eb0_row3_col0" class="data row3 col0">Guzy łagodne (1)</td>
+<td id="T_e0eb0_row3_col1" class="data row3 col1">357</td>
 </tr>
 <tr class="odd">
-<td id="T_2e063_row4_col0" class="data row4 col0">Pierwsze 10 cech</td>
-<td id="T_2e063_row4_col1" class="data row4 col1">mean radius, mean texture, mean perimeter, mean area, mean smoothness, mean compactness, mean concavity, mean concave points, mean symmetry, mean fractal dimension</td>
+<td id="T_e0eb0_row4_col0" class="data row4 col0">Pierwsze 10 cech</td>
+<td id="T_e0eb0_row4_col1" class="data row4 col1">mean radius, mean texture, mean perimeter, mean area, mean smoothness, mean compactness, mean concavity, mean concave points, mean symmetry, mean fractal dimension</td>
 </tr>
 </tbody>
 </table>
@@ -1580,55 +1580,55 @@ Tabela&nbsp;6: Breast Cancer Wisconsin — opis danych
 </details>
 <div id="wyk6-klasyfikacja-przygotowanie" class="cell-output cell-output-display">
 <style type="text/css">
-#T_09910 caption {
+#T_40890 caption {
   text-align: left;
   font-weight: 600;
   font-size: 1.1em;
   padding: 12px 0;
 }
-#T_09910 th {
+#T_40890 th {
   text-align: left;
   border-bottom: 2px solid #718096;
   padding: 10px 14px;
 }
-#T_09910 td {
+#T_40890 td {
   padding: 9px 14px;
   border-bottom: 1px solid #cbd5e1;
 }
-#T_09910 tbody tr:nth-child(even) {
+#T_40890 tbody tr:nth-child(even) {
   background-color: rgba(127,127,127,0.08);
 }
-#T_09910  {
+#T_40890  {
   width: 100%;
   font-size: 0.95em;
 }
 </style>
 
-<div id="T_09910" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
+<div id="T_40890" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_09910-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_40890-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Tabela&nbsp;7: Podział danych
 </figcaption>
-<div aria-describedby="T_09910-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table id="T_09910" class="caption-top table table-sm table-striped small">
+<div aria-describedby="T_40890-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table id="T_40890" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th id="T_09910_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Zbiór</th>
-<th id="T_09910_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Liczba obserwacji</th>
+<th id="T_40890_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Zbiór</th>
+<th id="T_40890_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Liczba obserwacji</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_09910_row0_col0" class="data row0 col0">Treningowy</td>
-<td id="T_09910_row0_col1" class="data row0 col1">341</td>
+<td id="T_40890_row0_col0" class="data row0 col0">Treningowy</td>
+<td id="T_40890_row0_col1" class="data row0 col1">341</td>
 </tr>
 <tr class="even">
-<td id="T_09910_row1_col0" class="data row1 col0">Walidacyjny</td>
-<td id="T_09910_row1_col1" class="data row1 col1">114</td>
+<td id="T_40890_row1_col0" class="data row1 col0">Walidacyjny</td>
+<td id="T_40890_row1_col1" class="data row1 col1">114</td>
 </tr>
 <tr class="odd">
-<td id="T_09910_row2_col0" class="data row2 col0">Testowy</td>
-<td id="T_09910_row2_col1" class="data row2 col1">114</td>
+<td id="T_40890_row2_col0" class="data row2 col0">Testowy</td>
+<td id="T_40890_row2_col1" class="data row2 col1">114</td>
 </tr>
 </tbody>
 </table>
@@ -1687,91 +1687,91 @@ Tabela&nbsp;7: Podział danych
 </details>
 <div id="wyk6-klasyfikacja-model" class="cell-output cell-output-display">
 <style type="text/css">
-#T_980f5 caption {
+#T_a008a caption {
   text-align: left;
   font-weight: 600;
   font-size: 1.1em;
   padding: 12px 0;
 }
-#T_980f5 th {
+#T_a008a th {
   text-align: left;
   border-bottom: 2px solid #718096;
   padding: 10px 14px;
 }
-#T_980f5 td {
+#T_a008a td {
   padding: 9px 14px;
   border-bottom: 1px solid #cbd5e1;
 }
-#T_980f5 tbody tr:nth-child(even) {
+#T_a008a tbody tr:nth-child(even) {
   background-color: rgba(127,127,127,0.08);
 }
-#T_980f5  {
+#T_a008a  {
   width: 100%;
   font-size: 0.95em;
 }
 </style>
 
-<div id="T_980f5" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
+<div id="T_a008a" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_980f5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_a008a-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Tabela&nbsp;8: Sieć klasyfikacyjna — architektura
 </figcaption>
-<div aria-describedby="T_980f5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table id="T_980f5" class="caption-top table table-sm table-striped small">
+<div aria-describedby="T_a008a-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table id="T_a008a" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th id="T_980f5_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Warstwa</th>
-<th id="T_980f5_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Konfiguracja</th>
+<th id="T_a008a_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Warstwa</th>
+<th id="T_a008a_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Konfiguracja</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_980f5_row0_col0" class="data row0 col0">1</td>
-<td id="T_980f5_row0_col1" class="data row0 col1">Linear(in_features=30, out_features=128, bias=True)</td>
+<td id="T_a008a_row0_col0" class="data row0 col0">1</td>
+<td id="T_a008a_row0_col1" class="data row0 col1">Linear(in_features=30, out_features=128, bias=True)</td>
 </tr>
 <tr class="even">
-<td id="T_980f5_row1_col0" class="data row1 col0">2</td>
-<td id="T_980f5_row1_col1" class="data row1 col1">BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)</td>
+<td id="T_a008a_row1_col0" class="data row1 col0">2</td>
+<td id="T_a008a_row1_col1" class="data row1 col1">BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)</td>
 </tr>
 <tr class="odd">
-<td id="T_980f5_row2_col0" class="data row2 col0">3</td>
-<td id="T_980f5_row2_col1" class="data row2 col1">ReLU()</td>
+<td id="T_a008a_row2_col0" class="data row2 col0">3</td>
+<td id="T_a008a_row2_col1" class="data row2 col1">ReLU()</td>
 </tr>
 <tr class="even">
-<td id="T_980f5_row3_col0" class="data row3 col0">4</td>
-<td id="T_980f5_row3_col1" class="data row3 col1">Dropout(p=0.3, inplace=False)</td>
+<td id="T_a008a_row3_col0" class="data row3 col0">4</td>
+<td id="T_a008a_row3_col1" class="data row3 col1">Dropout(p=0.3, inplace=False)</td>
 </tr>
 <tr class="odd">
-<td id="T_980f5_row4_col0" class="data row4 col0">5</td>
-<td id="T_980f5_row4_col1" class="data row4 col1">Linear(in_features=128, out_features=64, bias=True)</td>
+<td id="T_a008a_row4_col0" class="data row4 col0">5</td>
+<td id="T_a008a_row4_col1" class="data row4 col1">Linear(in_features=128, out_features=64, bias=True)</td>
 </tr>
 <tr class="even">
-<td id="T_980f5_row5_col0" class="data row5 col0">6</td>
-<td id="T_980f5_row5_col1" class="data row5 col1">BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)</td>
+<td id="T_a008a_row5_col0" class="data row5 col0">6</td>
+<td id="T_a008a_row5_col1" class="data row5 col1">BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)</td>
 </tr>
 <tr class="odd">
-<td id="T_980f5_row6_col0" class="data row6 col0">7</td>
-<td id="T_980f5_row6_col1" class="data row6 col1">ReLU()</td>
+<td id="T_a008a_row6_col0" class="data row6 col0">7</td>
+<td id="T_a008a_row6_col1" class="data row6 col1">ReLU()</td>
 </tr>
 <tr class="even">
-<td id="T_980f5_row7_col0" class="data row7 col0">8</td>
-<td id="T_980f5_row7_col1" class="data row7 col1">Dropout(p=0.3, inplace=False)</td>
+<td id="T_a008a_row7_col0" class="data row7 col0">8</td>
+<td id="T_a008a_row7_col1" class="data row7 col1">Dropout(p=0.3, inplace=False)</td>
 </tr>
 <tr class="odd">
-<td id="T_980f5_row8_col0" class="data row8 col0">9</td>
-<td id="T_980f5_row8_col1" class="data row8 col1">Linear(in_features=64, out_features=32, bias=True)</td>
+<td id="T_a008a_row8_col0" class="data row8 col0">9</td>
+<td id="T_a008a_row8_col1" class="data row8 col1">Linear(in_features=64, out_features=32, bias=True)</td>
 </tr>
 <tr class="even">
-<td id="T_980f5_row9_col0" class="data row9 col0">10</td>
-<td id="T_980f5_row9_col1" class="data row9 col1">BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)</td>
+<td id="T_a008a_row9_col0" class="data row9 col0">10</td>
+<td id="T_a008a_row9_col1" class="data row9 col1">BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)</td>
 </tr>
 <tr class="odd">
-<td id="T_980f5_row10_col0" class="data row10 col0">11</td>
-<td id="T_980f5_row10_col1" class="data row10 col1">ReLU()</td>
+<td id="T_a008a_row10_col0" class="data row10 col0">11</td>
+<td id="T_a008a_row10_col1" class="data row10 col1">ReLU()</td>
 </tr>
 <tr class="even">
-<td id="T_980f5_row11_col0" class="data row11 col0">12</td>
-<td id="T_980f5_row11_col1" class="data row11 col1">Linear(in_features=32, out_features=1, bias=True)</td>
+<td id="T_a008a_row11_col0" class="data row11 col0">12</td>
+<td id="T_a008a_row11_col1" class="data row11 col1">Linear(in_features=32, out_features=1, bias=True)</td>
 </tr>
 </tbody>
 </table>
@@ -1825,55 +1825,55 @@ Tabela&nbsp;8: Sieć klasyfikacyjna — architektura
 </details>
 <div id="wyk6-klasyfikacja-trening" class="cell-output cell-output-display">
 <style type="text/css">
-#T_f07dc caption {
+#T_48a9c caption {
   text-align: left;
   font-weight: 600;
   font-size: 1.1em;
   padding: 12px 0;
 }
-#T_f07dc th {
+#T_48a9c th {
   text-align: left;
   border-bottom: 2px solid #718096;
   padding: 10px 14px;
 }
-#T_f07dc td {
+#T_48a9c td {
   padding: 9px 14px;
   border-bottom: 1px solid #cbd5e1;
 }
-#T_f07dc tbody tr:nth-child(even) {
+#T_48a9c tbody tr:nth-child(even) {
   background-color: rgba(127,127,127,0.08);
 }
-#T_f07dc  {
+#T_48a9c  {
   width: 100%;
   font-size: 0.95em;
 }
 </style>
 
-<div id="T_f07dc" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
+<div id="T_48a9c" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_f07dc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_48a9c-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Tabela&nbsp;9: Przebieg uczenia — klasyfikacja
 </figcaption>
-<div aria-describedby="T_f07dc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table id="T_f07dc" class="caption-top table table-sm table-striped small">
+<div aria-describedby="T_48a9c-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table id="T_48a9c" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th id="T_f07dc_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Pomiar</th>
-<th id="T_f07dc_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">BCE</th>
+<th id="T_48a9c_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Pomiar</th>
+<th id="T_48a9c_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">BCE</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_f07dc_row0_col0" class="data row0 col0">Najlepsza walidacja</td>
-<td id="T_f07dc_row0_col1" class="data row0 col1">0,043</td>
+<td id="T_48a9c_row0_col0" class="data row0 col0">Najlepsza walidacja</td>
+<td id="T_48a9c_row0_col1" class="data row0 col1">0,043</td>
 </tr>
 <tr class="even">
-<td id="T_f07dc_row1_col0" class="data row1 col0">Trening — ostatnia epoka</td>
-<td id="T_f07dc_row1_col1" class="data row1 col1">0,025</td>
+<td id="T_48a9c_row1_col0" class="data row1 col0">Trening — ostatnia epoka</td>
+<td id="T_48a9c_row1_col1" class="data row1 col1">0,025</td>
 </tr>
 <tr class="odd">
-<td id="T_f07dc_row2_col0" class="data row2 col0">Walidacja — ostatnia epoka</td>
-<td id="T_f07dc_row2_col1" class="data row2 col1">0,085</td>
+<td id="T_48a9c_row2_col0" class="data row2 col0">Walidacja — ostatnia epoka</td>
+<td id="T_48a9c_row2_col1" class="data row2 col1">0,085</td>
 </tr>
 </tbody>
 </table>
@@ -1899,13 +1899,13 @@ Tabela&nbsp;9: Przebieg uczenia — klasyfikacja
 <div class="cell-output cell-output-display">
 <div id="wyk6-klasyfikacja-krzywa-straty" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="wyk6_files/figure-html/wyk6-klasyfikacja-krzywa-straty-output-1.png" width="758" height="422" class="figure-img"></p>
+<p><img src="wyk6_files/figure-html/wyk6-klasyfikacja-krzywa-straty-output-1.png?v=5662f703364b" width="758" height="422" class="figure-img"></p>
 <figcaption>Krzywa straty BCE podczas treningu sieci klasyfikacyjnej</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Strata na obu zbiorach systematycznie spada i nie rozbiega się – to sygnał zgodności uczenia i walidacji, ale nie dowód poprawnego uogólniania. Dropout i BatchNorm pomagają utrzymać stabilny trening mimo głębszej architektury.</p>
+<p>Krzywe nie muszą maleć monotonicznie: mini-batche i dropout wprowadzają zmienność, a strata walidacyjna może wzrastać po osiągnięciu minimum. Przywracamy stan z najlepszej epoki walidacyjnej. Strata treningowa jest liczona z aktywnym dropoutem i aktualizacją BatchNorm, a walidacyjna w trybie <code>eval()</code>, dlatego ich poziomów nie porównujemy tak, jakby pochodziły z identycznych warunków.</p>
 </section>
 <section id="ocena-modelu-1" class="level3">
 <h3 class="anchored" data-anchor-id="ocena-modelu-1">Ocena modelu</h3>
@@ -1934,7 +1934,7 @@ Tabela&nbsp;9: Przebieg uczenia — klasyfikacja
 <span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>pokaz_tabele({</span>
 <span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Zbiór"</span>: [<span class="st">"Treningowy"</span>, <span class="st">"Walidacyjny"</span>, <span class="st">"Testowy"</span>],</span>
 <span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Trafność"</span>: [acc_train, acc_val, acc_test],</span>
-<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>}, <span class="st">"Jakość klasyfikacji"</span>, {<span class="st">"Trafność"</span>: <span class="st">"</span><span class="sc">{:.1%}</span><span class="st">"</span>})</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>}, <span class="st">"Jakość klasyfikacji"</span>, {<span class="st">"Trafność"</span>: <span class="st">"</span><span class="sc">{:.3%}</span><span class="st">"</span>})</span>
 <span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>raport <span class="op">=</span> classification_report(</span>
 <span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>    y_test_bc, preds_test, target_names<span class="op">=</span>data_bc.target_names, output_dict<span class="op">=</span><span class="va">True</span></span>
@@ -1949,55 +1949,55 @@ Tabela&nbsp;9: Przebieg uczenia — klasyfikacja
 </details>
 <div id="wyk6-klasyfikacja-ocena-1" class="cell-output cell-output-display">
 <style type="text/css">
-#T_091fd caption {
+#T_73ae6 caption {
   text-align: left;
   font-weight: 600;
   font-size: 1.1em;
   padding: 12px 0;
 }
-#T_091fd th {
+#T_73ae6 th {
   text-align: left;
   border-bottom: 2px solid #718096;
   padding: 10px 14px;
 }
-#T_091fd td {
+#T_73ae6 td {
   padding: 9px 14px;
   border-bottom: 1px solid #cbd5e1;
 }
-#T_091fd tbody tr:nth-child(even) {
+#T_73ae6 tbody tr:nth-child(even) {
   background-color: rgba(127,127,127,0.08);
 }
-#T_091fd  {
+#T_73ae6  {
   width: 100%;
   font-size: 0.95em;
 }
 </style>
 
-<div id="T_091fd" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
+<div id="T_73ae6" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_091fd-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_73ae6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Tabela&nbsp;10: Jakość klasyfikacji
 </figcaption>
-<div aria-describedby="T_091fd-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table id="T_091fd" class="caption-top table table-sm table-striped small">
+<div aria-describedby="T_73ae6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table id="T_73ae6" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th id="T_091fd_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Zbiór</th>
-<th id="T_091fd_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Trafność</th>
+<th id="T_73ae6_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Zbiór</th>
+<th id="T_73ae6_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Trafność</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_091fd_row0_col0" class="data row0 col0">Treningowy</td>
-<td id="T_091fd_row0_col1" class="data row0 col1">100,0%</td>
+<td id="T_73ae6_row0_col0" class="data row0 col0">Treningowy</td>
+<td id="T_73ae6_row0_col1" class="data row0 col1">100,000%</td>
 </tr>
 <tr class="even">
-<td id="T_091fd_row1_col0" class="data row1 col0">Walidacyjny</td>
-<td id="T_091fd_row1_col1" class="data row1 col1">98,2%</td>
+<td id="T_73ae6_row1_col0" class="data row1 col0">Walidacyjny</td>
+<td id="T_73ae6_row1_col1" class="data row1 col1">98,246%</td>
 </tr>
 <tr class="odd">
-<td id="T_091fd_row2_col0" class="data row2 col0">Testowy</td>
-<td id="T_091fd_row2_col1" class="data row2 col1">94,7%</td>
+<td id="T_73ae6_row2_col0" class="data row2 col0">Testowy</td>
+<td id="T_73ae6_row2_col1" class="data row2 col1">94,737%</td>
 </tr>
 </tbody>
 </table>
@@ -2007,74 +2007,74 @@ Tabela&nbsp;10: Jakość klasyfikacji
 </div>
 <div id="wyk6-klasyfikacja-ocena-2" class="cell-output cell-output-display">
 <style type="text/css">
-#T_b9081 caption {
+#T_3d8e8 caption {
   text-align: left;
   font-weight: 600;
   font-size: 1.1em;
   padding: 12px 0;
 }
-#T_b9081 th {
+#T_3d8e8 th {
   text-align: left;
   border-bottom: 2px solid #718096;
   padding: 10px 14px;
 }
-#T_b9081 td {
+#T_3d8e8 td {
   padding: 9px 14px;
   border-bottom: 1px solid #cbd5e1;
 }
-#T_b9081 tbody tr:nth-child(even) {
+#T_3d8e8 tbody tr:nth-child(even) {
   background-color: rgba(127,127,127,0.08);
 }
-#T_b9081  {
+#T_3d8e8  {
   width: 100%;
   font-size: 0.95em;
 }
 </style>
 
-<div id="T_b9081" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
+<div id="T_3d8e8" class="quarto-float quarto-figure quarto-figure-center anchored" data-quarto-postprocess="true">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_b9081-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="T_3d8e8-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Tabela&nbsp;11: Raport klasyfikacji — zbiór testowy
 </figcaption>
-<div aria-describedby="T_b9081-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table id="T_b9081" class="caption-top table table-sm table-striped small">
+<div aria-describedby="T_3d8e8-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table id="T_3d8e8" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th id="T_b9081_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Klasa / agregacja</th>
-<th id="T_b9081_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Precyzja</th>
-<th id="T_b9081_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">Czułość</th>
-<th id="T_b9081_level0_col3" class="col_heading level0 col3" data-quarto-table-cell-role="th">F1</th>
-<th id="T_b9081_level0_col4" class="col_heading level0 col4" data-quarto-table-cell-role="th">Liczebność</th>
+<th id="T_3d8e8_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Klasa / agregacja</th>
+<th id="T_3d8e8_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Precyzja</th>
+<th id="T_3d8e8_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">Czułość</th>
+<th id="T_3d8e8_level0_col3" class="col_heading level0 col3" data-quarto-table-cell-role="th">F1</th>
+<th id="T_3d8e8_level0_col4" class="col_heading level0 col4" data-quarto-table-cell-role="th">Liczebność</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_b9081_row0_col0" class="data row0 col0">malignant</td>
-<td id="T_b9081_row0_col1" class="data row0 col1">0,909</td>
-<td id="T_b9081_row0_col2" class="data row0 col2">0,952</td>
-<td id="T_b9081_row0_col3" class="data row0 col3">0,930</td>
-<td id="T_b9081_row0_col4" class="data row0 col4">42</td>
+<td id="T_3d8e8_row0_col0" class="data row0 col0">malignant</td>
+<td id="T_3d8e8_row0_col1" class="data row0 col1">0,909</td>
+<td id="T_3d8e8_row0_col2" class="data row0 col2">0,952</td>
+<td id="T_3d8e8_row0_col3" class="data row0 col3">0,930</td>
+<td id="T_3d8e8_row0_col4" class="data row0 col4">42</td>
 </tr>
 <tr class="even">
-<td id="T_b9081_row1_col0" class="data row1 col0">benign</td>
-<td id="T_b9081_row1_col1" class="data row1 col1">0,971</td>
-<td id="T_b9081_row1_col2" class="data row1 col2">0,944</td>
-<td id="T_b9081_row1_col3" class="data row1 col3">0,958</td>
-<td id="T_b9081_row1_col4" class="data row1 col4">72</td>
+<td id="T_3d8e8_row1_col0" class="data row1 col0">benign</td>
+<td id="T_3d8e8_row1_col1" class="data row1 col1">0,971</td>
+<td id="T_3d8e8_row1_col2" class="data row1 col2">0,944</td>
+<td id="T_3d8e8_row1_col3" class="data row1 col3">0,958</td>
+<td id="T_3d8e8_row1_col4" class="data row1 col4">72</td>
 </tr>
 <tr class="odd">
-<td id="T_b9081_row2_col0" class="data row2 col0">macro avg</td>
-<td id="T_b9081_row2_col1" class="data row2 col1">0,940</td>
-<td id="T_b9081_row2_col2" class="data row2 col2">0,948</td>
-<td id="T_b9081_row2_col3" class="data row2 col3">0,944</td>
-<td id="T_b9081_row2_col4" class="data row2 col4">114</td>
+<td id="T_3d8e8_row2_col0" class="data row2 col0">macro avg</td>
+<td id="T_3d8e8_row2_col1" class="data row2 col1">0,940</td>
+<td id="T_3d8e8_row2_col2" class="data row2 col2">0,948</td>
+<td id="T_3d8e8_row2_col3" class="data row2 col3">0,944</td>
+<td id="T_3d8e8_row2_col4" class="data row2 col4">114</td>
 </tr>
 <tr class="even">
-<td id="T_b9081_row3_col0" class="data row3 col0">weighted avg</td>
-<td id="T_b9081_row3_col1" class="data row3 col1">0,948</td>
-<td id="T_b9081_row3_col2" class="data row3 col2">0,947</td>
-<td id="T_b9081_row3_col3" class="data row3 col3">0,948</td>
-<td id="T_b9081_row3_col4" class="data row3 col4">114</td>
+<td id="T_3d8e8_row3_col0" class="data row3 col0">weighted avg</td>
+<td id="T_3d8e8_row3_col1" class="data row3 col1">0,948</td>
+<td id="T_3d8e8_row3_col2" class="data row3 col2">0,947</td>
+<td id="T_3d8e8_row3_col3" class="data row3 col3">0,948</td>
+<td id="T_3d8e8_row3_col4" class="data row3 col4">114</td>
 </tr>
 </tbody>
 </table>
@@ -2099,7 +2099,7 @@ Tabela&nbsp;11: Raport klasyfikacji — zbiór testowy
 <div class="cell-output cell-output-display">
 <div id="wyk6-klasyfikacja-macierz" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="wyk6_files/figure-html/wyk6-klasyfikacja-macierz-output-1.png" width="580" height="470" class="figure-img"></p>
+<p><img src="wyk6_files/figure-html/wyk6-klasyfikacja-macierz-output-1.png?v=993da82ef3b4" width="580" height="470" class="figure-img"></p>
 <figcaption>Macierz pomyłek – zbiór testowy</figcaption>
 </figure>
 </div>
@@ -2142,7 +2142,7 @@ Tabela&nbsp;11: Raport klasyfikacji — zbiór testowy
 <tr class="even">
 <td><strong>Interpretacja wyniku</strong></td>
 <td>Wartość liczbowa</td>
-<td>Prawdopodobieństwo klasy pozytywnej</td>
+<td>Logit; po sigmoidzie prawdopodobieństwo klasy 1 (tutaj: łagodnej)</td>
 </tr>
 <tr class="odd">
 <td><strong>Próg decyzyjny</strong></td>
@@ -2173,7 +2173,7 @@ Tabela&nbsp;11: Raport klasyfikacji — zbiór testowy
 </section>
 <section id="ograniczenia" class="level3">
 <h3 class="anchored" data-anchor-id="ograniczenia">Ograniczenia</h3>
-<p>Sieci neuronowe wymagają starannego przygotowania danych (standaryzacja, usuwanie braków). Są podatne na przeuczenie, szczególnie gdy danych jest mało, a parametrów dużo. Wyniki zależą od wielu hiperparametrów: liczby warstw, liczby neuronów, learning rate, batch size, liczby epok. W przeciwieństwie do regresji liniowej czy drzewa decyzyjnego, wagi sieci nie mają prostej interpretacji.</p>
+<p>Sieci neuronowe wymagają starannego przygotowania danych (standaryzacja, świadomie dobrana obsługa braków). Są podatne na przeuczenie, szczególnie gdy danych jest mało, a parametrów dużo. Wyniki zależą od wielu hiperparametrów: liczby warstw, liczby neuronów, learning rate, batch size, liczby epok. W przeciwieństwie do regresji liniowej czy drzewa decyzyjnego, wagi sieci nie mają prostej interpretacji.</p>
 <div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -2188,7 +2188,7 @@ Tabela&nbsp;11: Raport klasyfikacji — zbiór testowy
 <li><strong>Brak skalowania danych</strong> – sieć będzie się uczyć wolno lub wcale.</li>
 <li><strong>Zbyt duży learning rate</strong> – strata oscyluje i nie spada.</li>
 <li><strong>Zbyt mało danych, zbyt dużo parametrów</strong> – model zapamiętuje zbiór treningowy, ale nie generalizuje.</li>
-<li><strong>Niewłaściwa funkcja straty</strong> – <code>MSELoss</code> do klasyfikacji nie działa poprawnie; użyj <code>BCEWithLogitsLoss</code> lub <code>CrossEntropyLoss</code>.</li>
+<li><strong>Niedopasowanie funkcji straty do wyjścia sieci</strong> – w pokazanych przykładach używamy <code>BCEWithLogitsLoss</code> lub <code>CrossEntropyLoss</code> dla surowych logitów; nie stosujemy przed nimi sigmoida ani softmaxa.</li>
 </ol>
 </div>
 </div>

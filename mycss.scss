@@ -5,3 +5,16 @@ div p{
   text-justify: inter-word;
 }
 
+
+/*-- scss:rules --*/
+
+// Długie równania przewijają się we własnym obszarze, bez rozszerzania strony.
+.math.display,
+mjx-container[display="true"] {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-top: 0.35em;
+  padding-bottom: 0.35em;
+}

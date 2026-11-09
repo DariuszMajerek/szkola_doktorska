@@ -95,7 +95,7 @@ $$G = 1 - \sum_{k=1}^{K} p_k^2,$$
 
 gdzie $p_k$ oznacza udział klasy $k$ w danym węźle. Wartość tej miary jest mała wtedy, gdy węzeł jest prawie jednorodny, a większa wtedy, gdy klasy są silnie wymieszane.
 
-Algorytm budowy drzewa wybiera taki podział, który możliwie najbardziej zmniejsza niejednorodność. W konsekwencji kolejne poziomy drzewa prowadzą do coraz lepszego rozdzielenia klas.
+Algorytm porównuje niejednorodność rodzica z ważoną średnią niejednorodności potomków; wagami są ich udziały liczebności. Wybiera podział o największej redukcji tej miary. W konsekwencji kolejne poziomy drzewa prowadzą do coraz lepszego rozdzielenia klas.
 
 ### Uczenie drzewa jako proces sekwencyjnego podziału
 
@@ -221,7 +221,7 @@ ggplot(dane, aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
   theme_minimal(base_size = 13)
 ```
 
-Na wykresach widać, że gatunki różnią się morfologicznie. Oznacza to, że istnieją przesłanki do zbudowania skutecznego modelu klasyfikacyjnego. Jeżeli klasy tworzą względnie odrębne skupienia w przestrzeni cech, drzewo decyzyjne może konstruować reguły podziału o wyraźnym sensie biologicznym.
+Na wykresach pomijane są jedynie punkty bez jednej z dwóch pokazywanych współrzędnych; te obserwacje pozostają w danych do modelowania. Widać, że gatunki różnią się morfologicznie. Oznacza to, że istnieją przesłanki do zbudowania skutecznego modelu klasyfikacyjnego. Jeżeli klasy tworzą względnie odrębne skupienia w przestrzeni cech, drzewo decyzyjne może konstruować reguły podziału o wyraźnym sensie biologicznym.
 
 ## Przygotowanie danych do modelowania
 
@@ -321,7 +321,7 @@ finalny_workflow <- finalize_workflow(workflow_drzewa, najlepsze_ustawienia)
 
 final_fit <- last_fit(
   finalny_workflow, split,
-  metrics = metric_set(accuracy, roc_auc)
+  metrics = metric_set(accuracy, kap, roc_auc)
 )
 
 collect_metrics(final_fit) |>
@@ -357,12 +357,15 @@ Poza samą trafnością klasyfikacji ważna jest interpretacja reguł decyzyjnyc
 
 ```{r}
 #| label: wyk3-wizualizacja-dopasowania
-model_treningowy <- fit(finalny_workflow, data = train)
+#| fig-width: 12
+#| fig-height: 8
+model_treningowy <- extract_workflow(final_fit)
 obiekt_drzewa <- extract_fit_engine(model_treningowy)
 
 rpart.plot(
   obiekt_drzewa,
-  main = "Drzewo decyzyjne — model końcowy"
+  main = "Drzewo decyzyjne — model końcowy",
+  roundint = FALSE, digits = 4
 )
 ```
 

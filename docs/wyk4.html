@@ -85,9 +85,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-502dd8818b56a2c66749ffbc31bcd64e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-e7c7cb72a47119ae0b6917a2100602d9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-502dd8818b56a2c66749ffbc31bcd64e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-3d0ad9eed4cf45e77d2f560b75de2460.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-e86ad0456e038ac436cb87d190a1adee.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-3d0ad9eed4cf45e77d2f560b75de2460.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -334,8 +334,8 @@ window.Quarto = {
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
       <a href="./index.html" class="sidebar-logo-link">
-      <img src="./logo.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
-      <img src="./logo.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      <img src="./logo.png?v=bd444c0a4783" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="./logo.png?v=bd444c0a4783" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
       </a>
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Statystyka stosowana</a> 
@@ -564,7 +564,7 @@ window.Quarto = {
 <section id="dlaczego-metody-zespołowe" class="level3">
 <h3 class="anchored" data-anchor-id="dlaczego-metody-zespołowe">Dlaczego metody zespołowe?</h3>
 <p>Pojedyncze drzewo decyzyjne jest łatwe do interpretacji, ale często bywa niestabilne. Niewielka zmiana danych treningowych może prowadzić do innego pierwszego podziału, a później do zupełnie innej struktury drzewa. To oznacza dużą wariancję modelu.</p>
-<p>Metody zespołowe zmniejszają ten problem przez łączenie wielu modeli. Zamiast opierać predykcję na jednym drzewie, budujemy wiele drzew i agregujemy ich wyniki. W regresji najczęściej oznacza to uśrednianie predykcji:</p>
+<p>Metody zespołowe zmniejszają ten problem przez łączenie wielu modeli. Zamiast opierać predykcję na jednym drzewie, budujemy wiele drzew i agregujemy ich wyniki. W regresji bagging i las losowy uśredniają predykcje; poniższy wzór dotyczy tych dwóch metod, a nie addytywnego XGBoost:</p>
 <p><span class="math display">\[
 \hat{y}(x) = \frac{1}{B}\sum_{b=1}^{B} \hat{f}_b(x),
 \]</span></p>
@@ -1825,13 +1825,13 @@ window.Quarto = {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk4_files/figure-html/wyk4-rozklad-ceny-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk4_files/figure-html/wyk4-rozklad-ceny-1.png?v=24b2c9a1a18a" class="img-fluid figure-img" width="864"></p>
 <figcaption>Rozkład ceny sprzedaży domów</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Rozkład ceny jest prawostronnie skośny: większość domów znajduje się w niższym i średnim zakresie cenowym, natomiast niewielka liczba nieruchomości jest wyraźnie droższa. To uzasadnia modelowanie logarytmu ceny, ponieważ na tej skali rozkład jest zwykle bardziej symetryczny.</p>
+<p>Rozkład ceny jest prawostronnie skośny: większość domów znajduje się w niższym i średnim zakresie cenowym, natomiast niewielka liczba nieruchomości jest wyraźnie droższa. Modelowanie logarytmu ceny przesuwa nacisk na błędy względne. Większa symetria rozkładu może ułatwiać analizę, ale drzewa nie wymagają normalności zmiennej objaśnianej.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Kod</summary>
@@ -1844,7 +1844,7 @@ window.Quarto = {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk4_files/figure-html/wyk4-rozklad-log-ceny-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk4_files/figure-html/wyk4-rozklad-log-ceny-1.png?v=194835e6cb7b" class="img-fluid figure-img" width="672"></p>
 <figcaption>Rozkład logarytmu ceny sprzedaży</figcaption>
 </figure>
 </div>
@@ -1864,12 +1864,13 @@ window.Quarto = {
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Ogólny stan techniczny"</span>,</span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Cena sprzedaży [tys. dolarów]"</span></span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">13</span>) <span class="sc">+</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">35</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk4_files/figure-html/wyk4-cena-jakosc-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk4_files/figure-html/wyk4-cena-jakosc-1.png?v=31e5a58a2ba3" class="img-fluid figure-img" width="672"></p>
 <figcaption>Cena sprzedaży a ogólny stan techniczny</figcaption>
 </figure>
 </div>
@@ -1887,7 +1888,7 @@ window.Quarto = {
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.45</span>, <span class="at">color =</span> <span class="st">"steelblue"</span>) <span class="sc">+</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"darkorange"</span>) <span class="sc">+</span></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Powierzchnia mieszkalna nad poziomem gruntu"</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Powierzchnia mieszkalna nad poziomem gruntu</span><span class="sc">\n</span><span class="st">[stopy kwadratowe]"</span>,</span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Cena sprzedaży [tys. dolarów]"</span></span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1895,7 +1896,7 @@ window.Quarto = {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk4_files/figure-html/wyk4-cena-powierzchnia-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk4_files/figure-html/wyk4-cena-powierzchnia-1.png?v=f0bc540b1ab8" class="img-fluid figure-img" width="672"></p>
 <figcaption>Cena sprzedaży a powierzchnia mieszkalna</figcaption>
 </figure>
 </div>
@@ -1925,7 +1926,7 @@ window.Quarto = {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk4_files/figure-html/wyk4-cena-dzielnica-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk4_files/figure-html/wyk4-cena-dzielnica-1.png?v=f004c745c2d8" class="img-fluid figure-img" width="672"></p>
 <figcaption>Cena sprzedaży w wybranych dzielnicach</figcaption>
 </figure>
 </div>
@@ -2023,7 +2024,7 @@ window.Quarto = {
 </section>
 <section id="model-3-xgboost" class="level3">
 <h3 class="anchored" data-anchor-id="model-3-xgboost">Model 3: XGBoost</h3>
-<p>XGBoost wymaga dobrania większej liczby parametrów. W przykładzie stroimy liczbę drzew, głębokość drzew, tempo uczenia, minimalną liczbę obserwacji w liściu, redukcję straty wymaganą do podziału oraz odsetek obserwacji używany w kolejnych iteracjach.</p>
+<p>XGBoost wymaga dobrania większej liczby parametrów. W przykładzie stroimy liczbę drzew, głębokość drzew, tempo uczenia, parametr <code>min_n</code>, redukcję straty wymaganą do podziału oraz odsetek obserwacji używany w kolejnych iteracjach.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Kod</summary>
@@ -2053,6 +2054,7 @@ window.Quarto = {
 <span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
+<p>W silniku XGBoost <code>min_n</code> jest przekazywany jako <code>min_child_weight</code>: ogranicza sumę wag wynikających z drugich pochodnych funkcji straty w potomku. Dla nieważonej regresji z błędem kwadratowym odpowiada liczebności, ale nie jest to ogólna definicja liczby obserwacji dla każdej funkcji straty. Zob. <a href="https://parsnip.tidymodels.org/reference/details_boost_tree_xgboost.html">mapowanie parametrów silnika</a>.</p>
 <p>Siatka dla XGBoost jest losowa, ponieważ pełne przeszukanie wszystkich kombinacji parametrów byłoby zbyt kosztowne. W praktyce często zaczyna się od niezbyt dużej siatki, a potem zawęża zakresy parametrów wokół najlepszego rozwiązania.</p>
 </section>
 </section>
@@ -5898,7 +5900,7 @@ window.Quarto = {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk4_files/figure-html/wyk4-wykres-predykcji-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk4_files/figure-html/wyk4-wykres-predykcji-1.png?v=253531cfa122" class="img-fluid figure-img" width="672"></p>
 <figcaption>Cena rzeczywista a cena przewidywana przez najlepszy model</figcaption>
 </figure>
 </div>
@@ -5915,7 +5917,7 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Kod</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>model_rf_trening <span class="ot">&lt;-</span> <span class="fu">fit</span>(finalny_rf, <span class="at">data =</span> train)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>model_rf_trening <span class="ot">&lt;-</span> <span class="fu">extract_workflow</span>(fit_rf)</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="fu">extract_fit_engine</span>(model_rf_trening)<span class="sc">$</span>variable.importance <span class="sc">|&gt;</span></span>
 <span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">enframe</span>(<span class="at">name =</span> <span class="st">"zmienna"</span>, <span class="at">value =</span> <span class="st">"waznosc"</span>) <span class="sc">|&gt;</span></span>
@@ -5930,7 +5932,7 @@ window.Quarto = {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk4_files/figure-html/wyk4-vip-rf-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk4_files/figure-html/wyk4-vip-rf-1.png?v=e5216155121b" class="img-fluid figure-img" width="672"></p>
 <figcaption>Ważność zmiennych w modelu lasu losowego</figcaption>
 </figure>
 </div>
@@ -5943,7 +5945,7 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Kod</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>model_xgb_trening <span class="ot">&lt;-</span> <span class="fu">fit</span>(finalny_xgb, <span class="at">data =</span> train)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>model_xgb_trening <span class="ot">&lt;-</span> <span class="fu">extract_workflow</span>(fit_xgb)</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">xgb.importance</span>(<span class="at">model =</span> <span class="fu">extract_fit_engine</span>(model_xgb_trening)) <span class="sc">|&gt;</span></span>
 <span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
@@ -5958,13 +5960,13 @@ window.Quarto = {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk4_files/figure-html/wyk4-vip-xgb-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk4_files/figure-html/wyk4-vip-xgb-1.png?v=bd8c994a8b62" class="img-fluid figure-img" width="672"></p>
 <figcaption>Ważność zmiennych w modelu XGBoost</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Ważność zmiennych w XGBoost należy interpretować jako wskazówkę, które predyktory najczęściej poprawiały funkcję straty w kolejnych drzewach. Nie jest to bezpośrednia miara przyczynowego wpływu zmiennej na cenę.</p>
+<p>Ważność zmiennych w XGBoost należy interpretować jako wskazówkę, które predyktory odpowiadały za największy łączny zysk przy podziałach (Gain), a nie jedynie najczęściej pojawiały się w drzewach. Gain opisuje poprawę funkcji celu w kolejnych drzewach. Nie jest to bezpośrednia miara przyczynowego wpływu zmiennej na cenę.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">

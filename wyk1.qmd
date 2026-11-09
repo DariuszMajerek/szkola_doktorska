@@ -275,7 +275,7 @@ rmse <- function(y, yhat) {
 
 porownanie_modeli <- tibble(
   model = names(modele),
-  liczba_predyktorow = c(1, 2, 4, 5),
+  liczba_predyktorow = c(1L, 2L, 4L, 5L),
   adj_r2_trening = map_dbl(modele, ~ summary(.x)$adj.r.squared),
   aic_trening = map_dbl(modele, AIC)
 ) |>
@@ -352,6 +352,7 @@ Do oceny dopasowania wykorzystamy kilka miar.
 #| label: wyk1-miary-dopasowania
 #| echo: false
 rmse_model3_test <- rmse(test$mpg, predict(model_3, newdata = test))
+rmse_bazowy_test <- rmse(test$mpg, rep(mean(trening$mpg), nrow(test)))
 podsumowanie_modelu <- summary(model_koncowy)
 f_modelu <- podsumowanie_modelu$fstatistic
 p_f_modelu <- pf(
@@ -368,7 +369,8 @@ miary_dopasowania <- tibble(
     sprintf("Statystyka F (%d, %d)", f_modelu[["numdf"]], f_modelu[["dendf"]]),
     "Wartość p testu F",
     "Błąd standardowy reszt",
-    "RMSE na zbiorze testowym"
+    "RMSE na zbiorze testowym",
+    "RMSE modelu bazowego — średnia treningowa"
   ),
   wartosc = c(
     summary(model_koncowy)$r.squared,
@@ -376,7 +378,8 @@ miary_dopasowania <- tibble(
     unname(f_modelu[["value"]]),
     unname(p_f_modelu),
     summary(model_koncowy)$sigma,
-    rmse_model3_test
+    rmse_model3_test,
+    rmse_bazowy_test
   )
 )
 
@@ -387,7 +390,7 @@ miary_dopasowania |>
   fmt(columns = wartosc, rows = miara == "Wartość p testu F",
       fns = function(x) ifelse(x < 0.001, "< 0,001",
                               formatC(x, digits = 3, format = "f", decimal.mark = ","))) |>
-  tab_caption("Wybrane miary dopasowania modelu końcowego")
+  tab_caption("Dopasowanie modelu pełnego i ocena predykcji modelu treningowego")
 ```
 
 ### Interpretacja testu F
@@ -398,7 +401,7 @@ W tym przykładzie otrzymujemy $F(4, 27) = `r round(unname(f_modelu[["value"]]),
 
 Jest to nominalna wartość p dla ustalonej postaci modelu; nie uwzględnia wcześniejszego wyboru predyktorów na podstawie danych. Ponadto sygnały nieliniowości omówione w diagnostyce ograniczają wiarygodność klasycznej interpretacji testu.
 
-Wysokie $R^2$ opisuje dopasowanie na pełnych danych. Testowe RMSE dotyczy innego dopasowania (`model_3`, uczonego na 22 autach); wynik z 10 aut ma dużą niepewność. Jego użyteczność trzeba ocenić względem modelu bazowego (np. średniej treningowej) i akceptowalnego błędu w jednostkach `mpg`. Nie jest to walidacja modelu ponownie dopasowanego na wszystkich 32 autach.
+Wysokie $R^2$ opisuje dopasowanie na pełnych danych. Testowe RMSE dotyczy innego dopasowania (`model_3`, uczonego na 22 autach); wynik z 10 aut ma dużą niepewność. Jego użyteczność trzeba ocenić względem modelu bazowego (np. średniej treningowej) i akceptowalnego błędu w jednostkach `mpg`. Model bazowy zawsze przewiduje średnią `mpg` ze zbioru treningowego; jego testowe RMSE pokazano w tej samej tabeli. Nie jest to walidacja modelu ponownie dopasowanego na wszystkich 32 autach.
 
 ## Sprawdzanie założeń
 
@@ -572,7 +575,7 @@ Dla skrzyni biegów klasyczny test daje wynik bliski 0.05; jest on wrażliwy na 
 Na podstawie przeprowadzonej analizy możemy sformułować następujące wnioski:
 
 1.  Regresja liniowa może być skutecznym narzędziem do przewidywania wartości liczbowej dla danych tabularycznych.
-2.  W analizowanym przykładzie sensowną zmienną objaśnianą było `mpg`, a użytecznymi zmiennymi objaśniającymi okazały się `wt`, `hp`, `qsec` i `am`.
+2.  W analizowanym przykładzie sensowną zmienną objaśnianą było `mpg`, a wybrany model wykorzystuje `wt`, `hp`, `qsec` i `am`; nie oznacza to, że wykazano przydatność predykcyjną każdej z tych cech osobno.
 3.  Wybrany model jest kandydatem dydaktycznym; mała próba, wpływowe auta i sygnały nieliniowości ograniczają pewność wniosków.
 4.  Najważniejszym predyktorem efektywności paliwowej okazała się masa samochodu.
 5.  Model ten nadaje się do celów dydaktycznych i do wstępnych prognoz, ale nie powinien być traktowany jako model uniwersalny dla wszystkich współczesnych pojazdów.

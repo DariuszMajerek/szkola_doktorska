@@ -85,9 +85,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-502dd8818b56a2c66749ffbc31bcd64e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-e7c7cb72a47119ae0b6917a2100602d9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-502dd8818b56a2c66749ffbc31bcd64e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-3d0ad9eed4cf45e77d2f560b75de2460.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-e86ad0456e038ac436cb87d190a1adee.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-3d0ad9eed4cf45e77d2f560b75de2460.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -334,8 +334,8 @@ window.Quarto = {
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
       <a href="./index.html" class="sidebar-logo-link">
-      <img src="./logo.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
-      <img src="./logo.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      <img src="./logo.png?v=bd444c0a4783" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="./logo.png?v=bd444c0a4783" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
       </a>
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Statystyka stosowana</a> 
@@ -546,7 +546,7 @@ window.Quarto = {
 <p>Ten odstęp nazywamy <strong>marginesem</strong>. Im szerszy margines, tym większy „zapas bezpieczeństwa” decyzji. Jeśli nowa obserwacja jest trochę zaszumiona albo pomiar jest niedokładny, szeroki margines może pomóc modelowi zachować stabilną decyzję.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figs/Svm_max_sep_hyperplane_with_margin.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:45.0%"></p>
+<p><img src="figs/Svm_max_sep_hyperplane_with_margin.png?v=3006804d951b" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:45.0%"></p>
 </figure>
 </div>
 <p>Na ilustracji linia środkowa jest granicą decyzyjną. Linie przerywane wyznaczają brzegi marginesu. Punkty najbliżej tych linii mają największe znaczenie dla modelu. To właśnie one są <strong>wektorami nośnymi</strong>.</p>
@@ -584,7 +584,7 @@ window.Quarto = {
 <p>Jądro pozwala modelowi działać tak, jakby dane zostały przeniesione do bogatszej przestrzeni cech. W tej nowej przestrzeni prosta granica może odpowiadać zakrzywionej granicy w oryginalnych danych.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figs/Kernel_Machine.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+<p><img src="figs/Kernel_Machine.png?v=6ef460c06440" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
 </figure>
 </div>
 <p>Ilustracja pokazuje najważniejszą ideę: w oryginalnej przestrzeni granica może być nieliniowa, ale po przekształceniu danych model może potraktować problem jak separację liniową w innej przestrzeni.</p>
@@ -652,12 +652,13 @@ window.Quarto = {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk5_files/figure-html/wyk5-ilustracja-svr-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk5_files/figure-html/wyk5-ilustracja-svr-1.png?v=f167d2219ef5" class="img-fluid figure-img" width="672"></p>
 <figcaption>Intuicja regresji SVR: funkcja predykcyjna i rurka tolerancji epsilon</figcaption>
 </figure>
 </div>
 </div>
 </div>
+<p>Ilustracja przedstawia ideę pasa tolerancji wokół zadanej funkcji; nie jest wynikiem dopasowania modelu SVR do tych punktów.</p>
 </section>
 <section id="parametr-epsilon" class="level3">
 <h3 class="anchored" data-anchor-id="parametr-epsilon">Parametr <code>epsilon</code></h3>
@@ -1223,7 +1224,7 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<p>Wykorzystujemy cztery cechy liczbowe opisujące budowę ciała pingwina, mierzone w różnych jednostkach (stąd standaryzacja w recepcie).</p>
+<p>Wykorzystujemy cztery cechy liczbowe opisujące budowę ciała pingwina, mierzone w różnych jednostkach (stąd standaryzacja w recepcie). Ustawienie <code>scaled = FALSE</code> wyłącza dodatkowe skalowanie przez <code>kernlab</code>, ponieważ przetwarzanie predyktorów wykonuje recepta.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Kod</summary>
@@ -1240,7 +1241,7 @@ window.Quarto = {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk5_files/figure-html/wyk5-klasyfikacja-eda-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk5_files/figure-html/wyk5-klasyfikacja-eda-1.png?v=95d074c818bd" class="img-fluid figure-img" width="672"></p>
 <figcaption>Dwie cechy morfologiczne pingwinów według gatunku</figcaption>
 </figure>
 </div>
@@ -1286,7 +1287,7 @@ window.Quarto = {
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">cost =</span> <span class="fu">tune</span>(),</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">rbf_sigma =</span> <span class="fu">tune</span>()</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"kernlab"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"kernlab"</span>, <span class="at">scaled =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">"classification"</span>)</span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>workflow_klasyfikacja <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">|&gt;</span></span>
@@ -3421,7 +3422,7 @@ Przewidywana klasa
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"darkorange"</span>) <span class="sc">+</span></span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Powierzchnia mieszkalna nad poziomem gruntu"</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Powierzchnia mieszkalna nad poziomem gruntu</span><span class="sc">\n</span><span class="st">[stopy kwadratowe]"</span>,</span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Cena sprzedaży [tys. dolarów]"</span></span>
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
 <span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Kopiuj do schowka" class="code-copy-button"><i class="bi"></i></button></div>
@@ -3429,7 +3430,7 @@ Przewidywana klasa
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk5_files/figure-html/wyk5-regresja-eda-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk5_files/figure-html/wyk5-regresja-eda-1.png?v=6c5306b85047" class="img-fluid figure-img" width="672"></p>
 <figcaption>Cena sprzedaży a powierzchnia mieszkalna</figcaption>
 </figure>
 </div>
@@ -3486,7 +3487,7 @@ Przewidywana klasa
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">rbf_sigma =</span> <span class="fu">tune</span>(),</span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">margin =</span> <span class="fu">tune</span>()</span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"kernlab"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"kernlab"</span>, <span class="at">scaled =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">"regression"</span>)</span>
 <span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>workflow_regresja <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">|&gt;</span></span>
@@ -3504,8 +3505,9 @@ Przewidywana klasa
 <ul>
 <li><code>cost</code>, czyli siłę kary za obserwacje źle dopasowane,</li>
 <li><code>rbf_sigma</code>, czyli lokalność jądra RBF,</li>
-<li><code>margin</code>, czyli odpowiednik szerokości tolerancji <code>epsilon</code>.</li>
+<li><code>margin</code>, czyli <code>epsilon</code> — połowę szerokości pasa tolerancji.</li>
 </ul>
+<p>W silniku jawnie ustawiamy <code>scaled = FALSE</code>: predyktory standaryzuje recepta, a cel pozostaje na skali <code>log10(ceny)</code>. Dzięki temu <code>margin</code> ma jednostki logarytmu ceny. Domyślne skalowanie w <code>kernlab</code> obejmowałoby również zmienną docelową, zmieniając interpretację tej wartości.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Kod</summary>
@@ -3989,68 +3991,68 @@ Przewidywana klasa
 </thead>
 <tbody class="gt_table_body">
 <tr class="odd">
-<td class="gt_row gt_right" headers="cost">5,000</td>
+<td class="gt_row gt_right" headers="cost">1,000</td>
 <td class="gt_row gt_right" headers="rbf_sigma">0,005</td>
-<td class="gt_row gt_right" headers="margin">0,060</td>
+<td class="gt_row gt_right" headers="margin">0,030</td>
 <td class="gt_row gt_right" headers="mean">0,064</td>
 <td class="gt_row gt_right" headers="n">3</td>
 <td class="gt_row gt_right" headers="std_err">0,004</td>
 </tr>
 <tr class="even">
-<td class="gt_row gt_right gt_striped" headers="cost">5,000</td>
+<td class="gt_row gt_right gt_striped" headers="cost">1,000</td>
 <td class="gt_row gt_right gt_striped" headers="rbf_sigma">0,005</td>
-<td class="gt_row gt_right gt_striped" headers="margin">0,030</td>
+<td class="gt_row gt_right gt_striped" headers="margin">0,060</td>
 <td class="gt_row gt_right gt_striped" headers="mean">0,064</td>
 <td class="gt_row gt_right gt_striped" headers="n">3</td>
 <td class="gt_row gt_right gt_striped" headers="std_err">0,004</td>
 </tr>
 <tr class="odd">
-<td class="gt_row gt_right" headers="cost">5,000</td>
+<td class="gt_row gt_right" headers="cost">1,000</td>
 <td class="gt_row gt_right" headers="rbf_sigma">0,005</td>
 <td class="gt_row gt_right" headers="margin">0,010</td>
-<td class="gt_row gt_right" headers="mean">0,065</td>
+<td class="gt_row gt_right" headers="mean">0,064</td>
 <td class="gt_row gt_right" headers="n">3</td>
 <td class="gt_row gt_right" headers="std_err">0,004</td>
 </tr>
 <tr class="even">
-<td class="gt_row gt_right gt_striped" headers="cost">20,000</td>
-<td class="gt_row gt_right gt_striped" headers="rbf_sigma">0,005</td>
-<td class="gt_row gt_right gt_striped" headers="margin">0,060</td>
+<td class="gt_row gt_right gt_striped" headers="cost">1,000</td>
+<td class="gt_row gt_right gt_striped" headers="rbf_sigma">0,020</td>
+<td class="gt_row gt_right gt_striped" headers="margin">0,030</td>
 <td class="gt_row gt_right gt_striped" headers="mean">0,065</td>
 <td class="gt_row gt_right gt_striped" headers="n">3</td>
-<td class="gt_row gt_right gt_striped" headers="std_err">0,004</td>
+<td class="gt_row gt_right gt_striped" headers="std_err">0,003</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_right" headers="cost">5,000</td>
-<td class="gt_row gt_right" headers="rbf_sigma">0,020</td>
-<td class="gt_row gt_right" headers="margin">0,060</td>
-<td class="gt_row gt_right" headers="mean">0,065</td>
-<td class="gt_row gt_right" headers="n">3</td>
-<td class="gt_row gt_right" headers="std_err">0,003</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_right gt_striped" headers="cost">20,000</td>
-<td class="gt_row gt_right gt_striped" headers="rbf_sigma">0,005</td>
-<td class="gt_row gt_right gt_striped" headers="margin">0,030</td>
-<td class="gt_row gt_right gt_striped" headers="mean">0,066</td>
-<td class="gt_row gt_right gt_striped" headers="n">3</td>
-<td class="gt_row gt_right gt_striped" headers="std_err">0,004</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_right" headers="cost">5,000</td>
-<td class="gt_row gt_right" headers="rbf_sigma">0,020</td>
+<td class="gt_row gt_right" headers="rbf_sigma">0,005</td>
 <td class="gt_row gt_right" headers="margin">0,030</td>
 <td class="gt_row gt_right" headers="mean">0,066</td>
 <td class="gt_row gt_right" headers="n">3</td>
-<td class="gt_row gt_right" headers="std_err">0,003</td>
+<td class="gt_row gt_right" headers="std_err">0,002</td>
 </tr>
 <tr class="even">
-<td class="gt_row gt_right gt_striped" headers="cost">20,000</td>
-<td class="gt_row gt_right gt_striped" headers="rbf_sigma">0,005</td>
+<td class="gt_row gt_right gt_striped" headers="cost">1,000</td>
+<td class="gt_row gt_right gt_striped" headers="rbf_sigma">0,020</td>
 <td class="gt_row gt_right gt_striped" headers="margin">0,010</td>
 <td class="gt_row gt_right gt_striped" headers="mean">0,066</td>
 <td class="gt_row gt_right gt_striped" headers="n">3</td>
-<td class="gt_row gt_right gt_striped" headers="std_err">0,004</td>
+<td class="gt_row gt_right gt_striped" headers="std_err">0,003</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="cost">5,000</td>
+<td class="gt_row gt_right" headers="rbf_sigma">0,005</td>
+<td class="gt_row gt_right" headers="margin">0,060</td>
+<td class="gt_row gt_right" headers="mean">0,067</td>
+<td class="gt_row gt_right" headers="n">3</td>
+<td class="gt_row gt_right" headers="std_err">0,003</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right gt_striped" headers="cost">5,000</td>
+<td class="gt_row gt_right gt_striped" headers="rbf_sigma">0,005</td>
+<td class="gt_row gt_right gt_striped" headers="margin">0,010</td>
+<td class="gt_row gt_right gt_striped" headers="mean">0,067</td>
+<td class="gt_row gt_right gt_striped" headers="n">3</td>
+<td class="gt_row gt_right gt_striped" headers="std_err">0,003</td>
 </tr>
 </tbody>
 </table>
@@ -4554,7 +4556,7 @@ Przewidywana klasa
 </tr>
 <tr class="even">
 <td class="gt_row gt_left gt_striped" headers="Metryka">mae</td>
-<td class="gt_row gt_right gt_striped" headers="Wartosc">0,042</td>
+<td class="gt_row gt_right gt_striped" headers="Wartosc">0,043</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="Metryka">rsq</td>
@@ -5052,63 +5054,63 @@ Przewidywana klasa
 <tbody class="gt_table_body">
 <tr class="odd">
 <td class="gt_row gt_right" headers="cena_rzeczywista">$105,000.000</td>
-<td class="gt_row gt_right" headers="cena_przewidywana">$128,313.586</td>
-<td class="gt_row gt_right" headers="blad">$23,313.586</td>
-<td class="gt_row gt_right" headers="blad_proc">22.203</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$128,081.449</td>
+<td class="gt_row gt_right" headers="blad">$23,081.449</td>
+<td class="gt_row gt_right" headers="blad_proc">21.982</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_right" headers="cena_rzeczywista">$189,000.000</td>
-<td class="gt_row gt_right" headers="cena_przewidywana">$197,661.079</td>
-<td class="gt_row gt_right" headers="blad">$8,661.079</td>
-<td class="gt_row gt_right" headers="blad_proc">4.583</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$196,291.557</td>
+<td class="gt_row gt_right" headers="blad">$7,291.557</td>
+<td class="gt_row gt_right" headers="blad_proc">3.858</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_right" headers="cena_rzeczywista">$185,000.000</td>
-<td class="gt_row gt_right" headers="cena_przewidywana">$171,225.102</td>
-<td class="gt_row gt_right" headers="blad">−$13,774.898</td>
-<td class="gt_row gt_right" headers="blad_proc">−7.446</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$166,309.246</td>
+<td class="gt_row gt_right" headers="blad">−$18,690.754</td>
+<td class="gt_row gt_right" headers="blad_proc">−10.103</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_right" headers="cena_rzeczywista">$216,000.000</td>
-<td class="gt_row gt_right" headers="cena_przewidywana">$206,317.508</td>
-<td class="gt_row gt_right" headers="blad">−$9,682.492</td>
-<td class="gt_row gt_right" headers="blad_proc">−4.483</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$205,747.245</td>
+<td class="gt_row gt_right" headers="blad">−$10,252.755</td>
+<td class="gt_row gt_right" headers="blad_proc">−4.747</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_right" headers="cena_rzeczywista">$259,000.000</td>
-<td class="gt_row gt_right" headers="cena_przewidywana">$323,173.564</td>
-<td class="gt_row gt_right" headers="blad">$64,173.564</td>
-<td class="gt_row gt_right" headers="blad_proc">24.777</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$325,520.110</td>
+<td class="gt_row gt_right" headers="blad">$66,520.110</td>
+<td class="gt_row gt_right" headers="blad_proc">25.683</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_right" headers="cena_rzeczywista">$500,000.000</td>
-<td class="gt_row gt_right" headers="cena_przewidywana">$513,021.849</td>
-<td class="gt_row gt_right" headers="blad">$13,021.849</td>
-<td class="gt_row gt_right" headers="blad_proc">2.604</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$511,699.692</td>
+<td class="gt_row gt_right" headers="blad">$11,699.692</td>
+<td class="gt_row gt_right" headers="blad_proc">2.340</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_right" headers="cena_rzeczywista">$199,500.000</td>
-<td class="gt_row gt_right" headers="cena_przewidywana">$198,182.338</td>
-<td class="gt_row gt_right" headers="blad">−$1,317.662</td>
-<td class="gt_row gt_right" headers="blad_proc">−0.660</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$202,234.275</td>
+<td class="gt_row gt_right" headers="blad">$2,734.275</td>
+<td class="gt_row gt_right" headers="blad_proc">1.371</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_right" headers="cena_rzeczywista">$184,500.000</td>
-<td class="gt_row gt_right" headers="cena_przewidywana">$165,644.391</td>
-<td class="gt_row gt_right" headers="blad">−$18,855.609</td>
-<td class="gt_row gt_right" headers="blad_proc">−10.220</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$165,516.621</td>
+<td class="gt_row gt_right" headers="blad">−$18,983.379</td>
+<td class="gt_row gt_right" headers="blad_proc">−10.289</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_right" headers="cena_rzeczywista">$222,500.000</td>
-<td class="gt_row gt_right" headers="cena_przewidywana">$211,176.442</td>
-<td class="gt_row gt_right" headers="blad">−$11,323.558</td>
-<td class="gt_row gt_right" headers="blad_proc">−5.089</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$211,492.928</td>
+<td class="gt_row gt_right" headers="blad">−$11,007.072</td>
+<td class="gt_row gt_right" headers="blad_proc">−4.947</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_right" headers="cena_rzeczywista">$333,168.000</td>
-<td class="gt_row gt_right" headers="cena_przewidywana">$349,032.868</td>
-<td class="gt_row gt_right" headers="blad">$15,864.868</td>
-<td class="gt_row gt_right" headers="blad_proc">4.762</td>
+<td class="gt_row gt_right" headers="cena_przewidywana">$349,449.017</td>
+<td class="gt_row gt_right" headers="blad">$16,281.017</td>
+<td class="gt_row gt_right" headers="blad_proc">4.887</td>
 </tr>
 </tbody>
 </table>
@@ -5138,7 +5140,7 @@ Przewidywana klasa
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="wyk5_files/figure-html/wyk5-regresja-wykres-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="wyk5_files/figure-html/wyk5-regresja-wykres-1.png?v=d188a037511a" class="img-fluid figure-img" width="672"></p>
 <figcaption>Wartości rzeczywiste i przewidywane w regresji SVR</figcaption>
 </figure>
 </div>

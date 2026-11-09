@@ -481,7 +481,8 @@ miary_klas |>
 ### Krzywa ROC i AUC
 
 ```{r}
-#| label: wyk2-roc
+#| label: wyk2-roc-progi
+#| fig-alt: "Krzywa ROC: oś X to 1-Specyficzność, oś Y to czułość; zaznaczono progi od 0,3 do 0,7 i przekątną AUC 0,5."
 #| fig-cap: "Krzywa ROC modelu końcowego"
 roc_obj <- roc(dane_model$low01, dane_model$pred_prob,
                levels = c(0, 1), direction = "<", quiet = TRUE)
@@ -490,8 +491,7 @@ progi_roc <- pROC::coords(
     roc_obj,
     x = c(0.3, 0.4, 0.5, 0.6, 0.7),
     input = "threshold",
-    ret = c("threshold", "specificity", "sensitivity"),
-    transpose = FALSE
+    ret = c("threshold", "specificity", "sensitivity")
 ) |>
     as_tibble() |>
     mutate(
@@ -499,7 +499,30 @@ progi_roc <- pROC::coords(
         etykieta = sprintf("próg = %.1f", threshold)
     )
 
-ggroc(roc_obj, legacy.axes = TRUE, color = "firebrick", linewidth = 1) +
+# Niezależna kontrola punktów: ta sama reguła >= jak w macierzy pomyłek.
+czulosc_recznie <- vapply(progi_roc$threshold, function(t) {
+    mean(dane_model$pred_prob[dane_model$low01 == 1] >= t)
+}, numeric(1))
+fpr_recznie <- vapply(progi_roc$threshold, function(t) {
+    mean(dane_model$pred_prob[dane_model$low01 == 0] >= t)
+}, numeric(1))
+stopifnot(
+    nrow(progi_roc) == 5L,
+    isTRUE(all.equal(progi_roc$sensitivity, czulosc_recznie)),
+    isTRUE(all.equal(progi_roc$fpr, fpr_recznie))
+)
+
+# Jawne współrzędne eliminują niejednoznaczność odwróconej osi specificity.
+krzywa_roc <- tibble(
+    fpr = 1 - roc_obj$specificities,
+    czulosc = roc_obj$sensitivities
+)
+ggplot(krzywa_roc, aes(x = fpr, y = czulosc)) +
+    geom_path(color = "firebrick", linewidth = 1) +
+    annotate(
+        "segment", x = 0, y = 0, xend = 1, yend = 1,
+        linetype = "dashed", color = "grey50"
+    ) +
     geom_point(
         data = progi_roc,
         aes(x = fpr, y = sensitivity),
@@ -513,21 +536,38 @@ ggroc(roc_obj, legacy.axes = TRUE, color = "firebrick", linewidth = 1) +
         min.segment.length = 0, max.overlaps = Inf
     ) +
     annotate(
-        "segment", x = 0, y = 0, xend = 1, yend = 1,
-        linetype = "dashed", color = "grey50"
-    ) +
-    annotate(
         "text", x = 0.75, y = 0.65,
         label = "AUC = 0.5", color = "grey50", size = 4
     ) +
     annotate(
         "text",
-        x = 0.3, y = 0.2,
+        x = 0.72, y = 0.18,
         label = sprintf("AUC = %.3f", auc(roc_obj)),
         size = 5, color = "firebrick"
     ) +
-    labs(x = "1-Specyficzność", y = "Czułość", title = "Krzywa ROC") +
+    scale_x_continuous(breaks = seq(0, 1, 0.2), limits = c(0, 1)) +
+    scale_y_continuous(breaks = seq(0, 1, 0.2), limits = c(0, 1)) +
+    coord_equal() +
+    labs(
+        x = "1-Specyficzność (FPR)", y = "Czułość (TPR)", title = "Krzywa ROC"
+    ) +
     theme_minimal(base_size = 13)
+```
+
+Dla progu $t$ przewidujemy klasę „niska”, gdy przewidywane prawdopodobieństwo jest co najmniej równe $t$. Oś X pokazuje odsetek fałszywie dodatnich klasyfikacji wśród porodów bez niskiej masy, a oś Y — odsetek poprawnie wykrytych przypadków niskiej masy. Obie osie rosną od 0 do 1. Punkty dla progów 0,3–0,7 nie muszą leżeć na narożnikach krzywej: kolejne progi mogą zmieniać tylko jedną z dwóch współrzędnych.
+
+```{r}
+#| label: wyk2-tabela-progow-roc
+progi_roc |>
+    transmute(
+        prog = threshold,
+        czulosc = sensitivity,
+        specyficznosc = specificity,
+        odsetek_falszywie_dodatnich = fpr
+    ) |>
+    tabela_wynikow("Progi odcięcia i współrzędne punktów ROC") |>
+    cols_label(prog = "Próg", czulosc = "Czułość (TPR)",
+               specyficznosc = "Specyficzność", odsetek_falszywie_dodatnich = "1-Specyficzność (FPR)")
 ```
 
 AUC wynosi `r round(as.numeric(auc(roc_obj)), 3)`, ale obliczono je na danych dopasowania i wyboru modelu. Podobnie macierz pomyłek i miary klasyfikacyjne są ocenami pozornymi, zwykle optymistycznymi. Accuracy porównujemy z klasyfikacją większościową (tutaj około 69%). Próg 0.5 jest przykładowy; jego dobór wymaga uzasadnienia kosztami błędów i walidacji. Pseudo-$R^2$ Nagelkerkego nie jest odsetkiem wyjaśnionej wariancji.
